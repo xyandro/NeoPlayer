@@ -13,41 +13,8 @@ namespace NeoMedia
 {
 	public class Server
 	{
-		void Test()
-		{
-			var output = File.CreateText(@"C:\Dev\NeoMedia\Data.txt");
-			output.AutoFlush = true;
-			var listener = new TcpListener(IPAddress.Any, 5555);
-			listener.Start();
-			var count = 0;
-			while (true)
-			{
-				++count;
-				var client = listener.AcceptTcpClient();
-				var server = new TcpClient("localhost", 1234);
-				new Thread(() => RunInterceptor(client, server, output, $"{count}-1")).Start();
-				new Thread(() => RunInterceptor(server, client, output, $"{count}-2")).Start();
-			}
-		}
-
-		void RunInterceptor(TcpClient client, TcpClient server, StreamWriter output, string prefix)
-		{
-			var buffer = new byte[1048576];
-			var clientStream = client.GetStream();
-			var serverStream = server.GetStream();
-			while (client.Connected)
-			{
-				var block = clientStream.Read(buffer, 0, buffer.Length);
-				lock (output)
-					output.WriteLine($"{prefix}: {Convert.ToBase64String(buffer, 0, block)}");
-				serverStream.Write(buffer, 0, block);
-			}
-			client = client;
-		}
-
 		public Server(int port)
 		{
-			new Thread(Test).Start();
 			new Thread(() => RunListener(port)).Start();
 		}
 

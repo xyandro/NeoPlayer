@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -42,7 +43,8 @@ namespace NeoMedia
 		public App()
 		{
 			DispatcherUnhandledException += App_DispatcherUnhandledException;
-			var server = new Server(1234);
+			//var server = new Server(1234);
+			Interceptor.RunInterceptor(5555, "www.asdf.com", 80, Path.Combine(Path.GetDirectoryName(typeof(App).Assembly.Location), "Interceptor.txt"));
 			new MainWindow().ShowDialog();
 			Environment.Exit(0);
 		}
