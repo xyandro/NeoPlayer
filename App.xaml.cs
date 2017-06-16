@@ -42,7 +42,9 @@ namespace NeoMedia
 		public App()
 		{
 			DispatcherUnhandledException += App_DispatcherUnhandledException;
-			new MainWindow().Show();
+			var server = new Server(1234);
+			new MainWindow().ShowDialog();
+			Environment.Exit(0);
 		}
 
 		void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
