@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Site\favicon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <COMReference Include="AxAXVLC">
       <Guid>{DF2BBE39-40A8-433B-A279-073F48DA94B6}</Guid>
@@ -102,6 +105,7 @@
     <EmbeddedResource Include="Site\check.svg" />
     <EmbeddedResource Include="Site\clear.svg" />
     <EmbeddedResource Include="Site\favicon.ico" />
+    <Resource Include="Site\favicon.ico" />
     <EmbeddedResource Include="Site\forward.svg" />
     <EmbeddedResource Include="Site\forward5.svg" />
     <EmbeddedResource Include="Site\forward30.svg" />
