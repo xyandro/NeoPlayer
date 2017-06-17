@@ -38,8 +38,10 @@ namespace NeoMedia
 					case "movies": return GetMovies();
 					case "enqueue": return Enqueue(parameters["movie"], true);
 					case "dequeue": return Enqueue(parameters["movie"], false);
-					case "pressbutton": return PressButton(parameters["button"].FirstOrDefault());
+					case "pause": return Pause();
+					case "next": return Next();
 					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
+					case "jumppos": return JumpPos(int.Parse(parameters["offset"].FirstOrDefault() ?? "0"));
 					case "getpos": return GetPos();
 					default:
 						if (Settings.Debug)
@@ -83,20 +85,27 @@ namespace NeoMedia
 			return Result.Empty;
 		}
 
-		Result PressButton(string button)
+		Result Pause()
 		{
-			switch (button)
-			{
-				case "back30": vlc.input.time = Math.Max(0, vlc.input.time - 30000); break;
-				case "pause": vlc.playlist.togglePause(); break;
-				case "forward": vlc.input.time = vlc.input.length - 0.5; break;
-			}
+			vlc.playlist.togglePause();
+			return Result.Empty;
+		}
+
+		Result Next()
+		{
+			vlc.input.time = vlc.input.length - 0.5;
 			return Result.Empty;
 		}
 
 		Result SetPos(int position)
 		{
 			vlc.input.time = vlc.input.length * position / 1000;
+			return Result.Empty;
+		}
+
+		Result JumpPos(int offset)
+		{
+			vlc.input.time += offset * 1000;
 			return Result.Empty;
 		}
 

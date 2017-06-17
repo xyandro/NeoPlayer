@@ -43,12 +43,20 @@
 			});
 		}
 
-		vm.pressButton = function (button) {
-			$http.get('service/pressbutton?button=' + button);
+		vm.pause = function () {
+			$http.get('service/pause');
+		}
+
+		vm.next = function () {
+			$http.get('service/next');
 		}
 
 		vm.setPos = function (value) {
 			$http.get('service/setpos?pos=' + value);
+		}
+
+		vm.jumpPos = function (value) {
+			$http.get('service/jumppos?offset=' + value);
 		}
 
 		vm.updatePosition = function () {
