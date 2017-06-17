@@ -8,7 +8,7 @@ namespace NeoMedia
 {
 	public static class Interceptor
 	{
-		public static void RunInterceptor(int inPort, string outHostName, int outPort, string fileName) => new Thread(() => RunListener(inPort, outHostName, outPort, fileName)).Start();
+		public static void Run(int inPort, string outHostName, int outPort, string fileName) => new Thread(() => RunListener(inPort, outHostName, outPort, fileName)).Start();
 
 		static void RunListener(int inPort, string outHostName, int outPort, string fileName)
 		{
@@ -30,16 +30,26 @@ namespace NeoMedia
 
 		static void RunInterceptor(TcpClient client, TcpClient server, StreamWriter output, string prefix)
 		{
-			var buffer = new byte[1048576];
 			var clientStream = client.GetStream();
 			var serverStream = server.GetStream();
-			while (client.Connected)
+			try
 			{
-				var block = clientStream.Read(buffer, 0, buffer.Length);
-				lock (output)
-					output.WriteLine($"{prefix}: {Convert.ToBase64String(buffer, 0, block)}");
-				serverStream.Write(buffer, 0, block);
+				var buffer = new byte[1048576];
+				while (client.Connected)
+				{
+					var block = clientStream.Read(buffer, 0, buffer.Length);
+					if (block == 0)
+						continue;
+					lock (output)
+						output.WriteLine($"{prefix}: {Convert.ToBase64String(buffer, 0, block)}");
+					serverStream.Write(buffer, 0, block);
+				}
 			}
+			catch { }
+			serverStream.Close();
+			server.Close();
+			clientStream.Close();
+			client.Close();
 		}
 	}
 }

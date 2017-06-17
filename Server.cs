@@ -1,95 +1,97 @@
 ﻿using System;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows;
 
 namespace NeoMedia
 {
-	public class Server
+	public static class Server
 	{
-		public Server(int port)
-		{
-			new Thread(() => RunListener(port)).Start();
-		}
+		public static void Run(int port, Func<string, Result> service) => new Thread(() => RunListener(port, service)).Start();
 
-		void RunListener(int port)
+		static void RunListener(int port, Func<string, Result> service)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
 			while (true)
 			{
 				var client = listener.AcceptTcpClient();
-				new Thread(() => RunClient(client)).Start();
+				new Thread(() => RunClient(client, service)).Start();
 			}
 		}
 
-		void RunClient(TcpClient client)
+		static string GetURL(NetworkStream stream)
 		{
-			try
+			var text = "";
+			while (true)
 			{
-				var stream = client.GetStream();
-				var text = "";
-				var buffer = new byte[1024];
-				while (true)
+				try
 				{
+					var buffer = new byte[1024];
 					var block = stream.Read(buffer, 0, buffer.Length);
+					if (block == 0)
+						return null;
 					text += Encoding.UTF8.GetString(buffer, 0, block);
+				}
+				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { return null; }
+				catch { text = ""; }
 
-					var lines = Regex.Split(text, @"(?<=\r\n)").Where(line => line.EndsWith("\r\n")).Select(line => line.Remove(line.Length - 2)).ToList();
-					if (!lines.Any(line => line == ""))
-						continue;
+				var lines = Regex.Split(text, @"(?<=\r\n)").Where(line => line.EndsWith("\r\n")).Select(line => line.Remove(line.Length - 2)).ToList();
+				if (!lines.Any(line => line == ""))
+					continue;
 
-					var url = lines.FirstOrDefault(line => line.StartsWith("GET "))?.Remove(0, 4);
+				text = "";
+
+				var url = lines.FirstOrDefault(line => line.StartsWith("GET "))?.Remove(0, 4);
+				if (url == null)
+					continue;
+
+				var httpVersionIndex = url.LastIndexOf(" HTTP/");
+				if (httpVersionIndex != -1)
+					url = url.Remove(httpVersionIndex);
+
+				if (url.StartsWith("/"))
+					url = url.Substring(1);
+
+				if (url == "")
+					url = "Index.html";
+
+				return url;
+			}
+		}
+
+		static void RunClient(TcpClient client, Func<string, Result> service)
+		{
+			var stream = client.GetStream();
+			while (true)
+			{
+				try
+				{
+					var url = GetURL(stream);
 					if (url == null)
-						continue;
+						break;
 
-					var httpVersionIndex = url.LastIndexOf(" HTTP/");
-					if (httpVersionIndex != -1)
-						url = url.Remove(httpVersionIndex);
+					var result = default(Result);
+					if (url.StartsWith("service/"))
+						result = service(url);
 
-					if (url == "/")
-						url = "/Index.html";
+					if (result == null)
+						result = Result.CreateFromFile(url);
 
-					var file = $@"C:\TFS\SWENG\TabletPick\Releases\TabletPick 1.0.30\Main\TabletPick{url.Replace("/", "\\")}";
-
-					var data = File.ReadAllBytes(file);
-
-					var hash = BitConverter.ToString(SHA1.Create().ComputeHash(data)).Replace("-", "").ToLowerInvariant();
-
-					using (var ms = new MemoryStream())
-					{
-						using (var gz = new GZipStream(ms, CompressionLevel.Optimal, true))
-							gz.Write(data, 0, data.Length);
-						data = ms.ToArray();
-					}
-
-					var response = new string[]
-					{
-						"HTTP/1.1 200 OK",
-						"Content-Type: text/html",
-						"Content-Encoding: gzip",
-						$"Last-Modified: {DateTime.UtcNow.ToString("r")}",
-						"Accept-Ranges: bytes",
-						$"ETag: \"{hash}\"",
-						"Vary: Accept-Encoding",
-						"Server: Microsoft-IIS/10.0",
-						$"Date: {DateTime.UtcNow.ToString("r")}",
-						$"Content-Length: {data.Length}",
-					};
-
-					var output = Encoding.UTF8.GetBytes(string.Join("\r\n", response) + "\r\n\r\n");
-
-					stream.Write(output, 0, output.Length);
-					stream.Write(data, 0, data.Length);
+					result.Send(stream);
+				}
+				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { break; }
+				catch (Exception ex)
+				{
+#if DEBUG
+					MessageBox.Show($"Error: {ex.Message}");
+#endif
 				}
 			}
-			catch { }
 			client.Close();
 		}
 	}

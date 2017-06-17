@@ -1,0 +1,16 @@
+<div>
+	<table>
+		<tr>
+			<td />
+			<td><b>Movies</b></td>
+		</tr>
+		<tr>
+			<td><img ng-click="vm.queueMovies()" src="app/check.png" /></td>
+			<td><img ng-click="vm.resetSearch()" src="app/clear.png" /><input type="text" ng-model="vm.searchText" /></td>
+		</tr>
+		<tr ng-repeat="movie in vm.movies | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueMovie(movie)">
+			<td><img ng-src="{{movie.queued ? 'app/check.png' : 'app/uncheck.png'}}" /></td>
+			<td>{{::movie.name}}</td>
+		</tr>
+	</table>
+</div>

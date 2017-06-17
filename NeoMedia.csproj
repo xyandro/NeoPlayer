@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -55,8 +56,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ContentTypeData.cs" />
+    <Compile Include="Result.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="Server.cs" />
+    <Compile Include="SettingsDialog.xaml.cs">
+      <DependentUpon>SettingsDialog.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -69,12 +76,48 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="SettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\app\app.module.js" />
+    <EmbeddedResource Include="Site\app\app.routes.js" />
+    <EmbeddedResource Include="Site\app\customers.controller.js" />
+    <EmbeddedResource Include="Site\app\customers.html" />
+    <EmbeddedResource Include="Site\app\data.service.js" />
+    <EmbeddedResource Include="Site\app\orders.controller.js" />
+    <EmbeddedResource Include="Site\app\orders.html" />
+    <EmbeddedResource Include="Site\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\customers.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\404.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\InvalidType.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Site\app\movies.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Site\app\clear.png" />
+    <EmbeddedResource Include="Site\app\uncheck.png" />
+    <EmbeddedResource Include="Site\app\check.png" />
+    <Content Include="Site\app\movies.controller.js" />
+    <EmbeddedResource Include="Site\app\site.css" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
