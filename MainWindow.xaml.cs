@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace NeoMedia
@@ -17,6 +15,8 @@ namespace NeoMedia
 
 			Server.Run(7399, HandleServiceCall);
 
+			vlc.AutoPlay = false;
+			vlc.Toolbar = false;
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 		}
 
@@ -63,9 +63,10 @@ namespace NeoMedia
 			{
 				if ((enqueue) && (first))
 				{
-					player.Source = new Uri($@"{Settings.MoviesPath}\{fileName}");
-					player.Play();
-					player.Position = TimeSpan.FromSeconds(20);
+					vlc.playlist.items.clear();
+					vlc.playlist.add($@"file:///{Settings.MoviesPath}\{fileName}");
+					vlc.playlist.playItem(0);
+					vlc.input.time = 20000;
 					first = false;
 				}
 				var present = Queue.Contains(fileName);
