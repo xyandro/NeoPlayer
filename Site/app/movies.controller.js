@@ -9,7 +9,7 @@
 		function refresh() {
 			$http.get('service/movies').then(function (response) {
 				vm.movies = response.data;
-				setTimeout(refresh, 5000);
+				//setTimeout(refresh, 5000);
 			});
 		}
 
@@ -20,7 +20,7 @@
 		vm.queueMovie = function (movie) {
 			var url = 'service/' + (movie.queued ? "de" : "en") + 'queue?movie=' + encodeURIComponent(movie.name);
 			$http.get(url).then(function (response) {
-				movie.queued = !movie.queued;
+				//movie.queued = !movie.queued;
 			});
 		};
 
