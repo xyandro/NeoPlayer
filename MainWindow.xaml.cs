@@ -113,10 +113,11 @@ namespace NeoMedia
 		{
 			var max = Math.Max(0, (int)vlc.input.length);
 			var position = Math.Min(max, Math.Max(0, (int)vlc.input.time));
-			string playing = "";
+			var playing = vlc.playlist.isPlaying;
+			string currentSong = "";
 			if (vlc.playlist.currentItem != -1)
-				try { playing = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-			return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": ""{playing}"" }}");
+				try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+			return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)

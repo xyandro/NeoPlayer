@@ -7,7 +7,8 @@
 		vm.searchText = '';
 		vm.curPos = 0;
 		vm.maxPos = 0;
-		vm.playing = '';
+		vm.playing = false;
+		vm.currentSong = '';
 
 		vm.refresh = function () {
 			$http.get('service/movies').then(function (response) {
@@ -47,6 +48,7 @@
 
 		vm.pause = function () {
 			$http.get('service/pause');
+			vm.playing = !vm.playing;
 		}
 
 		vm.next = function () {
@@ -66,6 +68,7 @@
 				vm.maxPos = response.data.Max;
 				vm.curPos = response.data.Position;
 				vm.playing = response.data.Playing;
+				vm.currentSong = response.data.CurrentSong;
 				vm.test = true;
 			});
 		}

@@ -4,14 +4,14 @@
 			<td><div style="width: 500px"/></td>
 			<td><img ng-click="vm.jumpPos(-30)" src="app/back30.svg" /></td>
 			<td><img ng-click="vm.jumpPos(-5)" src="app/back5.svg" /></td>
-			<td><img ng-click="vm.pause()" src="app/pause.svg" /></td>
+			<td><img ng-click="vm.pause()" ng-src="{{vm.playing ? 'app/pause.svg' : 'app/play.svg'}}" /></td>
 			<td><img ng-click="vm.jumpPos(5)" src="app/forward5.svg" /></td>
 			<td><img ng-click="vm.jumpPos(30)" src="app/forward30.svg" /></td>
 			<td><img ng-click="vm.next()" src="app/forward.svg" /></td>
 			<td><div style="width: 500px" /></td>
 		</tr>
 		<tr>
-			<td colspan="8">{{vm.playing}}</td>
+			<td colspan="8">{{vm.currentSong}}</td>
 		</tr>
 		<tr>
 			<td colspan="8"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-mouseup="vm.setPos(vm.curPos)" /></td>
