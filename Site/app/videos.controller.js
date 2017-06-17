@@ -1,8 +1,8 @@
 (function () {
-	angular.module('app').controller('MoviesController', MoviesController);
+	angular.module('app').controller('VideosController', VideosController);
 
-	MoviesController.$inject = ['$http', '$filter'];
-	function MoviesController($http, $filter) {
+	VideosController.$inject = ['$http', '$filter'];
+	function VideosController($http, $filter) {
 		var vm = this;
 		vm.searchText = '';
 		vm.curPos = 0;
@@ -11,30 +11,30 @@
 		vm.currentSong = '';
 
 		vm.refresh = function () {
-			$http.get('service/movies').then(function (response) {
-				vm.movies = response.data;
+			$http.get('service/videos').then(function (response) {
+				vm.videos = response.data;
 				setTimeout(vm.refresh, 5000);
 			});
 		}
 
-		vm.resetSearch = function (movie) {
+		vm.resetSearch = function (video) {
 			vm.searchText = '';
 		}
 
-		vm.queueMovie = function (movie) {
-			var url = 'service/' + (movie.queued ? "de" : "en") + 'queue?movie=' + encodeURIComponent(movie.name);
+		vm.queueVideo = function (video) {
+			var url = 'service/' + (video.queued ? "de" : "en") + 'queue?video=' + encodeURIComponent(video.name);
 			$http.get(url).then(function (response) {
-				movie.queued = !movie.queued;
+				video.queued = !video.queued;
 			});
 		}
 
-		vm.queueMovies = function () {
+		vm.queueVideos = function () {
 			var enqueue = false;
-			var result = $filter('filter')(vm.movies, vm.searchText);
+			var result = $filter('filter')(vm.videos, vm.searchText);
 			var str = "";
 			for (var x = 0; x < result.length; ++x) {
 				str += x == 0 ? "?" : "&";
-				str += 'movie=' + encodeURIComponent(result[x].name);
+				str += 'video=' + encodeURIComponent(result[x].name);
 				if (!result[x].queued)
 					enqueue = true;
 			}

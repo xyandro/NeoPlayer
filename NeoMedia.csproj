@@ -104,7 +104,7 @@
     <EmbeddedResource Include="Site\InvalidType.html" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\movies.html" />
+    <EmbeddedResource Include="Site\app\videos.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Site\app\forward.svg" />
@@ -113,7 +113,7 @@
     <EmbeddedResource Include="Site\app\uncheck.svg" />
     <EmbeddedResource Include="Site\app\check.svg" />
     <EmbeddedResource Include="Site\app\back30.svg" />
-    <EmbeddedResource Include="Site\app\movies.controller.js" />
+    <EmbeddedResource Include="Site\app\videos.controller.js" />
     <EmbeddedResource Include="Site\app\site.css" />
   </ItemGroup>
   <ItemGroup>

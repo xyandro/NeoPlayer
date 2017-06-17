@@ -35,9 +35,9 @@ namespace NeoMedia
 				var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
 				switch (url)
 				{
-					case "movies": return GetMovies();
-					case "enqueue": return Enqueue(parameters["movie"], true);
-					case "dequeue": return Enqueue(parameters["movie"], false);
+					case "videos": return GetVideos();
+					case "enqueue": return Enqueue(parameters["video"], true);
+					case "dequeue": return Enqueue(parameters["video"], false);
 					case "pause": return Pause();
 					case "next": return Next();
 					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
@@ -53,10 +53,10 @@ namespace NeoMedia
 
 		List<string> Queue = new List<string>();
 
-		Result GetMovies()
+		Result GetVideos()
 		{
 			var inQueue = new HashSet<string>(Queue);
-			var files = Directory.EnumerateFiles(Settings.MoviesPath).Select(file => Path.GetFileName(file)).ToList();
+			var files = Directory.EnumerateFiles(Settings.VideosPath).Select(file => Path.GetFileName(file)).ToList();
 			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {inQueue.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Result.CreateFromText(str);
 		}
@@ -69,7 +69,7 @@ namespace NeoMedia
 				if ((enqueue) && (first))
 				{
 					vlc.playlist.items.clear();
-					vlc.playlist.add($@"file:///{Settings.MoviesPath}\{fileName}");
+					vlc.playlist.add($@"file:///{Settings.VideosPath}\{fileName}");
 					vlc.playlist.playItem(0);
 					first = false;
 				}

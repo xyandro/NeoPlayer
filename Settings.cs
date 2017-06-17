@@ -27,8 +27,8 @@ namespace NeoMedia
 
 		static readonly string SettingsFile = Path.Combine(Path.GetDirectoryName(typeof(Settings).Assembly.Location), "Settings.xml");
 
-		static string moviesPath;
-		public static string MoviesPath { get { return moviesPath; } set { moviesPath = value; WriteXML(); } }
+		static string videosPath;
+		public static string VideosPath { get { return videosPath; } set { videosPath = value; WriteXML(); } }
 
 		static string slideShowSongsPath;
 		public static string SlideShowSongsPath { get { return slideShowSongsPath; } set { slideShowSongsPath = value; WriteXML(); } }
@@ -38,7 +38,7 @@ namespace NeoMedia
 			try
 			{
 				var xml = XElement.Load(SettingsFile);
-				MoviesPath = xml.Element(nameof(MoviesPath))?.Value;
+				VideosPath = xml.Element(nameof(VideosPath))?.Value;
 				SlideShowSongsPath = xml.Element(nameof(SlideShowSongsPath))?.Value;
 			}
 			catch { }
@@ -47,7 +47,7 @@ namespace NeoMedia
 		static void WriteXML()
 		{
 			var xml = new XElement("Settings",
-				new XElement(nameof(MoviesPath), MoviesPath),
+				new XElement(nameof(VideosPath), VideosPath),
 				new XElement(nameof(SlideShowSongsPath), SlideShowSongsPath)
 			);
 			xml.Save(SettingsFile);

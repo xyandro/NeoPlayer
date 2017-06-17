@@ -4,23 +4,23 @@ namespace NeoMedia
 {
 	partial class SettingsDialog
 	{
-		static DependencyProperty MoviesPathProperty = DependencyProperty.Register(nameof(MoviesPath), typeof(string), typeof(SettingsDialog));
+		static DependencyProperty VideosPathProperty = DependencyProperty.Register(nameof(VideosPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty SlideShowSongsPathProperty = DependencyProperty.Register(nameof(SlideShowSongsPath), typeof(string), typeof(SettingsDialog));
 
-		string MoviesPath { get { return (string)GetValue(MoviesPathProperty); } set { SetValue(MoviesPathProperty, value); } }
+		string VideosPath { get { return (string)GetValue(VideosPathProperty); } set { SetValue(VideosPathProperty, value); } }
 		string SlideShowSongsPath { get { return (string)GetValue(SlideShowSongsPathProperty); } set { SetValue(SlideShowSongsPathProperty, value); } }
 
 		public SettingsDialog()
 		{
 			InitializeComponent();
 			DataContext = this;
-			MoviesPath = Settings.MoviesPath;
+			VideosPath = Settings.VideosPath;
 			SlideShowSongsPath = Settings.SlideShowSongsPath;
 		}
 
 		void OnOKClick(object sender, RoutedEventArgs e)
 		{
-			Settings.MoviesPath = MoviesPath;
+			Settings.VideosPath = VideosPath;
 			Settings.SlideShowSongsPath = SlideShowSongsPath;
 			DialogResult = true;
 		}

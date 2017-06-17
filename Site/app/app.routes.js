@@ -4,16 +4,8 @@
 	configure.$inject = ['$routeProvider'];
 	function configure($routeProvider) {
 		$routeProvider.when('/', {
-			templateUrl: 'app/movies.html',
-			controller: 'MoviesController',
-			controllerAs: 'vm'
-		}).when('/customers', {
-			templateUrl: 'app/customers.html',
-			controller: 'CustomersController',
-			controllerAs: 'vm'
-		}).when('/orders/:id?', {
-			templateUrl: 'app/orders.html',
-			controller: 'OrdersController',
+			templateUrl: 'app/videos.html',
+			controller: 'VideosController',
 			controllerAs: 'vm'
 		})
 		.otherwise({ redirectTo: '/' });
