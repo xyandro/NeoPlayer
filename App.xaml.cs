@@ -19,8 +19,7 @@ namespace NeoMedia
 			var window = Current.Windows.OfType<Window>().SingleOrDefault(w => w.IsActive);
 			MessageBox.Show(window, message, "Error");
 
-#if DEBUG
-			if ((Debugger.IsAttached) && ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.None))
+			if ((Settings.Debug) && (Debugger.IsAttached) && ((Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.None))
 			{
 				var inner = ex;
 				while (inner.InnerException != null)
@@ -37,7 +36,6 @@ namespace NeoMedia
 				}
 				Debugger.Break();
 			}
-#endif
 		}
 
 		public App()

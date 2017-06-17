@@ -42,9 +42,8 @@ namespace NeoMedia
 					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
 					case "getpos": return GetPos();
 					default:
-#if DEBUG
-						MessageBox.Show($"Service: {url}");
-#endif
+						if (Settings.Debug)
+							MessageBox.Show($"Service: {url}");
 						return Result.Empty;
 				}
 			});

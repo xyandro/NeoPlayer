@@ -87,9 +87,8 @@ namespace NeoMedia
 				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { break; }
 				catch (Exception ex)
 				{
-#if DEBUG
-					MessageBox.Show($"Error: {ex.Message}");
-#endif
+					if (Settings.Debug)
+						MessageBox.Show($"Error: {ex.Message}");
 				}
 			}
 			client.Close();
