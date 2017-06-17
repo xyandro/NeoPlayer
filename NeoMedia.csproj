@@ -95,15 +95,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Site\app\app.module.js" />
     <EmbeddedResource Include="Site\app\app.routes.js" />
-    <EmbeddedResource Include="Site\app\customers.controller.js" />
-    <EmbeddedResource Include="Site\app\customers.html" />
-    <EmbeddedResource Include="Site\app\data.service.js" />
-    <EmbeddedResource Include="Site\app\orders.controller.js" />
-    <EmbeddedResource Include="Site\app\orders.html" />
     <EmbeddedResource Include="Site\index.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Site\customers.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Site\404.html" />
