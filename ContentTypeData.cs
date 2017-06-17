@@ -15,6 +15,7 @@ namespace NeoMedia
 			new ContentTypeData("application/javascript; charset=utf-8", true, ".js"),
 			new ContentTypeData("application/json; charset=utf-8", true, ".jsn", ".json"),
 			new ContentTypeData("image/png", false, ".png"),
+			new ContentTypeData("image/svg+xml; charset=utf-8", true, ".svg"),
 			new ContentTypeData("text/plain; charset=utf-8", true, ".txt"),
 		};
 

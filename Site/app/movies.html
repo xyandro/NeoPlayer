@@ -2,9 +2,9 @@
 	<table>
 		<tr>
 			<td><div style="width: 500px"/></td>
-			<td><img ng-click="vm.pressButton('back30')" src="app/back30.png" /></td>
-			<td><img ng-click="vm.pressButton('pause')" src="app/pause.png" /></td>
-			<td><img ng-click="vm.pressButton('forward')" src="app/forward.png" /></td>
+			<td><img ng-click="vm.pressButton('back30')" src="app/back30.svg" /></td>
+			<td><img ng-click="vm.pressButton('pause')" src="app/pause.svg" /></td>
+			<td><img ng-click="vm.pressButton('forward')" src="app/forward.svg" /></td>
 			<td><div style="width: 500px" /></td>
 		</tr>
 		<tr>
@@ -17,11 +17,11 @@
 			<td><b>Movies</b></td>
 		</tr>
 		<tr>
-			<td><img ng-click="vm.queueMovies()" src="app/check.png" /></td>
-			<td><img ng-click="vm.resetSearch()" src="app/clear.png" /><input type="text" ng-model="vm.searchText" /></td>
+			<td><img ng-click="vm.queueMovies()" src="app/check.svg" /></td>
+			<td><img ng-click="vm.resetSearch()" src="app/clear.svg" /><input type="text" ng-model="vm.searchText" /></td>
 		</tr>
 		<tr ng-repeat="movie in vm.movies | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueMovie(movie)">
-			<td><img ng-src="{{movie.queued ? 'app/check.png' : 'app/uncheck.png'}}" /></td>
+			<td><img ng-src="{{movie.queued ? 'app/check.svg' : 'app/uncheck.svg'}}" /></td>
 			<td>{{::movie.name}}</td>
 		</tr>
 	</table>

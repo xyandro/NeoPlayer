@@ -115,13 +115,13 @@
     <EmbeddedResource Include="Site\app\movies.html" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\forward.png" />
-    <EmbeddedResource Include="Site\app\pause.png" />
-    <Resource Include="Site\app\clear.png" />
-    <EmbeddedResource Include="Site\app\uncheck.png" />
-    <EmbeddedResource Include="Site\app\check.png" />
-    <EmbeddedResource Include="Site\app\back30.png" />
-    <Content Include="Site\app\movies.controller.js" />
+    <EmbeddedResource Include="Site\app\forward.svg" />
+    <EmbeddedResource Include="Site\app\pause.svg" />
+    <EmbeddedResource Include="Site\app\clear.svg" />
+    <EmbeddedResource Include="Site\app\uncheck.svg" />
+    <EmbeddedResource Include="Site\app\check.svg" />
+    <EmbeddedResource Include="Site\app\back30.svg" />
+    <EmbeddedResource Include="Site\app\movies.controller.js" />
     <EmbeddedResource Include="Site\app\site.css" />
   </ItemGroup>
   <ItemGroup>

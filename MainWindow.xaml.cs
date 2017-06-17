@@ -45,7 +45,7 @@ namespace NeoMedia
 #if DEBUG
 						MessageBox.Show($"Service: {url}");
 #endif
-						return null;
+						return Result.Empty;
 				}
 			});
 		}
