@@ -11,7 +11,10 @@
 			<td><div style="width: 500px" /></td>
 		</tr>
 		<tr>
-			<td colspan="5"><input type="range" min="0" max="1000" ng-model="vm.curPos" value="0" ng-change="vm.setPos(vm.curPos)" /></td>
+			<td colspan="8">{{vm.playing}}</td>
+		</tr>
+		<tr>
+			<td colspan="8"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-mouseup="vm.setPos(vm.curPos)" /></td>
 		</tr>
 	</table>
 	<table>

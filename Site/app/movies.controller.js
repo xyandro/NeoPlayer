@@ -6,6 +6,8 @@
 		var vm = this;
 		vm.searchText = '';
 		vm.curPos = 0;
+		vm.maxPos = 0;
+		vm.playing = '';
 
 		vm.refresh = function () {
 			$http.get('service/movies').then(function (response) {
@@ -59,14 +61,16 @@
 			$http.get('service/jumppos?offset=' + value);
 		}
 
-		vm.updatePosition = function () {
-			$http.get('service/getpos').then(function (response) {
+		vm.updatePlayInfo = function () {
+			$http.get('service/getplayinfo').then(function (response) {
+				vm.maxPos = response.data.Max;
+				vm.curPos = response.data.Position;
+				vm.playing = response.data.Playing;
 				vm.test = true;
-				vm.curPos = response.data;
 			});
 		}
 
 		vm.refresh();
-		setInterval(vm.updatePosition, 1000);
+		setInterval(vm.updatePlayInfo, 1000);
 	}
 })();

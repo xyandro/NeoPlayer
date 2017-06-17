@@ -37,8 +37,7 @@ namespace NeoMedia
 						return null;
 					text += Encoding.UTF8.GetString(buffer, 0, block);
 				}
-				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { return null; }
-				catch { text = ""; }
+				catch { return null; }
 
 				var lines = Regex.Split(text, @"(?<=\r\n)").Where(line => line.EndsWith("\r\n")).Select(line => line.Remove(line.Length - 2)).ToList();
 				if (!lines.Any(line => line == ""))

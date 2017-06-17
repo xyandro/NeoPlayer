@@ -42,7 +42,7 @@ namespace NeoMedia
 					case "next": return Next();
 					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
 					case "jumppos": return JumpPos(int.Parse(parameters["offset"].FirstOrDefault() ?? "0"));
-					case "getpos": return GetPos();
+					case "getplayinfo": return GetPlayInfo();
 					default:
 						if (Settings.Debug)
 							MessageBox.Show($"Service: {url}");
@@ -99,7 +99,7 @@ namespace NeoMedia
 
 		Result SetPos(int position)
 		{
-			vlc.input.time = vlc.input.length * position / 1000;
+			vlc.input.time = position;
 			return Result.Empty;
 		}
 
@@ -109,7 +109,15 @@ namespace NeoMedia
 			return Result.Empty;
 		}
 
-		private Result GetPos() => Result.CreateFromText($"{(int)(vlc.input.time * 1000 / vlc.input.length)}");
+		private Result GetPlayInfo()
+		{
+			var max = Math.Max(0, (int)vlc.input.length);
+			var position = Math.Min(max, Math.Max(0, (int)vlc.input.time));
+			string playing = "";
+			if (vlc.playlist.currentItem != -1)
+				try { playing = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+			return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": ""{playing}"" }}");
+		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
