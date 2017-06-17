@@ -93,8 +93,6 @@
     <EmbeddedResource Include="Site\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\app.module.js" />
-    <EmbeddedResource Include="Site\app\app.routes.js" />
     <EmbeddedResource Include="Site\index.html" />
   </ItemGroup>
   <ItemGroup>
@@ -104,17 +102,14 @@
     <EmbeddedResource Include="Site\InvalidType.html" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\videos.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Site\app\forward.svg" />
-    <EmbeddedResource Include="Site\app\pause.svg" />
-    <EmbeddedResource Include="Site\app\clear.svg" />
-    <EmbeddedResource Include="Site\app\uncheck.svg" />
-    <EmbeddedResource Include="Site\app\check.svg" />
-    <EmbeddedResource Include="Site\app\back30.svg" />
-    <EmbeddedResource Include="Site\app\videos.controller.js" />
-    <EmbeddedResource Include="Site\app\site.css" />
+    <EmbeddedResource Include="Site\forward.svg" />
+    <EmbeddedResource Include="Site\pause.svg" />
+    <EmbeddedResource Include="Site\clear.svg" />
+    <EmbeddedResource Include="Site\uncheck.svg" />
+    <EmbeddedResource Include="Site\check.svg" />
+    <EmbeddedResource Include="Site\back30.svg" />
+    <EmbeddedResource Include="Site\app.js" />
+    <EmbeddedResource Include="Site\site.css" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="AxAXVLC">
@@ -127,12 +122,12 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\back5.svg" />
-    <EmbeddedResource Include="Site\app\forward5.svg" />
-    <EmbeddedResource Include="Site\app\forward30.svg" />
+    <EmbeddedResource Include="Site\back5.svg" />
+    <EmbeddedResource Include="Site\forward5.svg" />
+    <EmbeddedResource Include="Site\forward30.svg" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Site\app\play.svg" />
+    <EmbeddedResource Include="Site\play.svg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
