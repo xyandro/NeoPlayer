@@ -5,24 +5,25 @@
 	function MoviesController($http, $filter) {
 		var vm = this;
 		vm.searchText = '';
+		vm.curPos = 0;
 
-		function refresh() {
+		vm.refresh = function () {
 			$http.get('service/movies').then(function (response) {
 				vm.movies = response.data;
-				//setTimeout(refresh, 5000);
+				setTimeout(vm.refresh, 5000);
 			});
 		}
 
 		vm.resetSearch = function (movie) {
 			vm.searchText = '';
-		};
+		}
 
 		vm.queueMovie = function (movie) {
 			var url = 'service/' + (movie.queued ? "de" : "en") + 'queue?movie=' + encodeURIComponent(movie.name);
 			$http.get(url).then(function (response) {
-				//movie.queued = !movie.queued;
+				movie.queued = !movie.queued;
 			});
-		};
+		}
 
 		vm.queueMovies = function () {
 			var enqueue = false;
@@ -40,8 +41,24 @@
 					result[x].queued = enqueue;
 				}
 			});
-		};
+		}
 
-		refresh();
+		vm.pressButton = function (button) {
+			$http.get('service/pressbutton?button=' + button);
+		}
+
+		vm.setPos = function (value) {
+			$http.get('service/setpos?pos=' + value);
+		}
+
+		vm.updatePosition = function () {
+			$http.get('service/getpos').then(function (response) {
+				vm.test = true;
+				vm.curPos = response.data;
+			});
+		}
+
+		vm.refresh();
+		setInterval(vm.updatePosition, 1000);
 	}
 })();

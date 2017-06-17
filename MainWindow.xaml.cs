@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -15,8 +16,8 @@ namespace NeoMedia
 
 			Server.Run(7399, HandleServiceCall);
 
-			vlc.AutoPlay = false;
-			vlc.Toolbar = false;
+			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
+			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 		}
 
@@ -37,6 +38,9 @@ namespace NeoMedia
 					case "movies": return GetMovies();
 					case "enqueue": return Enqueue(parameters["movie"], true);
 					case "dequeue": return Enqueue(parameters["movie"], false);
+					case "pressbutton": return PressButton(parameters["button"].FirstOrDefault());
+					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
+					case "getpos": return GetPos();
 					default:
 #if DEBUG
 						MessageBox.Show($"Service: {url}");
@@ -66,7 +70,6 @@ namespace NeoMedia
 					vlc.playlist.items.clear();
 					vlc.playlist.add($@"file:///{Settings.MoviesPath}\{fileName}");
 					vlc.playlist.playItem(0);
-					vlc.input.time = 20000;
 					first = false;
 				}
 				var present = Queue.Contains(fileName);
@@ -80,6 +83,25 @@ namespace NeoMedia
 			}
 			return Result.Empty;
 		}
+
+		Result PressButton(string button)
+		{
+			switch (button)
+			{
+				case "back30": vlc.input.time = Math.Max(0, vlc.input.time - 30000); break;
+				case "pause": vlc.playlist.togglePause(); break;
+				case "forward": vlc.input.time = vlc.input.length - 0.5; break;
+			}
+			return Result.Empty;
+		}
+
+		Result SetPos(int position)
+		{
+			vlc.input.time = vlc.input.length * position / 1000;
+			return Result.Empty;
+		}
+
+		private Result GetPos() => Result.CreateFromText($"{(int)(vlc.input.time * 1000 / vlc.input.length)}");
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
