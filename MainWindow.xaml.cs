@@ -5,21 +5,62 @@ using System.Linq;
 using System.Web;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace NeoMedia
 {
 	partial class MainWindow
 	{
+		readonly Actions actions;
+
 		public MainWindow()
 		{
 			InitializeComponent();
 
+			actions = new Actions(ActionChanged);
 			Server.Run(7399, HandleServiceCall);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
+			vlc.MediaPlayerEndReached += Vlc_MediaPlayerEndReached;
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 		}
+
+		DispatcherTimer timer = null;
+		void ActionChanged()
+		{
+			if (timer != null)
+				return;
+
+			timer = new DispatcherTimer();
+			timer.Tick += (s, e) =>
+			{
+				timer.Stop();
+				timer = null;
+				HandleActions();
+			};
+			timer.Start();
+		}
+
+		string playing = null;
+		void HandleActions()
+		{
+			var current = actions.CurrentVideo;
+			if (current == playing)
+				return;
+
+			playing = current;
+			vlc.playlist.stop();
+			vlc.playlist.items.clear();
+
+			if (playing != null)
+			{
+				vlc.playlist.add($@"file:///{Settings.VideosPath}\{playing}");
+				vlc.playlist.playItem(0);
+			}
+		}
+
+		private void Vlc_MediaPlayerEndReached(object sender, EventArgs e) => actions.RemoveFirst();
 
 		Result HandleServiceCall(string url)
 		{
@@ -51,37 +92,16 @@ namespace NeoMedia
 			});
 		}
 
-		List<string> Queue = new List<string>();
-
 		Result GetVideos()
 		{
-			var inQueue = new HashSet<string>(Queue);
 			var files = Directory.EnumerateFiles(Settings.VideosPath).Select(file => Path.GetFileName(file)).ToList();
-			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {inQueue.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
+			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.IsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Result.CreateFromText(str);
 		}
 
 		Result Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
-			var first = true;
-			foreach (var fileName in fileNames)
-			{
-				if ((enqueue) && (first))
-				{
-					vlc.playlist.items.clear();
-					vlc.playlist.add($@"file:///{Settings.VideosPath}\{fileName}");
-					vlc.playlist.playItem(0);
-					first = false;
-				}
-				var present = Queue.Contains(fileName);
-				if (present != enqueue)
-				{
-					if (enqueue)
-						Queue.Add(fileName);
-					else
-						Queue.Remove(fileName);
-				}
-			}
+			actions.Enqueue(fileNames, enqueue);
 			return Result.Empty;
 		}
 
@@ -93,7 +113,7 @@ namespace NeoMedia
 
 		Result Next()
 		{
-			vlc.input.time = vlc.input.length - 0.5;
+			actions.RemoveFirst();
 			return Result.Empty;
 		}
 

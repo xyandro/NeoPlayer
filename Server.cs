@@ -43,8 +43,6 @@ namespace NeoMedia
 				if (!lines.Any(line => line == ""))
 					continue;
 
-				text = "";
-
 				var url = lines.FirstOrDefault(line => line.StartsWith("GET "))?.Remove(0, 4);
 				if (url == null)
 					continue;
