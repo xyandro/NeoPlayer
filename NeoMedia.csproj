@@ -101,6 +101,7 @@
     <EmbeddedResource Include="Site\404.html" />
     <EmbeddedResource Include="Site\angular.min.1.6.4.js" />
     <EmbeddedResource Include="Site\app.js" />
+    <EmbeddedResource Include="Site\apple-touch-icon.png" />
     <EmbeddedResource Include="Site\back5.svg" />
     <EmbeddedResource Include="Site\back30.svg" />
     <EmbeddedResource Include="Site\check.svg" />
