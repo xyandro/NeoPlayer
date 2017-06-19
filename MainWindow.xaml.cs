@@ -69,7 +69,7 @@ namespace NeoMedia
 
 		private void Vlc_MediaPlayerEndReached(object sender, EventArgs e) => actions.RemoveFirst();
 
-		Result HandleServiceCall(string url)
+		Response HandleServiceCall(string url)
 		{
 			if (url.StartsWith("service/"))
 				url = url.Substring("service/".Length);
@@ -91,43 +91,43 @@ namespace NeoMedia
 				default:
 					if (Settings.Debug)
 						MessageBox.Show($"Service: {url}");
-					return Result.Empty;
+					return Response.Empty;
 			}
 		}
 
-		Result GetVideos()
+		Response GetVideos()
 		{
 			var files = Directory.EnumerateFiles(Settings.VideosPath).Select(file => Path.GetFileName(file)).ToList();
 			var queued = actions.Queued;
 			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {queued.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
-			return Result.CreateFromText(str);
+			return Response.CreateFromText(str);
 		}
 
-		Result Enqueue(IEnumerable<string> fileNames, bool enqueue)
+		Response Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
 			actions.Enqueue(fileNames, enqueue);
-			return Result.Empty;
+			return Response.Empty;
 		}
 
-		Result Pause()
+		Response Pause()
 		{
 			Dispatcher.Invoke(() => vlc.playlist.togglePause());
-			return Result.Empty;
+			return Response.Empty;
 		}
 
-		Result Next()
+		Response Next()
 		{
 			actions.RemoveFirst();
-			return Result.Empty;
+			return Response.Empty;
 		}
 
-		Result SetPosition(int position, bool relative)
+		Response SetPosition(int position, bool relative)
 		{
 			Dispatcher.Invoke(() => vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000);
-			return Result.Empty;
+			return Response.Empty;
 		}
 
-		private Result GetPlayInfo()
+		private Response GetPlayInfo()
 		{
 			return Dispatcher.Invoke(() =>
 			{
@@ -137,7 +137,7 @@ namespace NeoMedia
 				string currentSong = "";
 				if (vlc.playlist.currentItem != -1)
 					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
+				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
 			});
 		}
 

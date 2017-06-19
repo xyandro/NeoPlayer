@@ -11,9 +11,9 @@ namespace NeoMedia
 {
 	public static class Server
 	{
-		public static void Run(int port, Func<string, Result> service) => new Thread(() => RunListener(port, service)).Start();
+		public static void Run(int port, Func<string, Response> service) => new Thread(() => RunListener(port, service)).Start();
 
-		static void RunListener(int port, Func<string, Result> service)
+		static void RunListener(int port, Func<string, Response> service)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
@@ -24,7 +24,7 @@ namespace NeoMedia
 			}
 		}
 
-		static string GetURL(NetworkStream stream)
+		static Request GetRequest(NetworkStream stream)
 		{
 			var text = "";
 			while (true)
@@ -43,7 +43,7 @@ namespace NeoMedia
 				if (!lines.Any(line => line == ""))
 					continue;
 
-				var url = lines.FirstOrDefault(line => line.StartsWith("GET "))?.Remove(0, 4);
+				var url = lines.FirstOrDefault(line => line.StartsWith("GET "))?.Remove(0, "GET ".Length);
 				if (url == null)
 					continue;
 
@@ -57,27 +57,31 @@ namespace NeoMedia
 				if (url == "")
 					url = "Index.html";
 
-				return url;
+				var eTag = lines.FirstOrDefault(line => line.StartsWith("If-None-Match: "))?.Remove(0, "If-None-Match: ".Length);
+				if ((eTag != null) && (eTag.Length >= 2) && (eTag.StartsWith("\"")) && (eTag.EndsWith("\"")))
+					eTag = eTag.Substring(1, eTag.Length - 2);
+
+				return new Request(url, eTag);
 			}
 		}
 
-		static void RunClient(TcpClient client, Func<string, Result> service)
+		static void RunClient(TcpClient client, Func<string, Response> service)
 		{
 			var stream = client.GetStream();
 			while (true)
 			{
 				try
 				{
-					var url = GetURL(stream);
-					if (url == null)
+					var request = GetRequest(stream);
+					if (request == null)
 						break;
 
-					var result = default(Result);
-					if (url.StartsWith("service/"))
-						result = service(url);
+					var result = default(Response);
+					if (request.URL.StartsWith("service/"))
+						result = service(request.URL);
 
 					if (result == null)
-						result = Result.CreateFromFile(url);
+						result = Response.CreateFromFile(request.URL, request.ETag);
 
 					result.Send(stream);
 				}

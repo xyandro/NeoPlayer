@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -7,9 +8,10 @@ using System.Text;
 
 namespace NeoMedia
 {
-	public class Result
+	public class Response
 	{
 		bool compressed = false;
+		string eTag = null;
 
 		public HttpStatusCode Code { get; private set; } = HttpStatusCode.OK;
 		public ContentTypeData ContentType { get; private set; }
@@ -23,15 +25,15 @@ namespace NeoMedia
 			compressed = false;
 		}
 
-		public static Result CreateFromFile(string name)
+		public static Response CreateFromFile(string name, string eTag)
 		{
-			var result = new Result();
+			var result = new Response();
 
 			var ext = Path.GetExtension(name).ToLowerInvariant();
 			result.ContentType = ContentTypeData.GetContentTypeDataByExtension(ext);
 			if (result.ContentType == null)
 			{
-				result = CreateFromFile("InvalidType.html");
+				result = CreateFromFile("InvalidType.html", null);
 				result.Code = HttpStatusCode.UnsupportedMediaType;
 				return result;
 			}
@@ -41,10 +43,18 @@ namespace NeoMedia
 				fileName = Path.GetDirectoryName(Path.GetDirectoryName(fileName));
 			fileName = Path.Combine(fileName, "Site", name);
 
-			if (!File.Exists(fileName))
+			var fileInfo = new FileInfo(fileName);
+			if (!fileInfo.Exists)
 			{
-				result = CreateFromFile("404.html");
+				result = CreateFromFile("404.html", null);
 				result.Code = HttpStatusCode.NotFound;
+				return result;
+			}
+
+			result.eTag = $"{fileInfo.LastWriteTimeUtc.Ticks}-{fileInfo.Length}";
+			if (result.eTag == eTag)
+			{
+				result.Code = HttpStatusCode.NotModified;
 				return result;
 			}
 
@@ -55,14 +65,14 @@ namespace NeoMedia
 			return result;
 		}
 
-		public static Result CreateFromText(string text, string ext = ".jsn")
+		public static Response CreateFromText(string text, string ext = ".jsn")
 		{
-			var result = new Result();
+			var result = new Response();
 
 			result.ContentType = ContentTypeData.GetContentTypeDataByExtension(ext);
 			if (result.ContentType == null)
 			{
-				result = CreateFromFile("InvalidType.html");
+				result = CreateFromFile("InvalidType.html", null);
 				result.Code = HttpStatusCode.UnsupportedMediaType;
 				return result;
 			}
@@ -73,7 +83,7 @@ namespace NeoMedia
 			return result;
 		}
 
-		public static Result Empty => new Result
+		public static Response Empty => new Response
 		{
 			ContentType = ContentTypeData.GetContentTypeDataByExtension(".txt"),
 			Data = new byte[0],
@@ -98,14 +108,19 @@ namespace NeoMedia
 			var response = new List<string>();
 			response.Add($"HTTP/1.1 {(int)Code} {Code}");
 			response.Add($"Content-Type: {ContentType}");
-			response.Add($"Content-Length: {Data.Length}");
+			if (Data != null)
+				response.Add($"Content-Length: {Data.Length}");
 			if (compressed)
 				response.Add("Content-Encoding: gzip");
+			if (eTag != null)
+				response.Add($@"ETag: ""{eTag}""");
+			response.Add($"Date: {DateTime.UtcNow:r}");
 			response.Add(""); // Blank line signals end of text
 			var output = Encoding.UTF8.GetBytes(string.Join("", response.Select(str => $"{str}\r\n")));
 
 			stream.Write(output, 0, output.Length);
-			stream.Write(Data, 0, Data.Length);
+			if (Data != null)
+				stream.Write(Data, 0, Data.Length);
 		}
 	}
 }
