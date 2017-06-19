@@ -18,7 +18,7 @@
 	</div>
 
 	<div class="videos">
-		<div ng-repeat="video in vm.videos | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueVideo(video)">
+		<div ng-repeat="video in vm.videos | filter:vm.searchText" ng-click="vm.queueVideo(video)">
 			<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
 		</div>
 	</div>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows;
 using System.Windows.Input;
@@ -97,7 +98,11 @@ namespace NeoMedia
 
 		Response GetVideos()
 		{
-			var files = Directory.EnumerateFiles(Settings.VideosPath).Select(file => Path.GetFileName(file)).ToList();
+			var files = Directory
+				.EnumerateFiles(Settings.VideosPath)
+				.Select(file => Path.GetFileName(file))
+				.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
+				.ToList();
 			var queued = actions.Queued;
 			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {queued.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Response.CreateFromText(str);
