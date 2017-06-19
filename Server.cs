@@ -60,7 +60,7 @@ namespace NeoMedia
 
 				var eTagsHeader = lines.FirstOrDefault(line => line.StartsWith("If-None-Match: "))?.Remove(0, "If-None-Match: ".Length) ?? "";
 				var match = Regex.Match(eTagsHeader, @"^(?:[^""]*""([^""]*)""[^""]*)*$");
-				var eTags = match.Success ? new HashSet<string>(match.Groups[1].Captures.Cast<Capture>().Select(capture => capture.Value).Where(str => !string.IsNullOrWhiteSpace(str))) : new HashSet<string>();
+				var eTags = match.Success ? new HashSet<string>(match.Groups[1].Captures.Cast<Capture>().Select(capture => capture.Value).Where(str => !string.IsNullOrWhiteSpace(str))) : default(HashSet<string>);
 
 				return new Request(url, eTags);
 			}

@@ -52,7 +52,7 @@ namespace NeoMedia
 			}
 
 			result.eTag = $"{fileInfo.LastWriteTimeUtc.Ticks}-{fileInfo.Length}";
-			if (eTags.Contains(result.eTag))
+			if (eTags?.Contains(result.eTag) == true)
 			{
 				result.Code = HttpStatusCode.NotModified;
 				return result;
