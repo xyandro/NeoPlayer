@@ -27,19 +27,26 @@ namespace NeoMedia
 		}
 
 		DispatcherTimer timer = null;
+		object timerLock = new object();
 		void ActionChanged()
 		{
 			if (timer != null)
 				return;
 
-			timer = new DispatcherTimer();
-			timer.Tick += (s, e) =>
+			lock (timerLock)
 			{
-				timer.Stop();
-				timer = null;
-				HandleActions();
-			};
-			timer.Start();
+				if (timer != null)
+					return;
+
+				timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle, Dispatcher);
+				timer.Tick += (s, e) =>
+				{
+					timer.Stop();
+					timer = null;
+					HandleActions();
+				};
+				timer.Start();
+			}
 		}
 
 		string playing = null;
@@ -64,38 +71,35 @@ namespace NeoMedia
 
 		Result HandleServiceCall(string url)
 		{
-			return Dispatcher.Invoke(() =>
-			{
-				if (url.StartsWith("service/"))
-					url = url.Substring("service/".Length);
+			if (url.StartsWith("service/"))
+				url = url.Substring("service/".Length);
 
-				var queryIndex = url.IndexOf('?');
-				var query = queryIndex == -1 ? "" : url.Substring(queryIndex + 1);
-				url = queryIndex == -1 ? url : url.Remove(queryIndex);
-				var parsed = HttpUtility.ParseQueryString(query);
-				var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
-				switch (url)
-				{
-					case "videos": return GetVideos();
-					case "enqueue": return Enqueue(parameters["video"], true);
-					case "dequeue": return Enqueue(parameters["video"], false);
-					case "pause": return Pause();
-					case "next": return Next();
-					case "setpos": return SetPos(int.Parse(parameters["pos"].FirstOrDefault() ?? "0"));
-					case "jumppos": return JumpPos(int.Parse(parameters["offset"].FirstOrDefault() ?? "0"));
-					case "getplayinfo": return GetPlayInfo();
-					default:
-						if (Settings.Debug)
-							MessageBox.Show($"Service: {url}");
-						return Result.Empty;
-				}
-			});
+			var queryIndex = url.IndexOf('?');
+			var query = queryIndex == -1 ? "" : url.Substring(queryIndex + 1);
+			url = queryIndex == -1 ? url : url.Remove(queryIndex);
+			var parsed = HttpUtility.ParseQueryString(query);
+			var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
+			switch (url)
+			{
+				case "videos": return GetVideos();
+				case "enqueue": return Enqueue(parameters["video"], true);
+				case "dequeue": return Enqueue(parameters["video"], false);
+				case "pause": return Pause();
+				case "next": return Next();
+				case "setposition": return SetPosition(int.Parse(parameters["position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["relative"].FirstOrDefault() ?? "false"));
+				case "getplayinfo": return GetPlayInfo();
+				default:
+					if (Settings.Debug)
+						MessageBox.Show($"Service: {url}");
+					return Result.Empty;
+			}
 		}
 
 		Result GetVideos()
 		{
 			var files = Directory.EnumerateFiles(Settings.VideosPath).Select(file => Path.GetFileName(file)).ToList();
-			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.IsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
+			var queued = actions.Queued;
+			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {queued.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Result.CreateFromText(str);
 		}
 
@@ -107,7 +111,7 @@ namespace NeoMedia
 
 		Result Pause()
 		{
-			vlc.playlist.togglePause();
+			Dispatcher.Invoke(() => vlc.playlist.togglePause());
 			return Result.Empty;
 		}
 
@@ -117,27 +121,24 @@ namespace NeoMedia
 			return Result.Empty;
 		}
 
-		Result SetPos(int position)
+		Result SetPosition(int position, bool relative)
 		{
-			vlc.input.time = position;
-			return Result.Empty;
-		}
-
-		Result JumpPos(int offset)
-		{
-			vlc.input.time += offset * 1000;
+			Dispatcher.Invoke(() => vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000);
 			return Result.Empty;
 		}
 
 		private Result GetPlayInfo()
 		{
-			var max = Math.Max(0, (int)vlc.input.length);
-			var position = Math.Min(max, Math.Max(0, (int)vlc.input.time));
-			var playing = vlc.playlist.isPlaying;
-			string currentSong = "";
-			if (vlc.playlist.currentItem != -1)
-				try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-			return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
+			return Dispatcher.Invoke(() =>
+			{
+				var max = Math.Max(0, (int)vlc.input.length / 1000);
+				var position = Math.Min(max, Math.Max(0, (int)vlc.input.time / 1000));
+				var playing = vlc.playlist.isPlaying;
+				string currentSong = "";
+				if (vlc.playlist.currentItem != -1)
+					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+				return Result.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
+			});
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)

@@ -14,32 +14,55 @@ namespace NeoMedia
 		}
 
 
-		public string CurrentVideo => videos.Count == 0 ? null : videos[0];
+		public string CurrentVideo
+		{
+			get
+			{
+				lock (videos)
+					return videos.Count == 0 ? null : videos[0];
+			}
+		}
 
-		public bool IsQueued(string fileName) => videos.Contains(fileName);
+		public HashSet<string> Queued
+		{
+			get
+			{
+				lock (videos)
+					return new HashSet<string>(videos);
+			}
+		}
 
 		public void Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
-			foreach (var fileName in fileNames)
+			var found = false;
+			lock (videos)
 			{
-				var present = videos.Contains(fileName);
-				if (present == enqueue)
-					continue;
+				foreach (var fileName in fileNames)
+				{
+					var present = videos.Contains(fileName);
+					if (present == enqueue)
+						continue;
 
-				if (enqueue)
-					videos.Add(fileName);
-				else
-					videos.Remove(fileName);
-				changed();
+					if (enqueue)
+						videos.Add(fileName);
+					else
+						videos.Remove(fileName);
+					found = true;
+				}
 			}
+			if (found)
+				changed();
 		}
 
 		public void RemoveFirst()
 		{
-			if (videos.Count == 0)
-				return;
-			videos.RemoveAt(0);
-			changed();
+			lock (videos)
+			{
+				if (videos.Count == 0)
+					return;
+				videos.RemoveAt(0);
+				changed();
+			}
 		}
 	}
 }

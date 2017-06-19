@@ -24,14 +24,14 @@
 	</div>
 
 	<div class="footer">
-		<div class="slider"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-change="vm.setPos(vm.curPos)" /></div>
+		<div class="slider"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-change="vm.setPosition(vm.curPos, false)" /></div>
 		<div class="currentSong">{{vm.currentSong}}</div>
 		<div class="buttons">
-			<img ng-click="vm.jumpPos(-30)" src="back30.svg" />
-			<img ng-click="vm.jumpPos(-5)" src="back5.svg" />
+			<img ng-click="vm.setPosition(-30, true)" src="back30.svg" />
+			<img ng-click="vm.setPosition(-5, true)" src="back5.svg" />
 			<img ng-click="vm.pause()" ng-src="{{vm.playing ? 'pause.svg' : 'play.svg'}}" />
-			<img ng-click="vm.jumpPos(5)" src="forward5.svg" />
-			<img ng-click="vm.jumpPos(30)" src="forward30.svg" />
+			<img ng-click="vm.setPosition(5, true)" src="forward5.svg" />
+			<img ng-click="vm.setPosition(30, true)" src="forward30.svg" />
 			<img ng-click="vm.next()" src="forward.svg" />
 			<div class="stretch" />
 		</div>

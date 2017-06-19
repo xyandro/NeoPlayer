@@ -58,16 +58,13 @@ function NeoMediaController($http, $filter) {
 		$http.get('service/next');
 	}
 
-	vm.setPos = function (value) {
+	vm.setPosition = function (position, relative) {
+		// Ignore first call, which sets the video position to 0 when a new client connects
 		if (vm.first) {
 			vm.first = false;
 			return;
 		}
-		$http.get('service/setpos?pos=' + value);
-	}
-
-	vm.jumpPos = function (value) {
-		$http.get('service/jumppos?offset=' + value);
+		$http.get('service/setposition?position=' + position + '&relative=' + relative);
 	}
 
 	vm.updatePlayInfo = function () {
