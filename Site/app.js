@@ -11,6 +11,7 @@ function NeoMediaController($http, $filter) {
 	vm.maxPos = 0;
 	vm.playing = false;
 	vm.currentSong = '';
+	vm.first = true;
 
 	vm.refresh = function () {
 		$http.get('service/videos').then(function (response) {
@@ -58,6 +59,10 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.setPos = function (value) {
+		if (vm.first) {
+			vm.first = false;
+			return;
+		}
 		$http.get('service/setpos?pos=' + value);
 	}
 

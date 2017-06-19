@@ -8,7 +8,7 @@
 			<stop offset="0%" stop-color="#0b9900" />
 			<stop offset="100%" stop-color="#087300" />
 		</radialGradient>
-		<filter id="dropshadow" width="150%" height="150%">
+		<filter id="dropshadow" x="-20%" y="-20%" width="140%" height="140%">
 			<feGaussianBlur in="SourceAlpha" stdDeviation="3" />
 			<feOffset dx="2" dy="2" />
 			<feMerge>
