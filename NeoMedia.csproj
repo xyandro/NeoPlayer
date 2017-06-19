@@ -116,7 +116,9 @@
     <EmbeddedResource Include="Site\pause.svg" />
     <EmbeddedResource Include="Site\play.svg" />
     <EmbeddedResource Include="Site\site.css" />
+    <EmbeddedResource Include="Site\teal.png" />
     <EmbeddedResource Include="Site\uncheck.svg" />
+    <EmbeddedResource Include="Site\yellow.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
