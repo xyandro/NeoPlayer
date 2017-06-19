@@ -6,6 +6,11 @@ namespace NeoMedia
 {
 	public class Actions
 	{
+		ActionType actionType = ActionType.Videos;
+		public ActionType CurrentAction { get { return actionType; } set { actionType = value; changed(); } }
+
+		readonly List<string> images = new List<string>();
+		readonly List<string> songs = new List<string>();
 		readonly List<string> videos = new List<string>();
 		readonly Action changed;
 
@@ -15,35 +20,49 @@ namespace NeoMedia
 		}
 
 
+		public string CurrentImage => images.FirstOrDefault();
+		public string CurrentSong => songs.FirstOrDefault();
 		public string CurrentVideo => videos.FirstOrDefault();
 
-		public bool IsQueued(string video) => videos.Contains(video);
+		public bool VideoIsQueued(string video) => videos.Contains(video);
 
-		public void Enqueue(IEnumerable<string> fileNames, bool enqueue)
+		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
 		{
 			var found = false;
-			foreach (var fileName in fileNames)
+			foreach (var fileName in items)
 			{
-				var present = videos.Contains(fileName);
+				var present = list.Contains(fileName);
 				if (present == enqueue)
 					continue;
 
 				if (enqueue)
-					videos.Add(fileName);
+					list.Add(fileName);
 				else
-					videos.Remove(fileName);
+					list.Remove(fileName);
 				found = true;
 			}
 			if (found)
 				changed();
 		}
 
-		public void RemoveFirst()
+		public void EnqueueImages(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(images, fileNames, enqueue);
+		public void EnqueueSongs(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(songs, fileNames, enqueue);
+		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
+
+		void CycleList(List<string> list, bool addToEnd)
 		{
-			if (videos.Count == 0)
+			if (!list.Any())
 				return;
-			videos.RemoveAt(0);
+
+			var first = list[0];
+			list.RemoveAt(0);
+			if (addToEnd)
+				list.Add(first);
 			changed();
 		}
+
+		public void CycleImage() => CycleList(images, true);
+		public void CycleSong() => CycleList(songs, true);
+		public void CycleVideo() => CycleList(videos, false);
 	}
 }

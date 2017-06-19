@@ -5,7 +5,9 @@
 	Title="NeoMedia" Width="800" Height="600" Background="Black" WindowStyle="None">
 
 	<Grid>
-		<WindowsFormsHost>
+		<Image Name="image1"/>
+		<Image Name="image2"/>
+		<WindowsFormsHost Name="vlcHost">
 			<vlc:AxVLCPlugin2 x:Name="vlc"/>
 		</WindowsFormsHost>
 	</Grid>

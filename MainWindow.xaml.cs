@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace NeoMedia
@@ -19,6 +20,10 @@ namespace NeoMedia
 			InitializeComponent();
 
 			actions = new Actions(ActionChanged);
+			actions.EnqueueImages(Directory.EnumerateFiles(@"C:\Dev\NeoMediaData\Images"));
+			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
+			actions.CurrentAction = ActionType.Slideshow;
+
 			Server.Run(7399, HandleServiceCall);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
@@ -43,25 +48,71 @@ namespace NeoMedia
 			timer.Start();
 		}
 
-		string playing = null;
+		DispatcherTimer changeImageTimer = null;
+		string currentImage = null;
+		string currentSong = null;
+		string currentVideo = null;
 		void HandleActions()
 		{
-			var current = actions.CurrentVideo;
-			if (current == playing)
-				return;
-
-			playing = current;
-			vlc.playlist.stop();
-			vlc.playlist.items.clear();
-
-			if (playing != null)
+			// Stop current song if necessary
+			if ((currentSong != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentSong != actions.CurrentSong)))
 			{
-				vlc.playlist.add($@"file:///{Settings.VideosPath}\{playing}");
+				currentSong = null;
+				vlc.playlist.stop();
+				vlc.playlist.items.clear();
+			}
+
+			// Stop image timer if necessary
+			if ((currentImage != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentImage != actions.CurrentImage)))
+			{
+				currentImage = null;
+				changeImageTimer.Stop();
+				changeImageTimer = null;
+				image1.Source = image2.Source = null;
+			}
+
+			// Stop current video if necessary
+			if ((currentVideo != null) && ((actions.CurrentAction != ActionType.Videos) || (currentVideo != actions.CurrentVideo)))
+			{
+				currentVideo = null;
+				vlc.playlist.stop();
+				vlc.playlist.items.clear();
+			}
+
+			// Hide things
+			image1.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
+			image2.Visibility = Visibility.Hidden;
+			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
+
+			// Display new image
+			if ((actions.CurrentAction == ActionType.Slideshow) && (currentImage != actions.CurrentImage))
+			{
+				currentImage = actions.CurrentImage;
+				image1.Source = new BitmapImage(new Uri(currentImage));
+				changeImageTimer = new DispatcherTimer();
+				changeImageTimer.Interval = TimeSpan.FromSeconds(2);
+				changeImageTimer.Tick += (s, e) => actions.CycleImage();
+				changeImageTimer.Start();
+			}
+
+			// Start new song
+			if ((actions.CurrentAction == ActionType.Slideshow) && (currentSong != actions.CurrentSong))
+			{
+				currentSong = actions.CurrentSong;
+				vlc.playlist.add($@"file:///{currentSong}");
+				vlc.playlist.playItem(0);
+			}
+
+			// Start new video
+			if ((actions.CurrentAction == ActionType.Videos) && (currentVideo != actions.CurrentVideo))
+			{
+				currentVideo = actions.CurrentVideo;
+				vlc.playlist.add($@"file:///{Settings.VideosPath}\{currentVideo}");
 				vlc.playlist.playItem(0);
 			}
 		}
 
-		private void Vlc_MediaPlayerEndReached(object sender, EventArgs e) => actions.RemoveFirst();
+		void Vlc_MediaPlayerEndReached(object sender, EventArgs e) => Next();
 
 		Response HandleServiceCall(string url)
 		{
@@ -96,13 +147,15 @@ namespace NeoMedia
 				.Select(file => Path.GetFileName(file))
 				.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
 				.ToList();
-			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.IsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
+			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.VideoIsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Response.CreateFromText(str);
 		}
 
 		Response Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
-			actions.Enqueue(fileNames, enqueue);
+			actions.EnqueueVideos(fileNames, enqueue);
+			if ((enqueue) && (fileNames.Any()))
+				actions.CurrentAction = ActionType.Videos;
 			return Response.Empty;
 		}
 
@@ -114,7 +167,10 @@ namespace NeoMedia
 
 		Response Next()
 		{
-			actions.RemoveFirst();
+			if (actions.CurrentAction == ActionType.Videos)
+				actions.CycleVideo();
+			else
+				actions.CycleSong();
 			return Response.Empty;
 		}
 
@@ -124,7 +180,7 @@ namespace NeoMedia
 			return Response.Empty;
 		}
 
-		private Response GetPlayInfo()
+		Response GetPlayInfo()
 		{
 			return Dispatcher.Invoke(() =>
 			{
