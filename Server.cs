@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -57,11 +58,11 @@ namespace NeoMedia
 				if (url == "")
 					url = "Index.html";
 
-				var eTag = lines.FirstOrDefault(line => line.StartsWith("If-None-Match: "))?.Remove(0, "If-None-Match: ".Length);
-				if ((eTag != null) && (eTag.Length >= 2) && (eTag.StartsWith("\"")) && (eTag.EndsWith("\"")))
-					eTag = eTag.Substring(1, eTag.Length - 2);
+				var eTagsHeader = lines.FirstOrDefault(line => line.StartsWith("If-None-Match: "))?.Remove(0, "If-None-Match: ".Length) ?? "";
+				var match = Regex.Match(eTagsHeader, @"^(?:[^""]*""([^""]*)""[^""]*)*$");
+				var eTags = match.Success ? new HashSet<string>(match.Groups[1].Captures.Cast<Capture>().Select(capture => capture.Value).Where(str => !string.IsNullOrWhiteSpace(str))) : new HashSet<string>();
 
-				return new Request(url, eTag);
+				return new Request(url, eTags);
 			}
 		}
 
@@ -81,7 +82,7 @@ namespace NeoMedia
 						result = service(request.URL);
 
 					if (result == null)
-						result = Response.CreateFromFile(request.URL, request.ETag);
+						result = Response.CreateFromFile(request.URL, request.ETags);
 
 					result.Send(stream);
 				}

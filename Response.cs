@@ -25,7 +25,7 @@ namespace NeoMedia
 			compressed = false;
 		}
 
-		public static Response CreateFromFile(string name, string eTag)
+		public static Response CreateFromFile(string name, HashSet<string> eTags)
 		{
 			var result = new Response();
 
@@ -52,7 +52,7 @@ namespace NeoMedia
 			}
 
 			result.eTag = $"{fileInfo.LastWriteTimeUtc.Ticks}-{fileInfo.Length}";
-			if (result.eTag == eTag)
+			if (eTags.Contains(result.eTag))
 			{
 				result.Code = HttpStatusCode.NotModified;
 				return result;
