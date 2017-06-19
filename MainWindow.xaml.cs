@@ -20,7 +20,7 @@ namespace NeoMedia
 			InitializeComponent();
 
 			actions = new Actions(ActionChanged);
-			actions.EnqueueImages(Directory.EnumerateFiles(@"C:\Dev\NeoMediaData\Images"));
+			actions.EnqueueImages(Directory.EnumerateFiles(@"D:\Documents\Transfer\Pictures"));
 			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
 			actions.CurrentAction = ActionType.Slideshow;
 
