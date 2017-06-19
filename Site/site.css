@@ -1,19 +1,19 @@
 body {
+	height: 100%;
+	margin: 0;
 	background-color: black;
 }
 
 div {
-	overflow-x: hidden;
-	overflow-y: scroll;
 	white-space: nowrap;
 }
 
+	div.search, div.search div, div.footer, div.footer div {
+		overflow: hidden;
+	}
+
 	div.search {
-		position: absolute;
-		top: 0;
-		bottom: 95vh;
-		left: 0;
-		right: 0;
+		height: 5vh;
 		background-image: url(yellow.png);
 	}
 
@@ -35,38 +35,28 @@ div {
 			width: calc(100% - 12vh);
 		}
 
-	div.body {
-		position: absolute;
-		top: 5.1vh;
-		bottom: 12.1vh;
-		left: 0;
-		right: 0;
+	div.videos {
+		margin-top: .1vh;
+		margin-bottom: .1vh;
 		background-image: url(teal.png);
+		height: 82.8vh;
+		overflow-x: hidden;
+		overflow-y: scroll;
 	}
 
-		div.body div.videos {
-			overflow-y: scroll;
+		div.videos div {
+			color: white;
+			font-size: 2vh;
+			text-shadow: 2px 2px #000000;
 		}
 
-			div.body div.videos div {
-				color: white;
-				font-size: 2vh;
-				text-shadow: 2px 2px #000000;
-				align-content: center;
+			div.videos div img {
+				vertical-align: middle;
+				height: 5vh;
 			}
 
-				div.body div.videos div img {
-					vertical-align: middle;
-					height: 5vh;
-				}
-
 	div.footer {
-		position: absolute;
-		top: 88vh;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		width: 100%;
+		height: 12vh;
 		background-image: url(yellow.png);
 	}
 

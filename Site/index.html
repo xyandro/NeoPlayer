@@ -17,11 +17,9 @@
 		<img class="clear" ng-click="vm.resetSearch()" src="clear.svg" />
 	</div>
 
-	<div class="body">
-		<div class="videos">
-			<div ng-repeat="video in vm.videos | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueVideo(video)">
-				<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
-			</div>
+	<div class="videos">
+		<div ng-repeat="video in vm.videos | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueVideo(video)">
+			<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
 		</div>
 	</div>
 
