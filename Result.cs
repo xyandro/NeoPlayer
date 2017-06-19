@@ -23,29 +23,6 @@ namespace NeoMedia
 			compressed = false;
 		}
 
-		static byte[] GetData(string name)
-		{
-			if (Settings.Debug)
-			{
-				var fileName = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(typeof(Server).Assembly.Location))), "Site", name);
-				if (!File.Exists(fileName))
-					return null;
-				return File.ReadAllBytes(fileName);
-			}
-			else
-			{
-				var resourceName = $"{nameof(NeoMedia)}.Site.{name.Replace("/", ".")}";
-				using (var stream = typeof(Server).Assembly.GetManifestResourceStream(resourceName))
-				{
-					if (stream == null)
-						return null;
-					var data = new byte[stream.Length];
-					stream.Read(data, 0, data.Length);
-					return data;
-				}
-			}
-		}
-
 		public static Result CreateFromFile(string name)
 		{
 			var result = new Result();
@@ -59,14 +36,19 @@ namespace NeoMedia
 				return result;
 			}
 
-			result.Data = GetData(name);
+			var fileName = Path.GetDirectoryName(typeof(Server).Assembly.Location);
+			if (Settings.Debug)
+				fileName = Path.GetDirectoryName(Path.GetDirectoryName(fileName));
+			fileName = Path.Combine(fileName, "Site", name);
 
-			if (result.Data == null)
+			if (!File.Exists(fileName))
 			{
 				result = CreateFromFile("404.html");
 				result.Code = HttpStatusCode.NotFound;
 				return result;
 			}
+
+			result.Data = File.ReadAllBytes(fileName);
 
 			result.CheckCompress();
 
