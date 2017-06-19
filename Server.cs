@@ -5,27 +5,25 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace NeoMedia
 {
 	public static class Server
 	{
-		public static void Run(int port, Func<string, Response> service) => new Thread(() => RunListener(port, service)).Start();
-
-		static void RunListener(int port, Func<string, Response> service)
+		async public static void Run(int port, Func<string, Response> service)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
 			while (true)
 			{
-				var client = listener.AcceptTcpClient();
-				new Thread(() => RunClient(client, service)).Start();
+				var client = await listener.AcceptTcpClientAsync();
+				RunClient(client, service);
 			}
 		}
 
-		static Request GetRequest(NetworkStream stream)
+		async static Task<Request> GetRequest(NetworkStream stream)
 		{
 			var text = "";
 			while (true)
@@ -33,7 +31,7 @@ namespace NeoMedia
 				try
 				{
 					var buffer = new byte[1024];
-					var block = stream.Read(buffer, 0, buffer.Length);
+					var block = await stream.ReadAsync(buffer, 0, buffer.Length);
 					if (block == 0)
 						return null;
 					text += Encoding.UTF8.GetString(buffer, 0, block);
@@ -66,14 +64,14 @@ namespace NeoMedia
 			}
 		}
 
-		static void RunClient(TcpClient client, Func<string, Response> service)
+		async static void RunClient(TcpClient client, Func<string, Response> service)
 		{
 			var stream = client.GetStream();
 			while (true)
 			{
 				try
 				{
-					var request = GetRequest(stream);
+					var request = await GetRequest(stream);
 					if (request == null)
 						break;
 
@@ -84,7 +82,7 @@ namespace NeoMedia
 					if (result == null)
 						result = Response.CreateFromFile(request.URL, request.ETags);
 
-					result.Send(stream);
+					await result.Send(stream);
 				}
 				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { break; }
 				catch (Exception ex)

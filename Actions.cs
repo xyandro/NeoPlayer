@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NeoMedia
 {
@@ -14,41 +15,24 @@ namespace NeoMedia
 		}
 
 
-		public string CurrentVideo
-		{
-			get
-			{
-				lock (videos)
-					return videos.Count == 0 ? null : videos[0];
-			}
-		}
+		public string CurrentVideo => videos.FirstOrDefault();
 
-		public HashSet<string> Queued
-		{
-			get
-			{
-				lock (videos)
-					return new HashSet<string>(videos);
-			}
-		}
+		public bool IsQueued(string video) => videos.Contains(video);
 
 		public void Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
 			var found = false;
-			lock (videos)
+			foreach (var fileName in fileNames)
 			{
-				foreach (var fileName in fileNames)
-				{
-					var present = videos.Contains(fileName);
-					if (present == enqueue)
-						continue;
+				var present = videos.Contains(fileName);
+				if (present == enqueue)
+					continue;
 
-					if (enqueue)
-						videos.Add(fileName);
-					else
-						videos.Remove(fileName);
-					found = true;
-				}
+				if (enqueue)
+					videos.Add(fileName);
+				else
+					videos.Remove(fileName);
+				found = true;
 			}
 			if (found)
 				changed();
@@ -56,13 +40,10 @@ namespace NeoMedia
 
 		public void RemoveFirst()
 		{
-			lock (videos)
-			{
-				if (videos.Count == 0)
-					return;
-				videos.RemoveAt(0);
-				changed();
-			}
+			if (videos.Count == 0)
+				return;
+			videos.RemoveAt(0);
+			changed();
 		}
 	}
 }

@@ -2,15 +2,12 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace NeoMedia
 {
 	public static class Interceptor
 	{
-		public static void Run(int inPort, string outHostName, int outPort, string fileName) => new Thread(() => RunListener(inPort, outHostName, outPort, fileName)).Start();
-
-		static void RunListener(int inPort, string outHostName, int outPort, string fileName)
+		async public static void Run(int inPort, string outHostName, int outPort, string fileName)
 		{
 			var output = File.CreateText(fileName);
 			output.AutoFlush = true;
@@ -21,14 +18,15 @@ namespace NeoMedia
 			while (true)
 			{
 				++count;
-				var client = listener.AcceptTcpClient();
-				var server = new TcpClient(outHostName, outPort);
-				new Thread(() => RunInterceptor(client, server, output, $"{count}-1")).Start();
-				new Thread(() => RunInterceptor(server, client, output, $"{count}-2")).Start();
+				var client = await listener.AcceptTcpClientAsync();
+				var server = new TcpClient();
+				await server.ConnectAsync(outHostName, outPort);
+				RunInterceptor(client, server, output, $"{count}-1");
+				RunInterceptor(server, client, output, $"{count}-2");
 			}
 		}
 
-		static void RunInterceptor(TcpClient client, TcpClient server, StreamWriter output, string prefix)
+		async static void RunInterceptor(TcpClient client, TcpClient server, StreamWriter output, string prefix)
 		{
 			var clientStream = client.GetStream();
 			var serverStream = server.GetStream();
@@ -37,12 +35,11 @@ namespace NeoMedia
 				var buffer = new byte[1048576];
 				while (client.Connected)
 				{
-					var block = clientStream.Read(buffer, 0, buffer.Length);
+					var block = await clientStream.ReadAsync(buffer, 0, buffer.Length);
 					if (block == 0)
 						continue;
-					lock (output)
-						output.WriteLine($"{prefix}: {Convert.ToBase64String(buffer, 0, block)}");
-					serverStream.Write(buffer, 0, block);
+					output.WriteLine($"{prefix}: {Convert.ToBase64String(buffer, 0, block)}");
+					await serverStream.WriteAsync(buffer, 0, block);
 				}
 			}
 			catch { }

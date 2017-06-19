@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NeoMedia
 {
@@ -103,7 +104,7 @@ namespace NeoMedia
 			compressed = true;
 		}
 
-		public void Send(Stream stream)
+		async public Task Send(Stream stream)
 		{
 			var response = new List<string>();
 			response.Add($"HTTP/1.1 {(int)Code} {Code}");
@@ -118,9 +119,9 @@ namespace NeoMedia
 			response.Add(""); // Blank line signals end of text
 			var output = Encoding.UTF8.GetBytes(string.Join("", response.Select(str => $"{str}\r\n")));
 
-			stream.Write(output, 0, output.Length);
+			await stream.WriteAsync(output, 0, output.Length);
 			if (Data != null)
-				stream.Write(Data, 0, Data.Length);
+				await stream.WriteAsync(Data, 0, Data.Length);
 		}
 	}
 }

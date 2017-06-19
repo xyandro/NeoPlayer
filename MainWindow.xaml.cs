@@ -28,26 +28,19 @@ namespace NeoMedia
 		}
 
 		DispatcherTimer timer = null;
-		object timerLock = new object();
 		void ActionChanged()
 		{
 			if (timer != null)
 				return;
 
-			lock (timerLock)
+			timer = new DispatcherTimer();
+			timer.Tick += (s, e) =>
 			{
-				if (timer != null)
-					return;
-
-				timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle, Dispatcher);
-				timer.Tick += (s, e) =>
-				{
-					timer.Stop();
-					timer = null;
-					HandleActions();
-				};
-				timer.Start();
-			}
+				timer.Stop();
+				timer = null;
+				HandleActions();
+			};
+			timer.Start();
 		}
 
 		string playing = null;
@@ -103,8 +96,7 @@ namespace NeoMedia
 				.Select(file => Path.GetFileName(file))
 				.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
 				.ToList();
-			var queued = actions.Queued;
-			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {queued.Contains(file).ToString().ToLowerInvariant()} }}"))} ]";
+			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.IsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
 			return Response.CreateFromText(str);
 		}
 
