@@ -11,12 +11,18 @@
 </head>
 <body ng-controller="NeoMediaController as vm">
 
-	<div class="header">
-		Header
+	<div class="search">
+		<img ng-click="vm.queueVideos()" src="check.svg" />
+		<input type="text" ng-model="vm.searchText" />
+		<img class="clear" ng-click="vm.resetSearch()" src="clear.svg" />
 	</div>
 
 	<div class="body">
-		Body
+		<div class="videos">
+			<div ng-repeat="video in vm.videos | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueVideo(video)">
+				<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
+			</div>
+		</div>
 	</div>
 
 	<div class="footer">
@@ -32,23 +38,6 @@
 			<div class="stretch" />
 		</div>
 	</div>
-
-
-	<!--
-	<table>
-		<tr>
-			<td />
-			<td><b>Videos</b></td>
-		</tr>
-		<tr>
-			<td><img ng-click="vm.queueVideos()" src="check.svg" /></td>
-			<td><img ng-click="vm.resetSearch()" src="clear.svg" /><input type="text" ng-model="vm.searchText" /></td>
-		</tr>
-		<tr ng-repeat="video in vm.videos | filter:vm.searchText | orderBy:'name'" ng-click="vm.queueVideo(video)">
-			<td><img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /></td>
-			<td>{{::video.name}}</td>
-		</tr>
-	</table>-->
 
 </body>
 </html>
