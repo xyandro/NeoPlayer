@@ -25,7 +25,7 @@ namespace NeoMedia
 
 		static byte[] GetData(string name)
 		{
-			if (Settings.CheckDisk)
+			if (Settings.Debug)
 			{
 				var fileName = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(typeof(Server).Assembly.Location))), "Site", name);
 				if (!File.Exists(fileName))

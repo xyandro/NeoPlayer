@@ -17,14 +17,6 @@ namespace NeoMedia
 			}
 		}
 
-		public static bool CheckDisk
-		{
-			get
-			{
-				return true;
-			}
-		}
-
 		static readonly string SettingsFile = Path.Combine(Path.GetDirectoryName(typeof(Settings).Assembly.Location), "Settings.xml");
 
 		static string videosPath;
