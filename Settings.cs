@@ -27,12 +27,12 @@ namespace NeoMedia
 
 		static Settings()
 		{
-			VideosPath = SlideShowSongsPath = Directory.GetCurrentDirectory();
+			videosPath = slideShowSongsPath = Directory.GetCurrentDirectory();
 			try
 			{
 				var xml = XElement.Load(SettingsFile);
-				VideosPath = xml.Element(nameof(VideosPath))?.Value ?? VideosPath;
-				SlideShowSongsPath = xml.Element(nameof(SlideShowSongsPath))?.Value ?? SlideShowSongsPath;
+				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
+				slideShowSongsPath = xml.Element(nameof(SlideShowSongsPath))?.Value ?? slideShowSongsPath;
 			}
 			catch { }
 		}
