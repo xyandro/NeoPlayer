@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -25,12 +24,11 @@ namespace NeoRemote
 			actions = new Actions(ActionChanged);
 			actions.EnqueueImages(Directory.EnumerateFiles(@"D:\Documents\Transfer\Pictures"));
 			//actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
-			actions.CurrentAction = ActionType.Slideshow;
 
 			Server.Run(7399, HandleServiceCall);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
-			vlc.MediaPlayerEndReached += Vlc_MediaPlayerEndReached;
+			vlc.MediaPlayerEndReached += (s, e) => Next();
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 		}
@@ -51,94 +49,127 @@ namespace NeoRemote
 			timer.Start();
 		}
 
-		DispatcherTimer changeImageTimer = null;
-		string currentImage = null;
-		string currentSong = null;
-		string currentVideo = null;
 		void HandleActions()
 		{
-			// Stop image timer if necessary
-			if ((currentImage != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentImage != actions.CurrentImage)))
+			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
 			{
-				currentImage = null;
-				changeImageTimer.Stop();
-				changeImageTimer = null;
-				if (actions.CurrentAction != ActionType.Slideshow)
-					image1.Source = image2.Source = null;
+				actions.CurrentAction = ActionType.SlideshowImages;
+				return;
 			}
 
-			// Stop current song if necessary
-			if ((currentSong != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentSong != actions.CurrentSong)))
-			{
-				currentSong = null;
-				vlc.playlist.stop();
-				vlc.playlist.items.clear();
-			}
+			HideImageIfNecessary();
+			StopSongIfNecessary();
+			StopVideoIfNecessary();
 
-			// Stop current video if necessary
-			if ((currentVideo != null) && ((actions.CurrentAction != ActionType.Videos) || (currentVideo != actions.CurrentVideo)))
-			{
-				currentVideo = null;
-				vlc.playlist.stop();
-				vlc.playlist.items.clear();
-			}
+			SetControlsVisibility();
 
-			// Hide things
-			image1.Visibility = image2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
-			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
-
-			// Display new image
-			if ((actions.CurrentAction == ActionType.Slideshow) && (currentImage != actions.CurrentImage))
-			{
-				currentImage = actions.CurrentImage;
-				var bitmap = System.Drawing.Image.FromFile(currentImage) as System.Drawing.Bitmap;
-				using (var memory = new MemoryStream())
-				{
-					bitmap.Save(memory, ImageFormat.Png);
-					memory.Position = 0;
-					var bitmapImage = new BitmapImage();
-					bitmapImage.BeginInit();
-					bitmapImage.StreamSource = memory;
-					bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-					bitmapImage.EndInit();
-					image2.Source = bitmapImage;
-				}
-
-				image1.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(1))));
-				var anim2 = new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(1)));
-				anim2.Completed += (s, e) =>
-				{
-					image1.Source = image2.Source;
-					//image1.Opacity = 1;
-					//image2.Opacity = 0;
-					//image2.Source = null;
-				};
-				image2.BeginAnimation(OpacityProperty, anim2);
-
-				changeImageTimer = new DispatcherTimer();
-				changeImageTimer.Interval = TimeSpan.FromSeconds(2);
-				changeImageTimer.Tick += (s, e) => actions.CycleImage();
-				changeImageTimer.Start();
-			}
-
-			// Start new song
-			if ((actions.CurrentAction == ActionType.Slideshow) && (currentSong != actions.CurrentSong))
-			{
-				currentSong = actions.CurrentSong;
-				vlc.playlist.add($@"file:///{currentSong}");
-				vlc.playlist.playItem(0);
-			}
-
-			// Start new video
-			if ((actions.CurrentAction == ActionType.Videos) && (currentVideo != actions.CurrentVideo))
-			{
-				currentVideo = actions.CurrentVideo;
-				vlc.playlist.add($@"file:///{Settings.VideosPath}\{currentVideo}");
-				vlc.playlist.playItem(0);
-			}
+			DisplayNewImage();
+			StartNewSong();
+			StartNewVideo();
 		}
 
-		void Vlc_MediaPlayerEndReached(object sender, EventArgs e) => Next();
+		void SetControlsVisibility()
+		{
+			image1.Visibility = image2.Visibility = actions.CurrentAction.HasFlag(ActionType.SlideshowImages) ? Visibility.Visible : Visibility.Hidden;
+			vlcHost.Visibility = actions.CurrentAction.HasFlag(ActionType.Videos) ? Visibility.Visible : Visibility.Hidden;
+		}
+
+		string currentImage = null;
+		DispatcherTimer changeImageTimer = null;
+		void HideImageIfNecessary()
+		{
+			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentImage == actions.CurrentImage)))
+				return;
+
+			currentImage = null;
+
+			changeImageTimer.Stop();
+			changeImageTimer = null;
+
+			StopImageFade();
+
+			if (!actions.CurrentAction.HasFlag(ActionType.SlideshowImages))
+				image1.Source = null;
+		}
+
+		void DisplayNewImage()
+		{
+			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) || (currentImage == actions.CurrentImage))
+				return;
+
+			currentImage = actions.CurrentImage;
+			using (var memory = new MemoryStream())
+			{
+				System.Drawing.Image.FromFile(currentImage).Save(memory, ImageFormat.Bmp);
+				memory.Position = 0;
+
+				var bitmapImage = new BitmapImage();
+				bitmapImage.BeginInit();
+				bitmapImage.StreamSource = memory;
+				bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+				bitmapImage.EndInit();
+
+				image2.Source = bitmapImage;
+			}
+
+			var animation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(2)));
+			animation.Completed += (s, e) => StopImageFade();
+			fadeImage.BeginAnimation(OpacityProperty, animation);
+
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+			changeImageTimer.Tick += (s, e) => actions.CycleImage();
+			changeImageTimer.Start();
+		}
+
+		void StopImageFade()
+		{
+			fadeImage.BeginAnimation(OpacityProperty, null);
+			fadeImage.Opacity = 0;
+			image1.Source = image2.Source ?? image1.Source;
+			image2.Source = null;
+		}
+
+		string currentSong = null;
+		void StopSongIfNecessary()
+		{
+			if ((currentSong == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentSong == actions.CurrentSong)))
+				return;
+
+			currentSong = null;
+			vlc.playlist.stop();
+			vlc.playlist.items.clear();
+		}
+
+		void StartNewSong()
+		{
+			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowSongs)) || (currentSong == actions.CurrentSong))
+				return;
+
+			currentSong = actions.CurrentSong;
+			vlc.playlist.add($@"file:///{currentSong}");
+			vlc.playlist.playItem(0);
+		}
+
+		string currentVideo = null;
+		void StopVideoIfNecessary()
+		{
+			if ((currentVideo == null) || ((actions.CurrentAction.HasFlag(ActionType.Videos)) && (currentVideo == actions.CurrentVideo)))
+				return;
+
+			currentVideo = null;
+			vlc.playlist.stop();
+			vlc.playlist.items.clear();
+		}
+
+		void StartNewVideo()
+		{
+			if ((!actions.CurrentAction.HasFlag(ActionType.Videos)) || (currentVideo == actions.CurrentVideo))
+				return;
+
+			currentVideo = actions.CurrentVideo;
+			vlc.playlist.add($@"file:///{Settings.VideosPath}\{currentVideo}");
+			vlc.playlist.playItem(0);
+		}
 
 		Response HandleServiceCall(string url)
 		{
@@ -227,6 +258,8 @@ namespace NeoRemote
 				new SettingsDialog().ShowDialog();
 				e.Handled = true;
 			}
+			if (e.Key == Key.Left)
+				actions.CycleImage(false);
 			if (e.Key == Key.Right)
 				actions.CycleImage();
 			base.OnKeyDown(e);

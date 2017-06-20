@@ -1,8 +1,13 @@
-﻿namespace NeoRemote
+﻿using System;
+
+namespace NeoRemote
 {
+	[Flags]
 	public enum ActionType
 	{
-		Slideshow,
-		Videos,
+		SlideshowImages = 1,
+		SlideshowSongs = 2,
+		Slideshow = SlideshowImages | SlideshowSongs,
+		Videos = 4,
 	}
 }

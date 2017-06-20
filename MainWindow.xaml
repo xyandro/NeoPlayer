@@ -6,7 +6,9 @@
 
 	<Grid>
 		<Image Name="image1"/>
-		<Image Name="image2"/>
+		<Grid Name="fadeImage" Background="Black" Opacity="0">
+			<Image Name="image2"/>
+		</Grid>
 		<WindowsFormsHost Name="vlcHost">
 			<vlc:AxVLCPlugin2 x:Name="vlc"/>
 		</WindowsFormsHost>

@@ -49,19 +49,23 @@ namespace NeoRemote
 		public void EnqueueSongs(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(songs, fileNames, enqueue);
 		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
 
-		void CycleList(List<string> list, bool addToEnd)
+		void CycleList(List<string> list, bool readd, bool fromStart = true)
 		{
 			if (!list.Any())
 				return;
 
-			var first = list[0];
-			list.RemoveAt(0);
-			if (addToEnd)
-				list.Add(first);
+			var takeIndex = fromStart ? 0 : list.Count - 1;
+			var addIndex = fromStart ? list.Count - 1 : 0;
+
+			var item = list[takeIndex];
+			list.RemoveAt(takeIndex);
+			if (readd)
+				list.Insert(addIndex, item);
+
 			changed();
 		}
 
-		public void CycleImage() => CycleList(images, true);
+		public void CycleImage(bool fromStart = true) => CycleList(images, true, fromStart);
 		public void CycleSong() => CycleList(songs, true);
 		public void CycleVideo() => CycleList(videos, false);
 	}
