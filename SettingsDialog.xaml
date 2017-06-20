@@ -12,17 +12,21 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition MinHeight="10"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
-		<Label Grid.Row="0" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
-		<TextBox Grid.Row="0" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<Label Grid.Row="0" Grid.Column="0" Content="_Images path:" HorizontalAlignment="Right" Target="{Binding ElementName=slideShowImagesPath}"/>
+		<TextBox Grid.Row="0" Grid.Column="1" Name="slideShowImagesPath" Text="{Binding SlideShowImagesPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="1" Grid.Column="0" Content="_Songs path:" HorizontalAlignment="Right" Target="{Binding ElementName=slideShowSongsPath}"/>
 		<TextBox Grid.Row="1" Grid.Column="1" Name="slideShowSongsPath" Text="{Binding SlideShowSongsPath, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<UniformGrid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
+		<Label Grid.Row="2" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
+		<TextBox Grid.Row="2" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
+
+		<UniformGrid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
 			<Button IsDefault="True" Content="OK" Padding="10,0" Click="OnOKClick"/>
 			<Button IsCancel="True" Content="Cancel" Padding="10,0"/>
 		</UniformGrid>

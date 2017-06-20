@@ -77,6 +77,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ContentTypeData.cs" />
+    <Compile Include="ImageDownloader.cs" />
     <Compile Include="Interceptor.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

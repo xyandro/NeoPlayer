@@ -6,8 +6,11 @@ namespace NeoRemote
 {
 	public class Actions
 	{
-		ActionType actionType = ActionType.Videos;
-		public ActionType CurrentAction { get { return actionType; } set { actionType = value; changed(); } }
+		ActionType currentAction = ActionType.Videos;
+		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; changed(); } }
+
+		string imageQuery = "landscape";
+		public string ImageQuery { get { return imageQuery; } set { imageQuery = value; changed(); } }
 
 		readonly List<string> images = new List<string>();
 		readonly List<string> songs = new List<string>();
@@ -68,5 +71,17 @@ namespace NeoRemote
 		public void CycleImage(bool fromStart = true) => CycleList(images, true, fromStart);
 		public void CycleSong() => CycleList(songs, true);
 		public void CycleVideo() => CycleList(videos, false);
+
+		void ClearList(List<string> list)
+		{
+			if (!list.Any())
+				return;
+			list.Clear();
+			changed();
+		}
+
+		public void ClearImages() => ClearList(images);
+		public void ClearSongs() => ClearList(songs);
+		public void ClearVideos() => ClearList(videos);
 	}
 }

@@ -21,8 +21,7 @@ namespace NeoRemote
 			InitializeComponent();
 
 			actions = new Actions(ActionChanged);
-			actions.EnqueueImages(Directory.EnumerateFiles(@"D:\Documents\Transfer\Pictures"));
-			//actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
+			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
 
 			Server.Run(7399, HandleServiceCall);
 
@@ -53,6 +52,8 @@ namespace NeoRemote
 			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
 				actions.CurrentAction = ActionType.SlideshowImages;
 
+			SetupImageDownloader();
+
 			HideImageIfNecessary();
 			StopSongIfNecessary();
 			StopVideoIfNecessary();
@@ -62,6 +63,15 @@ namespace NeoRemote
 			DisplayNewImage();
 			StartNewSong();
 			StartNewVideo();
+		}
+
+		string currentQuery;
+		void SetupImageDownloader()
+		{
+			if (currentQuery == actions.ImageQuery)
+				return;
+			currentQuery = actions.ImageQuery;
+			ImageDownloader.Run(currentQuery, "2mp", actions);
 		}
 
 		void SetControlsVisibility()
@@ -118,11 +128,11 @@ namespace NeoRemote
 
 			currentImage = actions.CurrentImage;
 
-			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(2)));
+			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(1)));
 			fadeAnimation.Completed += StopImageFade;
 			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
 
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 			changeImageTimer.Tick += (s, e) => actions.CycleImage();
 			changeImageTimer.Start();
 		}
@@ -269,10 +279,6 @@ namespace NeoRemote
 				new SettingsDialog().ShowDialog();
 				e.Handled = true;
 			}
-			if (e.Key == Key.Left)
-				actions.CycleImage(false);
-			if (e.Key == Key.Right)
-				actions.CycleImage();
 			base.OnKeyDown(e);
 		}
 	}
