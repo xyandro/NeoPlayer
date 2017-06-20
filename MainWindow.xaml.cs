@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -21,7 +24,7 @@ namespace NeoRemote
 
 			actions = new Actions(ActionChanged);
 			actions.EnqueueImages(Directory.EnumerateFiles(@"D:\Documents\Transfer\Pictures"));
-			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
+			//actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
 			actions.CurrentAction = ActionType.Slideshow;
 
 			Server.Run(7399, HandleServiceCall);
@@ -54,21 +57,22 @@ namespace NeoRemote
 		string currentVideo = null;
 		void HandleActions()
 		{
-			// Stop current song if necessary
-			if ((currentSong != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentSong != actions.CurrentSong)))
-			{
-				currentSong = null;
-				vlc.playlist.stop();
-				vlc.playlist.items.clear();
-			}
-
 			// Stop image timer if necessary
 			if ((currentImage != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentImage != actions.CurrentImage)))
 			{
 				currentImage = null;
 				changeImageTimer.Stop();
 				changeImageTimer = null;
-				image1.Source = image2.Source = null;
+				if (actions.CurrentAction != ActionType.Slideshow)
+					image1.Source = image2.Source = null;
+			}
+
+			// Stop current song if necessary
+			if ((currentSong != null) && ((actions.CurrentAction != ActionType.Slideshow) || (currentSong != actions.CurrentSong)))
+			{
+				currentSong = null;
+				vlc.playlist.stop();
+				vlc.playlist.items.clear();
 			}
 
 			// Stop current video if necessary
@@ -80,15 +84,37 @@ namespace NeoRemote
 			}
 
 			// Hide things
-			image1.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
-			image2.Visibility = Visibility.Hidden;
+			image1.Visibility = image2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
 			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
 
 			// Display new image
 			if ((actions.CurrentAction == ActionType.Slideshow) && (currentImage != actions.CurrentImage))
 			{
 				currentImage = actions.CurrentImage;
-				image1.Source = new BitmapImage(new Uri(currentImage));
+				var bitmap = System.Drawing.Image.FromFile(currentImage) as System.Drawing.Bitmap;
+				using (var memory = new MemoryStream())
+				{
+					bitmap.Save(memory, ImageFormat.Png);
+					memory.Position = 0;
+					var bitmapImage = new BitmapImage();
+					bitmapImage.BeginInit();
+					bitmapImage.StreamSource = memory;
+					bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+					bitmapImage.EndInit();
+					image2.Source = bitmapImage;
+				}
+
+				image1.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(1))));
+				var anim2 = new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(1)));
+				anim2.Completed += (s, e) =>
+				{
+					image1.Source = image2.Source;
+					//image1.Opacity = 1;
+					//image2.Opacity = 0;
+					//image2.Source = null;
+				};
+				image2.BeginAnimation(OpacityProperty, anim2);
+
 				changeImageTimer = new DispatcherTimer();
 				changeImageTimer.Interval = TimeSpan.FromSeconds(2);
 				changeImageTimer.Tick += (s, e) => actions.CycleImage();
@@ -201,6 +227,8 @@ namespace NeoRemote
 				new SettingsDialog().ShowDialog();
 				e.Handled = true;
 			}
+			if (e.Key == Key.Right)
+				actions.CycleImage();
 			base.OnKeyDown(e);
 		}
 	}
