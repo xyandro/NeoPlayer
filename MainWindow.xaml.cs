@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -33,29 +32,26 @@ namespace NeoRemote
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 		}
 
-		DispatcherTimer timer = null;
+		DispatcherTimer actionChangedTimer = null;
 		void ActionChanged()
 		{
-			if (timer != null)
+			if (actionChangedTimer != null)
 				return;
 
-			timer = new DispatcherTimer();
-			timer.Tick += (s, e) =>
+			actionChangedTimer = new DispatcherTimer();
+			actionChangedTimer.Tick += (s, e) =>
 			{
-				timer.Stop();
-				timer = null;
+				actionChangedTimer.Stop();
+				actionChangedTimer = null;
 				HandleActions();
 			};
-			timer.Start();
+			actionChangedTimer.Start();
 		}
 
 		void HandleActions()
 		{
 			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
-			{
 				actions.CurrentAction = ActionType.SlideshowImages;
-				return;
-			}
 
 			HideImageIfNecessary();
 			StopSongIfNecessary();
@@ -76,6 +72,7 @@ namespace NeoRemote
 
 		string currentImage = null;
 		DispatcherTimer changeImageTimer = null;
+		DoubleAnimation fadeAnimation;
 		void HideImageIfNecessary()
 		{
 			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentImage == actions.CurrentImage)))
@@ -88,41 +85,55 @@ namespace NeoRemote
 
 			StopImageFade();
 
-			if (!actions.CurrentAction.HasFlag(ActionType.SlideshowImages))
+			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) || (actions.CurrentImage == null))
 				image1.Source = null;
 		}
 
 		void DisplayNewImage()
 		{
-			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) || (currentImage == actions.CurrentImage))
+			if (!actions.CurrentAction.HasFlag(ActionType.SlideshowImages))
 				return;
 
-			currentImage = actions.CurrentImage;
-			using (var memory = new MemoryStream())
+			while (true)
 			{
-				System.Drawing.Image.FromFile(currentImage).Save(memory, ImageFormat.Bmp);
-				memory.Position = 0;
+				if (currentImage == actions.CurrentImage)
+					return;
 
-				var bitmapImage = new BitmapImage();
-				bitmapImage.BeginInit();
-				bitmapImage.StreamSource = memory;
-				bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-				bitmapImage.EndInit();
-
-				image2.Source = bitmapImage;
+				try
+				{
+					var bitmapImage = new BitmapImage();
+					bitmapImage.BeginInit();
+					bitmapImage.UriSource = new Uri(actions.CurrentImage);
+					bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+					bitmapImage.EndInit();
+					image2.Source = bitmapImage;
+					break;
+				}
+				catch
+				{
+					actions.EnqueueImages(new List<string> { actions.CurrentImage }, false);
+					continue;
+				}
 			}
 
-			var animation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(2)));
-			animation.Completed += (s, e) => StopImageFade();
-			fadeImage.BeginAnimation(OpacityProperty, animation);
+			currentImage = actions.CurrentImage;
 
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(2)));
+			fadeAnimation.Completed += StopImageFade;
+			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
+
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
 			changeImageTimer.Tick += (s, e) => actions.CycleImage();
 			changeImageTimer.Start();
 		}
 
-		void StopImageFade()
+		void StopImageFade(object sender = null, EventArgs e = null)
 		{
+			if (fadeAnimation == null)
+				return;
+
+			fadeAnimation.Completed -= StopImageFade;
+			fadeAnimation = null;
 			fadeImage.BeginAnimation(OpacityProperty, null);
 			fadeImage.Opacity = 0;
 			image1.Source = image2.Source ?? image1.Source;
