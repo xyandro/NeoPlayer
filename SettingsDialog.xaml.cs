@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	partial class SettingsDialog
 	{

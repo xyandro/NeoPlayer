@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	public static class Server
 	{

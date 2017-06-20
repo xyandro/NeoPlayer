@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	public class Request
 	{

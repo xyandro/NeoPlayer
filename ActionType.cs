@@ -1,4 +1,4 @@
-﻿namespace NeoMedia
+﻿namespace NeoRemote
 {
 	public enum ActionType
 	{

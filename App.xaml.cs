@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	partial class App
 	{

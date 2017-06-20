@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	public static class Settings
 	{

@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	partial class MainWindow
 	{

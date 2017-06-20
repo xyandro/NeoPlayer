@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NeoMedia
+namespace NeoRemote
 {
 	public class ContentTypeData
 	{

@@ -2,11 +2,11 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 
-[assembly: AssemblyTitle("NeoMedia")]
+[assembly: AssemblyTitle("NeoRemote")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Randon Spackman")]
-[assembly: AssemblyProduct("NeoMedia")]
+[assembly: AssemblyProduct("NeoRemote")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
