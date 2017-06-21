@@ -131,13 +131,13 @@ namespace NeoRemote
 
 		async static Task FetchImage(HttpClient client, string url, Actions actions, CancellationToken token)
 		{
+			string md5;
+			using (var md5cng = new MD5Cng())
+				md5 = BitConverter.ToString(md5cng.ComputeHash(Encoding.UTF8.GetBytes(url))).Replace("-", "");
+			var fileName = $@"{Settings.SlideShowImagesPath}\{nameof(NeoRemote)}-Image-{md5}.bmp";
+
 			try
 			{
-				string md5;
-				using (var md5cng = new MD5Cng())
-					md5 = BitConverter.ToString(md5cng.ComputeHash(Encoding.UTF8.GetBytes(url))).Replace("-", "");
-				var fileName = $@"{Settings.SlideShowImagesPath}\{nameof(NeoRemote)}-Image-{md5}.bmp";
-
 				if (!File.Exists(fileName))
 				{
 					var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -152,7 +152,7 @@ namespace NeoRemote
 
 				actions.EnqueueImages(new List<string> { fileName });
 			}
-			catch { }
+			catch { File.WriteAllBytes(fileName, new byte[] { }); }
 		}
 
 		static void ShrinkImage(Stream stream, string outputFileName, CancellationToken token)

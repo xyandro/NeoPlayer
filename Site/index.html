@@ -11,17 +11,34 @@
 </head>
 <body ng-controller="NeoMediaController as vm">
 
-	<div class="search">
+	<div ng-show="vm.mode == 'Video'" class="search">
 		<img ng-click="vm.queueVideos()" src="check.svg" />
 		<input type="text" ng-model="vm.searchText" />
-		<img class="clear" ng-click="vm.resetSearch()" src="clear.svg" />
+		<img ng-click="vm.resetSearch()" src="clear.svg" />
 	</div>
 
-	<div class="videos">
+	<div ng-show="vm.mode == 'Video'" class="videos">
 		<div ng-repeat="video in vm.videos | filter:vm.searchText" ng-click="vm.queueVideo(video)">
 			<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
 		</div>
 	</div>
+
+	<div ng-show="vm.mode == 'Slideshow'" class="slideshow">
+		{{vm.imageQuery}}<br />
+		<input class="query" ng-model="vm.query" ng-focus="vm.queryFocus($event.currentTarget)" />
+		<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+		<img ng-click="vm.changeImage(-1)" src="back.svg" />
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<img ng-click="vm.setQuery(vm.query)" src="play.svg" />
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<img ng-click="vm.changeImage(1)" src="forward.svg" />
+		<br />
+		<input style="width: 100%" type="range" min="0" max="300" ng-model="vm.slideshowDelay" ng-change="vm.setSlideshowDelay(vm.slideshowDelay)" />
+		<br /><br /><br /><br />
+		({{vm.slideshowDelay}})
+	</div>
+
+	<img class="toggleMode" ng-click="vm.toggleMode()" src="mode.svg" />
 
 	<div class="footer">
 		<div class="slider"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-change="vm.setPosition(vm.curPos, false)" /></div>

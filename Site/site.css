@@ -4,6 +4,13 @@ body {
 	background-color: black;
 }
 
+img.toggleMode {
+	position: absolute;
+	right: 0;
+	top: 0;
+	height: 5vh;
+}
+
 div {
 	white-space: nowrap;
 }
@@ -13,7 +20,11 @@ div {
 	}
 
 	div.search {
-		height: 5vh;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 95vh;
 		background-image: url(yellow.png);
 	}
 
@@ -32,14 +43,16 @@ div {
 			height: 5vh;
 			color: black;
 			font-size: 3vh;
-			width: calc(100% - 12vh);
+			width: calc(100vw - 17vh);
 		}
 
 	div.videos {
-		margin-top: .1vh;
-		margin-bottom: .1vh;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 5.1vh;
+		bottom: 12.1vh;
 		background-image: url(teal.png);
-		height: 82.8vh;
 		overflow-x: hidden;
 		overflow-y: scroll;
 	}
@@ -55,8 +68,33 @@ div {
 				height: 5vh;
 			}
 
+	div.slideshow {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		height: 87.9vh;
+		background-image: url(teal.png);
+	}
+
+		div.slideshow input.query {
+			position: absolute;
+			top: 5vh;
+			left: 5vw;
+			width: 90vw;
+			height: 20vh;
+			background: transparent;
+			border: 8px groove;
+			color: black;
+			font-size: 3vh;
+		}
+
 	div.footer {
-		height: 12vh;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 88vh;
+		bottom: 0;
 		background-image: url(yellow.png);
 	}
 

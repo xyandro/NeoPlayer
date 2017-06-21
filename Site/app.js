@@ -5,12 +5,19 @@ angular.module("app").controller("NeoMediaController", NeoMediaController);
 NeoMediaController.$inject = ["$http", "$filter"];
 function NeoMediaController($http, $filter) {
 	var vm = this;
+
+	vm.Modes = {
+		Video: "Video",
+		Slideshow: "Slideshow",
+	}
+
 	vm.searchText = "";
 	vm.curPos = 0;
 	vm.maxPos = 0;
 	vm.playing = false;
 	vm.currentSong = "";
-	vm.first = true;
+	vm.mode = vm.Modes.Slideshow;
+	vm.imageQuery = "";
 
 	vm.resetSearch = function (video) {
 		vm.searchText = "";
@@ -50,10 +57,11 @@ function NeoMediaController($http, $filter) {
 		$http.get("service/next");
 	}
 
+	vm.firstSetPosition = true;
 	vm.setPosition = function (position, relative) {
 		// Ignore first call, which sets the video position to 0 when a new client connects
-		if (vm.first) {
-			vm.first = false;
+		if (vm.firstSetPosition) {
+			vm.firstSetPosition = false;
 			return;
 		}
 		$http.get("service/setPosition?position=" + position + "&relative=" + relative);
@@ -66,10 +74,43 @@ function NeoMediaController($http, $filter) {
 			vm.playing = response.data.Playing;
 			vm.currentSong = response.data.CurrentSong;
 			vm.videos = response.data.Videos;
+			vm.imageQuery = response.data.ImageQuery;
+			vm.slideshowDelay = response.data.SlideshowDelay;
+
 			setTimeout(vm.getStatus, 1000);
 		}, function (response) {
 			setTimeout(vm.getStatus, 5000);
 		});
+	}
+
+	vm.toggleMode = function () {
+		if (vm.mode == vm.Modes.Video)
+			vm.mode = vm.Modes.Slideshow;
+		else
+			vm.mode = vm.Modes.Video;
+	}
+
+	vm.setQuery = function (query) {
+		$http.get("service/setQuery?query=" + encodeURIComponent(query));
+	}
+
+	vm.changeImage = function (offset) {
+		$http.get("service/changeImage?offset=" + encodeURIComponent(offset));
+	}
+
+	vm.firstSetSlideshowDelay = true;
+	vm.setSlideshowDelay = function (delay) {
+		if (vm.firstSetSlideshowDelay) {
+			vm.firstSetSlideshowDelay = false;
+			return;
+		}
+		$http.get("service/setSlideshowDelay?delay=" + encodeURIComponent(delay));
+	}
+
+	vm.queryFocus = function (target) {
+		if (!target.value)
+			target.value = vm.imageQuery;
+		target.select();
 	}
 
 	vm.getStatus();

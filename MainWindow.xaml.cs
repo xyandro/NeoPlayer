@@ -21,7 +21,8 @@ namespace NeoRemote
 			InitializeComponent();
 
 			actions = new Actions(ActionChanged);
-			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath));
+			var random = new Random();
+			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath).OrderBy(x => random.Next()));
 
 			Server.Run(7399, HandleServiceCall);
 
@@ -132,7 +133,7 @@ namespace NeoRemote
 			fadeAnimation.Completed += StopImageFade;
 			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
 
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(actions.SlideshowDelay) };
 			changeImageTimer.Tick += (s, e) => actions.CycleImage();
 			changeImageTimer.Start();
 		}
@@ -210,8 +211,27 @@ namespace NeoRemote
 				case "pause": return Pause();
 				case "next": return Next();
 				case "setPosition": return SetPosition(int.Parse(parameters["position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["relative"].FirstOrDefault() ?? "false"));
+				case "setSlideshowDelay": return SetSlideshowDelay(int.Parse(parameters["delay"].FirstOrDefault() ?? "0"));
+				case "changeImage": return ChangeImage(int.Parse(parameters["offset"].FirstOrDefault() ?? "0"));
+				case "setQuery": return SetQuery(parameters["query"].FirstOrDefault());
 				default: return Response.Code404;
 			}
+		}
+
+		Response SetSlideshowDelay(int delay)
+		{
+			actions.SlideshowDelay = delay;
+			return Response.Empty;
+		}
+
+
+		Response ChangeImage(int offset)
+		{
+			if (offset > 0)
+				actions.CycleImage();
+			if (offset < 0)
+				actions.CycleImage(false);
+			return Response.Empty;
 		}
 
 		Response GetStatus()
@@ -230,8 +250,10 @@ namespace NeoRemote
 				string currentSong = "";
 				if (vlc.playlist.currentItem != -1)
 					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+				var imageQuery = actions.ImageQuery.Replace(@"""", "'");
+				var slideshowDelay = actions.SlideshowDelay;
 
-				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing}, ""CurrentSong"": ""{currentSong}"", ""Videos"": {videos} }}");
+				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing}, ""CurrentSong"": ""{currentSong}"", ""Videos"": {videos}, ""ImageQuery"": ""{imageQuery}"", ""SlideshowDelay"": {slideshowDelay} }}");
 			});
 		}
 
@@ -245,7 +267,10 @@ namespace NeoRemote
 
 		Response Pause()
 		{
-			Dispatcher.Invoke(() => vlc.playlist.togglePause());
+			if (actions.CurrentAction == ActionType.SlideshowImages)
+				actions.CurrentAction = ActionType.Slideshow;
+			else
+				Dispatcher.Invoke(() => vlc.playlist.togglePause());
 			return Response.Empty;
 		}
 
@@ -261,6 +286,12 @@ namespace NeoRemote
 		Response SetPosition(int position, bool relative)
 		{
 			Dispatcher.Invoke(() => vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000);
+			return Response.Empty;
+		}
+
+		Response SetQuery(string query)
+		{
+			actions.ImageQuery = query?.ToLowerInvariant();
 			return Response.Empty;
 		}
 

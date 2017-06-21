@@ -12,6 +12,9 @@ namespace NeoRemote
 		string imageQuery = "landscape";
 		public string ImageQuery { get { return imageQuery; } set { imageQuery = value; changed(); } }
 
+		int slideshowDelay = 60;
+		public int SlideshowDelay { get { return slideshowDelay; } set { slideshowDelay = value; changed(); } }
+
 		readonly List<string> images = new List<string>();
 		readonly List<string> songs = new List<string>();
 		readonly List<string> videos = new List<string>();
@@ -22,8 +25,9 @@ namespace NeoRemote
 			this.changed = changed;
 		}
 
+		int currentImage = 0;
 
-		public string CurrentImage => images.FirstOrDefault();
+		public string CurrentImage => images.Any() ? images[currentImage % images.Count] : null;
 		public string CurrentSong => songs.FirstOrDefault();
 		public string CurrentVideo => videos.FirstOrDefault();
 
@@ -68,7 +72,19 @@ namespace NeoRemote
 			changed();
 		}
 
-		public void CycleImage(bool fromStart = true) => CycleList(images, true, fromStart);
+		public void CycleImage(bool fromStart = true)
+		{
+			if (!images.Any())
+				return;
+
+			currentImage = Math.Max(0, Math.Min(currentImage, images.Count - 1));
+			currentImage += (fromStart ? 1 : -1);
+			while (currentImage < 0)
+				currentImage += images.Count;
+			while (currentImage >= images.Count)
+				currentImage -= images.Count;
+			changed();
+		}
 		public void CycleSong() => CycleList(songs, true);
 		public void CycleVideo() => CycleList(videos, false);
 
@@ -80,7 +96,7 @@ namespace NeoRemote
 			changed();
 		}
 
-		public void ClearImages() => ClearList(images);
+		public void ClearImages() { ClearList(images); currentImage = 0; }
 		public void ClearSongs() => ClearList(songs);
 		public void ClearVideos() => ClearList(videos);
 	}
