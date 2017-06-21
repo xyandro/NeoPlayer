@@ -17,7 +17,8 @@ function NeoMediaController($http, $filter) {
 	vm.PlayerIsPlaying = false;
 	vm.PlayerCurrentSong = "";
 	vm.Mode = vm.Modes.Slideshow;
-	vm.SlideshowQuery = "";
+	vm.SlidesQuery = "";
+	vm.NewSlidesQuery = null;
 
 	vm.resetSearch = function (video) {
 		vm.SearchText = "";
@@ -69,14 +70,17 @@ function NeoMediaController($http, $filter) {
 
 	vm.getStatus = function () {
 		$http.get("Service/GetStatus").then(function (response) {
+			if (vm.SlidesQuery != response.data.SlidesQuery)
+				vm.NewSlidesQuery = response.data.SlidesQuery;
+
 			vm.PlayerMax = response.data.PlayerMax;
 			vm.PlayerPosition = response.data.PlayerPosition;
 			vm.PlayerIsPlaying = response.data.PlayerIsPlaying;
 			vm.PlayerCurrentSong = response.data.PlayerCurrentSong;
 			vm.Videos = response.data.Videos;
-			vm.SlideshowQuery = response.data.SlideshowQuery;
-			vm.SlideshowImageDisplayTime = response.data.SlideshowImageDisplayTime;
-			vm.SlideshowImagesPaused = response.data.SlideshowImagesPaused;
+			vm.SlidesQuery = response.data.SlidesQuery;
+			vm.SlideDisplayTime = response.data.SlideDisplayTime;
+			vm.SlidesPaused = response.data.SlidesPaused;
 
 			setTimeout(vm.getStatus, 1000);
 		}, function (response) {
@@ -91,32 +95,26 @@ function NeoMediaController($http, $filter) {
 			vm.Mode = vm.Modes.Video;
 	}
 
-	vm.setQuery = function (query) {
-		$http.get("Service/SetQuery?Query=" + encodeURIComponent(query));
+	vm.setSlidesQuery = function (slidesQuery) {
+		$http.get("Service/SetSlidesQuery?SlidesQuery=" + encodeURIComponent(slidesQuery));
 	}
 
 	vm.changeImage = function (offset) {
 		$http.get("Service/ChangeImage?Offset=" + encodeURIComponent(offset));
 	}
 
-	vm.firstSetSlideshowImageDisplayTime = true;
-	vm.setSlideshowImageDisplayTime = function (displayTime) {
-		if (vm.firstSetSlideshowImageDisplayTime) {
-			vm.firstSetSlideshowImageDisplayTime = false;
+	vm.firstSetSlideDisplayTime = true;
+	vm.setSlideDisplayTime = function (displayTime) {
+		if (vm.firstSetSlideDisplayTime) {
+			vm.firstSetSlideDisplayTime = false;
 			return;
 		}
-		$http.get("Service/SetSlideshowImageDisplayTime?DisplayTime=" + encodeURIComponent(displayTime));
+		$http.get("Service/SetSlideDisplayTime?DisplayTime=" + encodeURIComponent(displayTime));
 	}
 
-	vm.queryFocus = function (target) {
-		if (!target.value)
-			target.value = vm.SlideshowQuery;
-		target.select();
-	}
-
-	vm.toggleSlideshowImagesPaused = function () {
-		$http.get("Service/ToggleSlideshowImagesPaused");
-		vm.SlideshowImagesPaused = !vm.SlideshowImagesPaused;
+	vm.toggleSlidesPaused = function () {
+		$http.get("Service/ToggleSlidesPaused");
+		vm.SlidesPaused = !vm.SlidesPaused;
 	}
 
 	vm.getStatus();

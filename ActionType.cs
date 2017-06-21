@@ -5,9 +5,9 @@ namespace NeoRemote
 	[Flags]
 	public enum ActionType
 	{
-		SlideshowImages = 1,
+		Slides = 1,
 		SlideshowSongs = 2,
-		Slideshow = SlideshowImages | SlideshowSongs,
+		Slideshow = Slides | SlideshowSongs,
 		Videos = 4,
 	}
 }

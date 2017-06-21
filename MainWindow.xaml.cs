@@ -56,7 +56,7 @@ namespace NeoRemote
 		void HandleActions()
 		{
 			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
-				actions.CurrentAction = ActionType.SlideshowImages;
+				actions.CurrentAction = ActionType.Slides;
 
 			SetupImageDownloader();
 
@@ -71,18 +71,18 @@ namespace NeoRemote
 			StartNewVideo();
 		}
 
-		string currentQuery;
+		string currentSlidesQuery;
 		void SetupImageDownloader()
 		{
-			if (currentQuery == actions.ImageQuery)
+			if (currentSlidesQuery == actions.SlidesQuery)
 				return;
-			currentQuery = actions.ImageQuery;
-			ImageDownloader.Run(currentQuery, "2mp", actions);
+			currentSlidesQuery = actions.SlidesQuery;
+			ImageDownloader.Run(currentSlidesQuery, "2mp", actions);
 		}
 
 		void SetControlsVisibility()
 		{
-			image1.Visibility = image2.Visibility = actions.CurrentAction.HasFlag(ActionType.SlideshowImages) ? Visibility.Visible : Visibility.Hidden;
+			image1.Visibility = image2.Visibility = actions.CurrentAction.HasFlag(ActionType.Slides) ? Visibility.Visible : Visibility.Hidden;
 			vlcHost.Visibility = actions.CurrentAction.HasFlag(ActionType.Videos) ? Visibility.Visible : Visibility.Hidden;
 		}
 
@@ -92,15 +92,15 @@ namespace NeoRemote
 
 		void CheckCycleImage()
 		{
-			if ((imageTime == null) || (actions.SlideshowImagesPaused))
+			if ((imageTime == null) || (actions.SlidesPaused))
 				return;
-			if ((DateTime.Now - imageTime.Value).TotalSeconds >= actions.SlideshowImageDisplayTime)
+			if ((DateTime.Now - imageTime.Value).TotalSeconds >= actions.SlideDisplayTime)
 				actions.CycleImage();
 		}
 
 		void HideImageIfNecessary()
 		{
-			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentImage == actions.CurrentImage)))
+			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.Slides)) && (currentImage == actions.CurrentImage)))
 				return;
 
 			currentImage = null;
@@ -108,13 +108,13 @@ namespace NeoRemote
 
 			StopImageFade();
 
-			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) || (actions.CurrentImage == null))
+			if ((!actions.CurrentAction.HasFlag(ActionType.Slides)) || (actions.CurrentImage == null))
 				image1.Source = null;
 		}
 
 		void DisplayNewImage()
 		{
-			if (!actions.CurrentAction.HasFlag(ActionType.SlideshowImages))
+			if (!actions.CurrentAction.HasFlag(ActionType.Slides))
 				return;
 
 			while (true)
@@ -163,7 +163,7 @@ namespace NeoRemote
 		string currentSong = null;
 		void StopSongIfNecessary()
 		{
-			if ((currentSong == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentSong == actions.CurrentSong)))
+			if ((currentSong == null) || ((actions.CurrentAction.HasFlag(ActionType.Slides)) && (currentSong == actions.CurrentSong)))
 				return;
 
 			currentSong = null;
@@ -220,23 +220,23 @@ namespace NeoRemote
 				case "Pause": return Pause();
 				case "Next": return Next();
 				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
-				case "SetSlideshowImageDisplayTime": return SetSlideshowImageDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
+				case "SetSlideDisplayTime": return SetSlideDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
 				case "ChangeImage": return ChangeImage(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
-				case "SetQuery": return SetQuery(parameters["Query"].FirstOrDefault());
-				case "ToggleSlideshowImagesPaused": return ToggleSlideshowImagesPaused();
+				case "SetSlidesQuery": return SetSlidesQuery(parameters["SlidesQuery"].FirstOrDefault());
+				case "ToggleSlidesPaused": return ToggleSlidesPaused();
 				default: return Response.Code404;
 			}
 		}
 
-		Response ToggleSlideshowImagesPaused()
+		Response ToggleSlidesPaused()
 		{
-			actions.SlideshowImagesPaused = !actions.SlideshowImagesPaused;
+			actions.SlidesPaused = !actions.SlidesPaused;
 			return Response.Empty;
 		}
 
-		Response SetSlideshowImageDisplayTime(int displayTime)
+		Response SetSlideDisplayTime(int displayTime)
 		{
-			actions.SlideshowImageDisplayTime = displayTime;
+			actions.SlideDisplayTime = displayTime;
 			return Response.Empty;
 		}
 
@@ -255,8 +255,7 @@ namespace NeoRemote
 			return Dispatcher.Invoke(() =>
 			{
 				var status = new Status();
-				status.Videos = Directory
-					.EnumerateFiles(Settings.VideosPath)
+				status.Videos = Directory.EnumerateFiles(Settings.VideosPath)
 					.Select(file => Path.GetFileName(file))
 					.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
 					.Select(file => new Status.SongData
@@ -271,9 +270,9 @@ namespace NeoRemote
 				status.PlayerCurrentSong = "";
 				if (vlc.playlist.currentItem != -1)
 					try { status.PlayerCurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				status.SlideshowQuery = actions.ImageQuery.Replace(@"""", "'");
-				status.SlideshowImageDisplayTime = actions.SlideshowImageDisplayTime;
-				status.SlideshowImagesPaused = actions.SlideshowImagesPaused;
+				status.SlidesQuery = actions.SlidesQuery;
+				status.SlideDisplayTime = actions.SlideDisplayTime;
+				status.SlidesPaused = actions.SlidesPaused;
 
 				return JSON.GetResponse(status);
 			});
@@ -289,7 +288,7 @@ namespace NeoRemote
 
 		Response Pause()
 		{
-			if (actions.CurrentAction == ActionType.SlideshowImages)
+			if (actions.CurrentAction == ActionType.Slides)
 				actions.CurrentAction = ActionType.Slideshow;
 			else
 				Dispatcher.Invoke(() => vlc.playlist.togglePause());
@@ -311,9 +310,15 @@ namespace NeoRemote
 			return Response.Empty;
 		}
 
-		Response SetQuery(string query)
+		Response SetSlidesQuery(string slidesQuery)
 		{
-			actions.ImageQuery = query?.ToLowerInvariant();
+			slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
+			slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
+			slidesQuery = Regex.Replace(slidesQuery, @"[^\S\n]+", " ");
+			slidesQuery = Regex.Replace(slidesQuery, @"(^ | $)", "", RegexOptions.Multiline);
+			slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
+			slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
+			actions.SlidesQuery = slidesQuery;
 			return Response.Empty;
 		}
 

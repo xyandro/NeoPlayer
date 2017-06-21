@@ -4,11 +4,11 @@ namespace NeoRemote
 {
 	partial class SettingsDialog
 	{
-		static DependencyProperty SlideShowImagesPathProperty = DependencyProperty.Register(nameof(SlideShowImagesPath), typeof(string), typeof(SettingsDialog));
+		static DependencyProperty SlidesPathProperty = DependencyProperty.Register(nameof(SlidesPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty SlideShowSongsPathProperty = DependencyProperty.Register(nameof(SlideShowSongsPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty VideosPathProperty = DependencyProperty.Register(nameof(VideosPath), typeof(string), typeof(SettingsDialog));
 
-		string SlideShowImagesPath { get { return (string)GetValue(SlideShowImagesPathProperty); } set { SetValue(SlideShowImagesPathProperty, value); } }
+		string SlidesPath { get { return (string)GetValue(SlidesPathProperty); } set { SetValue(SlidesPathProperty, value); } }
 		string SlideShowSongsPath { get { return (string)GetValue(SlideShowSongsPathProperty); } set { SetValue(SlideShowSongsPathProperty, value); } }
 		string VideosPath { get { return (string)GetValue(VideosPathProperty); } set { SetValue(VideosPathProperty, value); } }
 
@@ -16,14 +16,14 @@ namespace NeoRemote
 		{
 			InitializeComponent();
 			DataContext = this;
-			SlideShowImagesPath = Settings.SlideShowImagesPath;
+			SlidesPath = Settings.SlidesPath;
 			SlideShowSongsPath = Settings.SlideShowSongsPath;
 			VideosPath = Settings.VideosPath;
 		}
 
 		void OnOKClick(object sender, RoutedEventArgs e)
 		{
-			Settings.SlideShowImagesPath = SlideShowImagesPath;
+			Settings.SlidesPath = SlidesPath;
 			Settings.SlideShowSongsPath = SlideShowSongsPath;
 			Settings.VideosPath = VideosPath;
 			DialogResult = true;

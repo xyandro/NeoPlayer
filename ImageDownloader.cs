@@ -43,7 +43,7 @@ namespace NeoRemote
 			return tcs.Task;
 		}
 
-		async public static void Run(string query, string imageSize, Actions actions)
+		async public static void Run(string slidesQuery, string imageSize, Actions actions)
 		{
 			if (task != null)
 			{
@@ -55,14 +55,14 @@ namespace NeoRemote
 
 			var regex = new Regex($@"^{nameof(NeoRemote)}-Image-[0-9a-f]{{32}}\.bmp$$", RegexOptions.IgnoreCase);
 			if (!Settings.Debug)
-				Directory.EnumerateFiles(Settings.SlideShowImagesPath).Where(file => regex.IsMatch(Path.GetFileName(file))).ToList().ForEach(file => File.Delete(file));
+				Directory.EnumerateFiles(Settings.SlidesPath).Where(file => regex.IsMatch(Path.GetFileName(file))).ToList().ForEach(file => File.Delete(file));
 			actions.ClearImages();
 
-			if (string.IsNullOrWhiteSpace(query))
+			if (string.IsNullOrWhiteSpace(slidesQuery))
 				return;
 
 			token = new CancellationTokenSource();
-			task = DownloadImages(query, imageSize, actions, token.Token);
+			task = DownloadImages(slidesQuery, imageSize, actions, token.Token);
 		}
 
 		async static Task<List<TOutput>> RunTasks<TInput, TOutput>(IEnumerable<TInput> input, Func<TInput, Task<TOutput>> func, CancellationToken token)
@@ -87,13 +87,13 @@ namespace NeoRemote
 
 		async static Task RunTasks<TInput>(IEnumerable<TInput> input, Func<TInput, Task> func, CancellationToken token) => await RunTasks(input, async item => { await func(item); return false; }, token);
 
-		async static Task DownloadImages(string allQueries, string imageSize, Actions actions, CancellationToken token)
+		async static Task DownloadImages(string slidesQuery, string imageSize, Actions actions, CancellationToken token)
 		{
 			var client = new HttpClient();
 			client.Timeout = TimeSpan.FromSeconds(30);
 			client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0");
 
-			var queries = allQueries.Split('\r', '\n').Select(query => query.Trim()).Where(query => query.Length != 0).ToList();
+			var queries = slidesQuery.Split('\n').ToList();
 
 			var urls = (await RunTasks(queries, query => GetImageURLs(client, query, imageSize, token), token)).SelectMany(x => x).ToList();
 
@@ -109,7 +109,7 @@ namespace NeoRemote
 			{
 				List<string> urls = null;
 
-				var fileName = $@"{Settings.SlideShowImagesPath}\{nameof(NeoRemote)}-URLs-{query}.txt";
+				var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-URLs-{query}.txt";
 				if ((Settings.Debug) && (File.Exists(fileName)))
 					urls = File.ReadAllLines(fileName).ToList();
 
@@ -134,7 +134,7 @@ namespace NeoRemote
 			string md5;
 			using (var md5cng = new MD5Cng())
 				md5 = BitConverter.ToString(md5cng.ComputeHash(Encoding.UTF8.GetBytes(url))).Replace("-", "");
-			var fileName = $@"{Settings.SlideShowImagesPath}\{nameof(NeoRemote)}-Image-{md5}.bmp";
+			var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-Image-{md5}.bmp";
 
 			try
 			{

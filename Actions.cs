@@ -9,11 +9,11 @@ namespace NeoRemote
 		ActionType currentAction = ActionType.Videos;
 		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; changed(); } }
 
-		string imageQuery = "landscape";
-		public string ImageQuery { get { return imageQuery; } set { imageQuery = value; changed(); } }
+		string slidesQuery = "landscape";
+		public string SlidesQuery { get { return slidesQuery; } set { slidesQuery = value; changed(); } }
 
-		public int SlideshowImageDisplayTime { get; set; } = 60;
-		public bool SlideshowImagesPaused { get; set; }
+		public int SlideDisplayTime { get; set; } = 60;
+		public bool SlidesPaused { get; set; }
 
 		readonly List<string> images = new List<string>();
 		readonly List<string> songs = new List<string>();

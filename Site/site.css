@@ -77,7 +77,7 @@ div {
 		background-image: url(teal.png);
 	}
 
-		div.slideshow input.query {
+		div.slideshow textarea.slidesQuery {
 			position: absolute;
 			top: 5vh;
 			left: 5vw;
