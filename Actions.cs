@@ -6,7 +6,7 @@ namespace NeoRemote
 {
 	public class Actions
 	{
-		ActionType currentAction = ActionType.Videos;
+		ActionType currentAction = ActionType.Slideshow;
 		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; changed(); } }
 
 		string slidesQuery = "landscape";
@@ -14,6 +14,7 @@ namespace NeoRemote
 
 		public int SlideDisplayTime { get; set; } = 60;
 		public bool SlidesPaused { get; set; }
+		public bool SlideMusicAutoPlay { get; set; } = false;
 
 		readonly List<string> images = new List<string>();
 		readonly List<string> songs = new List<string>();

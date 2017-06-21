@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using System.Windows;
 using System.Windows.Input;
@@ -56,7 +57,10 @@ namespace NeoRemote
 		void HandleActions()
 		{
 			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
-				actions.CurrentAction = ActionType.Slides;
+			{
+				actions.CurrentAction = ActionType.Slideshow;
+				actions.SlideMusicAutoPlay = false;
+			}
 
 			SetupImageDownloader();
 
@@ -82,8 +86,8 @@ namespace NeoRemote
 
 		void SetControlsVisibility()
 		{
-			image1.Visibility = image2.Visibility = actions.CurrentAction.HasFlag(ActionType.Slides) ? Visibility.Visible : Visibility.Hidden;
-			vlcHost.Visibility = actions.CurrentAction.HasFlag(ActionType.Videos) ? Visibility.Visible : Visibility.Hidden;
+			image1.Visibility = image2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
+			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		string currentImage = null;
@@ -100,7 +104,7 @@ namespace NeoRemote
 
 		void HideImageIfNecessary()
 		{
-			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.Slides)) && (currentImage == actions.CurrentImage)))
+			if ((currentImage == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentImage == actions.CurrentImage)))
 				return;
 
 			currentImage = null;
@@ -108,13 +112,13 @@ namespace NeoRemote
 
 			StopImageFade();
 
-			if ((!actions.CurrentAction.HasFlag(ActionType.Slides)) || (actions.CurrentImage == null))
+			if ((actions.CurrentAction != ActionType.Slideshow) || (actions.CurrentImage == null))
 				image1.Source = null;
 		}
 
 		void DisplayNewImage()
 		{
-			if (!actions.CurrentAction.HasFlag(ActionType.Slides))
+			if (actions.CurrentAction != ActionType.Slideshow)
 				return;
 
 			while (true)
@@ -163,7 +167,7 @@ namespace NeoRemote
 		string currentSong = null;
 		void StopSongIfNecessary()
 		{
-			if ((currentSong == null) || ((actions.CurrentAction.HasFlag(ActionType.Slides)) && (currentSong == actions.CurrentSong)))
+			if ((currentSong == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentSong == actions.CurrentSong)))
 				return;
 
 			currentSong = null;
@@ -173,18 +177,23 @@ namespace NeoRemote
 
 		void StartNewSong()
 		{
-			if ((!actions.CurrentAction.HasFlag(ActionType.SlideshowSongs)) || (currentSong == actions.CurrentSong))
+			if ((actions.CurrentAction != ActionType.Slideshow) || (currentSong == actions.CurrentSong))
 				return;
 
 			currentSong = actions.CurrentSong;
 			vlc.playlist.add($@"file:///{currentSong}");
 			vlc.playlist.playItem(0);
+			if (!actions.SlideMusicAutoPlay)
+			{
+				Thread.Sleep(50);
+				vlc.playlist.pause();
+			}
 		}
 
 		string currentVideo = null;
 		void StopVideoIfNecessary()
 		{
-			if ((currentVideo == null) || ((actions.CurrentAction.HasFlag(ActionType.Videos)) && (currentVideo == actions.CurrentVideo)))
+			if ((currentVideo == null) || ((actions.CurrentAction == ActionType.Videos) && (currentVideo == actions.CurrentVideo)))
 				return;
 
 			currentVideo = null;
@@ -194,7 +203,7 @@ namespace NeoRemote
 
 		void StartNewVideo()
 		{
-			if ((!actions.CurrentAction.HasFlag(ActionType.Videos)) || (currentVideo == actions.CurrentVideo))
+			if ((actions.CurrentAction != ActionType.Videos) || (currentVideo == actions.CurrentVideo))
 				return;
 
 			currentVideo = actions.CurrentVideo;
@@ -288,10 +297,9 @@ namespace NeoRemote
 
 		Response Pause()
 		{
-			if (actions.CurrentAction == ActionType.Slides)
-				actions.CurrentAction = ActionType.Slideshow;
-			else
-				Dispatcher.Invoke(() => vlc.playlist.togglePause());
+			if (actions.CurrentAction == ActionType.Slideshow)
+				actions.SlideMusicAutoPlay = true;
+			Dispatcher.Invoke(() => vlc.playlist.togglePause());
 			return Response.Empty;
 		}
 
