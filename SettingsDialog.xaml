@@ -20,8 +20,8 @@
 		<Label Grid.Row="0" Grid.Column="0" Content="_Slides path:" HorizontalAlignment="Right" Target="{Binding ElementName=slidesPath}"/>
 		<TextBox Grid.Row="0" Grid.Column="1" Name="slidesPath" Text="{Binding SlidesPath, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<Label Grid.Row="1" Grid.Column="0" Content="_Songs path:" HorizontalAlignment="Right" Target="{Binding ElementName=slideShowSongsPath}"/>
-		<TextBox Grid.Row="1" Grid.Column="1" Name="slideShowSongsPath" Text="{Binding SlideShowSongsPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<Label Grid.Row="1" Grid.Column="0" Content="_Music path:" HorizontalAlignment="Right" Target="{Binding ElementName=musicPath}"/>
+		<TextBox Grid.Row="1" Grid.Column="1" Name="musicPath" Text="{Binding MusicPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="2" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
 		<TextBox Grid.Row="2" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>

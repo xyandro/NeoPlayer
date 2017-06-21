@@ -15,7 +15,7 @@ function NeoMediaController($http, $filter) {
 	vm.PlayerPosition = 0;
 	vm.PlayerMax = 0;
 	vm.PlayerIsPlaying = false;
-	vm.PlayerCurrentSong = "";
+	vm.PlayerTitle = "";
 	vm.Mode = vm.Modes.Slideshow;
 	vm.SlidesQuery = "";
 	vm.NewSlidesQuery = null;
@@ -76,7 +76,7 @@ function NeoMediaController($http, $filter) {
 			vm.PlayerMax = response.data.PlayerMax;
 			vm.PlayerPosition = response.data.PlayerPosition;
 			vm.PlayerIsPlaying = response.data.PlayerIsPlaying;
-			vm.PlayerCurrentSong = response.data.PlayerCurrentSong;
+			vm.PlayerTitle = response.data.PlayerTitle;
 			vm.Videos = response.data.Videos;
 			vm.SlidesQuery = response.data.SlidesQuery;
 			vm.SlideDisplayTime = response.data.SlideDisplayTime;

@@ -22,20 +22,20 @@ namespace NeoRemote
 		static string slidesPath;
 		public static string SlidesPath { get { return slidesPath; } set { slidesPath = value; WriteXML(); } }
 
-		static string slideShowSongsPath;
-		public static string SlideShowSongsPath { get { return slideShowSongsPath; } set { slideShowSongsPath = value; WriteXML(); } }
+		static string musicPath;
+		public static string MusicPath { get { return musicPath; } set { musicPath = value; WriteXML(); } }
 
 		static string videosPath;
 		public static string VideosPath { get { return videosPath; } set { videosPath = value; WriteXML(); } }
 
 		static Settings()
 		{
-			slidesPath = slideShowSongsPath = videosPath = Directory.GetCurrentDirectory();
+			slidesPath = musicPath = videosPath = Directory.GetCurrentDirectory();
 			try
 			{
 				var xml = XElement.Load(SettingsFile);
 				slidesPath = xml.Element(nameof(SlidesPath))?.Value ?? slidesPath;
-				slideShowSongsPath = xml.Element(nameof(SlideShowSongsPath))?.Value ?? slideShowSongsPath;
+				musicPath = xml.Element(nameof(MusicPath))?.Value ?? musicPath;
 				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
 			}
 			catch { }
@@ -45,7 +45,7 @@ namespace NeoRemote
 		{
 			var xml = new XElement("Settings",
 				new XElement(nameof(SlidesPath), SlidesPath),
-				new XElement(nameof(SlideShowSongsPath), SlideShowSongsPath),
+				new XElement(nameof(MusicPath), MusicPath),
 				new XElement(nameof(VideosPath), VideosPath)
 			);
 			xml.Save(SettingsFile);

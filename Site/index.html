@@ -44,7 +44,7 @@
 
 	<div class="footer">
 		<div class="slider"><input type="range" min="0" max="{{vm.PlayerMax}}" ng-model="vm.PlayerPosition" ng-change="vm.setPosition(vm.PlayerPosition, false)" /></div>
-		<div class="currentSong">{{vm.PlayerCurrentSong}}</div>
+		<div class="playerTitle">{{vm.PlayerTitle}}</div>
 		<div class="buttons">
 			<img ng-click="vm.setPosition(-30, true)" src="back30.svg" />
 			<img ng-click="vm.setPosition(-5, true)" src="back5.svg" />

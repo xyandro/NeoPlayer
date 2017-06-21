@@ -24,7 +24,7 @@ namespace NeoRemote
 
 			actions = new Actions(ActionChanged);
 			var random = new Random();
-			actions.EnqueueSongs(Directory.EnumerateFiles(Settings.SlideShowSongsPath).OrderBy(x => random.Next()));
+			actions.EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
 
 			Server.Run(7399, HandleServiceCall);
 
@@ -65,13 +65,13 @@ namespace NeoRemote
 			SetupSlideDownloader();
 
 			HideSlideIfNecessary();
-			StopSongIfNecessary();
+			StopMusicIfNecessary();
 			StopVideoIfNecessary();
 
 			SetControlsVisibility();
 
 			DisplayNewSlide();
-			StartNewSong();
+			StartNewMusic();
 			StartNewVideo();
 		}
 
@@ -164,24 +164,24 @@ namespace NeoRemote
 			slide2.Source = null;
 		}
 
-		string currentSong = null;
-		void StopSongIfNecessary()
+		string currentMusic = null;
+		void StopMusicIfNecessary()
 		{
-			if ((currentSong == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentSong == actions.CurrentSong)))
+			if ((currentMusic == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentMusic == actions.CurrentMusic)))
 				return;
 
-			currentSong = null;
+			currentMusic = null;
 			vlc.playlist.stop();
 			vlc.playlist.items.clear();
 		}
 
-		void StartNewSong()
+		void StartNewMusic()
 		{
-			if ((actions.CurrentAction != ActionType.Slideshow) || (currentSong == actions.CurrentSong))
+			if ((actions.CurrentAction != ActionType.Slideshow) || (currentMusic == actions.CurrentMusic))
 				return;
 
-			currentSong = actions.CurrentSong;
-			vlc.playlist.add($@"file:///{currentSong}");
+			currentMusic = actions.CurrentMusic;
+			vlc.playlist.add($@"file:///{currentMusic}");
 			vlc.playlist.playItem(0);
 			if (!actions.SlideMusicAutoPlay)
 			{
@@ -267,7 +267,7 @@ namespace NeoRemote
 				status.Videos = Directory.EnumerateFiles(Settings.VideosPath)
 					.Select(file => Path.GetFileName(file))
 					.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
-					.Select(file => new Status.SongData
+					.Select(file => new Status.MusicData
 					{
 						Name = file,
 						Queued = actions.VideoIsQueued(file),
@@ -276,9 +276,9 @@ namespace NeoRemote
 				status.PlayerMax = Math.Max(0, (int)vlc.input.length / 1000);
 				status.PlayerPosition = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.PlayerMax));
 				status.PlayerIsPlaying = vlc.playlist.isPlaying;
-				status.PlayerCurrentSong = "";
+				status.PlayerTitle = "";
 				if (vlc.playlist.currentItem != -1)
-					try { status.PlayerCurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+					try { status.PlayerTitle = Path.GetFileName(vlc.mediaDescription.title); } catch { }
 				status.SlidesQuery = actions.SlidesQuery;
 				status.SlideDisplayTime = actions.SlideDisplayTime;
 				status.SlidesPaused = actions.SlidesPaused;
@@ -308,7 +308,7 @@ namespace NeoRemote
 			if (actions.CurrentAction == ActionType.Videos)
 				actions.CycleVideo();
 			else
-				actions.CycleSong();
+				actions.CycleMusic();
 			return Response.Empty;
 		}
 

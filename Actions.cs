@@ -17,7 +17,7 @@ namespace NeoRemote
 		public bool SlideMusicAutoPlay { get; set; } = false;
 
 		readonly List<string> slides = new List<string>();
-		readonly List<string> songs = new List<string>();
+		readonly List<string> music = new List<string>();
 		readonly List<string> videos = new List<string>();
 		readonly Action changed;
 
@@ -28,7 +28,7 @@ namespace NeoRemote
 
 		int currentSlide = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlide % slides.Count] : null;
-		public string CurrentSong => songs.FirstOrDefault();
+		public string CurrentMusic => music.FirstOrDefault();
 		public string CurrentVideo => videos.FirstOrDefault();
 
 		public bool VideoIsQueued(string video) => videos.Contains(video);
@@ -53,7 +53,7 @@ namespace NeoRemote
 		}
 
 		public void EnqueueSlides(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(slides, fileNames, enqueue);
-		public void EnqueueSongs(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(songs, fileNames, enqueue);
+		public void EnqueueMusic(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(music, fileNames, enqueue);
 		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
 
 		public void CycleSlide(bool fromStart = true)
@@ -70,13 +70,13 @@ namespace NeoRemote
 			changed();
 		}
 
-		public void CycleSong()
+		public void CycleMusic()
 		{
-			if (!songs.Any())
+			if (!music.Any())
 				return;
 
-			songs.Add(songs[0]);
-			songs.RemoveAt(0);
+			music.Add(music[0]);
+			music.RemoveAt(0);
 
 			changed();
 		}
