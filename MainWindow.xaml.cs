@@ -133,7 +133,7 @@ namespace NeoRemote
 			fadeAnimation.Completed += StopImageFade;
 			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
 
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(actions.SlideshowDelay) };
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(actions.SlideshowDisplayTime) };
 			changeImageTimer.Tick += (s, e) => actions.CycleImage();
 			changeImageTimer.Start();
 		}
@@ -195,8 +195,8 @@ namespace NeoRemote
 
 		Response HandleServiceCall(string url)
 		{
-			if (url.StartsWith("service/"))
-				url = url.Substring("service/".Length);
+			if (url.StartsWith("Service/"))
+				url = url.Substring("Service/".Length);
 
 			var queryIndex = url.IndexOf('?');
 			var query = queryIndex == -1 ? "" : url.Substring(queryIndex + 1);
@@ -205,22 +205,22 @@ namespace NeoRemote
 			var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
 			switch (url)
 			{
-				case "getStatus": return GetStatus();
-				case "enqueue": return Enqueue(parameters["video"], true);
-				case "dequeue": return Enqueue(parameters["video"], false);
-				case "pause": return Pause();
-				case "next": return Next();
-				case "setPosition": return SetPosition(int.Parse(parameters["position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["relative"].FirstOrDefault() ?? "false"));
-				case "setSlideshowDelay": return SetSlideshowDelay(int.Parse(parameters["delay"].FirstOrDefault() ?? "0"));
-				case "changeImage": return ChangeImage(int.Parse(parameters["offset"].FirstOrDefault() ?? "0"));
-				case "setQuery": return SetQuery(parameters["query"].FirstOrDefault());
+				case "GetStatus": return GetStatus();
+				case "Enqueue": return Enqueue(parameters["Video"], true);
+				case "Dequeue": return Enqueue(parameters["Video"], false);
+				case "Pause": return Pause();
+				case "Next": return Next();
+				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
+				case "SetSlideshowDisplayTime": return SetSlideshowDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
+				case "ChangeImage": return ChangeImage(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
+				case "SetQuery": return SetQuery(parameters["Query"].FirstOrDefault());
 				default: return Response.Code404;
 			}
 		}
 
-		Response SetSlideshowDelay(int delay)
+		Response SetSlideshowDisplayTime(int displayTime)
 		{
-			actions.SlideshowDelay = delay;
+			actions.SlideshowDisplayTime = displayTime;
 			return Response.Empty;
 		}
 
@@ -249,14 +249,14 @@ namespace NeoRemote
 						Queued = actions.VideoIsQueued(file),
 					})
 					.ToList();
-				status.Max = Math.Max(0, (int)vlc.input.length / 1000);
-				status.Position = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.Max));
-				status.Playing = vlc.playlist.isPlaying;
-				status.CurrentSong = "";
+				status.PlayerMax = Math.Max(0, (int)vlc.input.length / 1000);
+				status.PlayerPosition = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.PlayerMax));
+				status.PlayerIsPlaying = vlc.playlist.isPlaying;
+				status.PlayerCurrentSong = "";
 				if (vlc.playlist.currentItem != -1)
-					try { status.CurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				status.ImageQuery = actions.ImageQuery.Replace(@"""", "'");
-				status.SlideshowDelay = actions.SlideshowDelay;
+					try { status.PlayerCurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+				status.SlideshowQuery = actions.ImageQuery.Replace(@"""", "'");
+				status.SlideshowDisplayTime = actions.SlideshowDisplayTime;
 
 				return JSON.GetResponse(status);
 			});

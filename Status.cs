@@ -10,12 +10,13 @@ namespace NeoRemote
 			public bool Queued { get; set; }
 		}
 
-		public int Position { get; set; }
-		public int Max { get; set; }
-		public bool Playing { get; set; }
-		public string CurrentSong { get; set; }
+		public int PlayerPosition { get; set; }
+		public int PlayerMax { get; set; }
+		public bool PlayerIsPlaying { get; set; }
+		public string PlayerCurrentSong { get; set; }
+
 		public List<SongData> Videos { get; set; }
-		public string ImageQuery { get; set; }
-		public int SlideshowDelay { get; set; }
+		public string SlideshowQuery { get; set; }
+		public int SlideshowDisplayTime { get; set; }
 	}
 }

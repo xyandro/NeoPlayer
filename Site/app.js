@@ -11,20 +11,20 @@ function NeoMediaController($http, $filter) {
 		Slideshow: "Slideshow",
 	}
 
-	vm.searchText = "";
-	vm.curPos = 0;
-	vm.maxPos = 0;
-	vm.playing = false;
-	vm.currentSong = "";
-	vm.mode = vm.Modes.Slideshow;
-	vm.imageQuery = "";
+	vm.SearchText = "";
+	vm.PlayerPosition = 0;
+	vm.PlayerMax = 0;
+	vm.PlayerIsPlaying = false;
+	vm.PlayerCurrentSong = "";
+	vm.Mode = vm.Modes.Slideshow;
+	vm.SlideshowQuery = "";
 
 	vm.resetSearch = function (video) {
-		vm.searchText = "";
+		vm.SearchText = "";
 	}
 
 	vm.queueVideo = function (video) {
-		var url = "service/" + (video.Queued ? "de" : "en") + "queue?video=" + encodeURIComponent(video.Name);
+		var url = "Service/" + (video.Queued ? "De" : "En") + "queue?Video=" + encodeURIComponent(video.Name);
 		$http.get(url).then(function (response) {
 			video.Queued = !video.Queued;
 		});
@@ -32,15 +32,15 @@ function NeoMediaController($http, $filter) {
 
 	vm.queueVideos = function () {
 		var enqueue = false;
-		var result = $filter("filter")(vm.videos, vm.searchText);
+		var result = $filter("filter")(vm.Videos, vm.SearchText);
 		var str = "";
 		for (var x = 0; x < result.length; ++x) {
 			str += x == 0 ? "?" : "&";
-			str += "video=" + encodeURIComponent(result[x].Name);
+			str += "Video=" + encodeURIComponent(result[x].Name);
 			if (!result[x].Queued)
 				enqueue = true;
 		}
-		var url = "service/" + (enqueue ? "en" : "de") + "queue" + str;
+		var url = "Service/" + (enqueue ? "En" : "De") + "queue" + str;
 		$http.get(url).then(function (response) {
 			for (var x = 0; x < result.length; ++x) {
 				result[x].Queued = enqueue;
@@ -49,12 +49,12 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.pause = function () {
-		$http.get("service/pause");
-		vm.playing = !vm.playing;
+		$http.get("Service/Pause");
+		vm.PlayerIsPlaying = !vm.PlayerIsPlaying;
 	}
 
 	vm.next = function () {
-		$http.get("service/next");
+		$http.get("Service/Next");
 	}
 
 	vm.firstSetPosition = true;
@@ -64,18 +64,18 @@ function NeoMediaController($http, $filter) {
 			vm.firstSetPosition = false;
 			return;
 		}
-		$http.get("service/setPosition?position=" + position + "&relative=" + relative);
+		$http.get("Service/SetPosition?Position=" + position + "&Relative=" + relative);
 	}
 
 	vm.getStatus = function () {
-		$http.get("service/getStatus").then(function (response) {
-			vm.maxPos = response.data.Max;
-			vm.curPos = response.data.Position;
-			vm.playing = response.data.Playing;
-			vm.currentSong = response.data.CurrentSong;
-			vm.videos = response.data.Videos;
-			vm.imageQuery = response.data.ImageQuery;
-			vm.slideshowDelay = response.data.SlideshowDelay;
+		$http.get("Service/GetStatus").then(function (response) {
+			vm.PlayerMax = response.data.PlayerMax;
+			vm.PlayerPosition = response.data.PlayerPosition;
+			vm.PlayerIsPlaying = response.data.PlayerIsPlaying;
+			vm.PlayerCurrentSong = response.data.PlayerCurrentSong;
+			vm.Videos = response.data.Videos;
+			vm.SlideshowQuery = response.data.SlideshowQuery;
+			vm.SlideshowDisplayTime = response.data.SlideshowDisplayTime;
 
 			setTimeout(vm.getStatus, 1000);
 		}, function (response) {
@@ -84,32 +84,32 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.toggleMode = function () {
-		if (vm.mode == vm.Modes.Video)
-			vm.mode = vm.Modes.Slideshow;
+		if (vm.Mode == vm.Modes.Video)
+			vm.Mode = vm.Modes.Slideshow;
 		else
-			vm.mode = vm.Modes.Video;
+			vm.Mode = vm.Modes.Video;
 	}
 
 	vm.setQuery = function (query) {
-		$http.get("service/setQuery?query=" + encodeURIComponent(query));
+		$http.get("Service/SetQuery?Query=" + encodeURIComponent(query));
 	}
 
 	vm.changeImage = function (offset) {
-		$http.get("service/changeImage?offset=" + encodeURIComponent(offset));
+		$http.get("Service/ChangeImage?Offset=" + encodeURIComponent(offset));
 	}
 
-	vm.firstSetSlideshowDelay = true;
-	vm.setSlideshowDelay = function (delay) {
-		if (vm.firstSetSlideshowDelay) {
-			vm.firstSetSlideshowDelay = false;
+	vm.firstSetSlideshowDisplayTime = true;
+	vm.setSlideshowDisplayTime = function (displayTime) {
+		if (vm.firstSetSlideshowDisplayTime) {
+			vm.firstSetSlideshowDisplayTime = false;
 			return;
 		}
-		$http.get("service/setSlideshowDelay?delay=" + encodeURIComponent(delay));
+		$http.get("Service/SetSlideshowDisplayTime?DisplayTime=" + encodeURIComponent(displayTime));
 	}
 
 	vm.queryFocus = function (target) {
 		if (!target.value)
-			target.value = vm.imageQuery;
+			target.value = vm.SlideshowQuery;
 		target.select();
 	}
 

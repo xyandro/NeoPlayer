@@ -11,42 +11,42 @@
 </head>
 <body ng-controller="NeoMediaController as vm">
 
-	<div ng-show="vm.mode == 'Video'" class="search">
+	<div ng-show="vm.Mode == 'Video'" class="search">
 		<img ng-click="vm.queueVideos()" src="check.svg" />
-		<input type="text" ng-model="vm.searchText" />
+		<input type="text" ng-model="vm.SearchText" />
 		<img ng-click="vm.resetSearch()" src="clear.svg" />
 	</div>
 
-	<div ng-show="vm.mode == 'Video'" class="videos">
-		<div ng-repeat="video in vm.videos | filter:vm.searchText" ng-click="vm.queueVideo(video)">
+	<div ng-show="vm.Mode == 'Video'" class="videos">
+		<div ng-repeat="video in vm.Videos | filter:vm.SearchText" ng-click="vm.queueVideo(video)">
 			<img ng-src="{{video.Queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.Name}}
 		</div>
 	</div>
 
-	<div ng-show="vm.mode == 'Slideshow'" class="slideshow">
-		{{vm.imageQuery}}<br />
-		<input class="query" ng-model="vm.query" ng-focus="vm.queryFocus($event.currentTarget)" />
+	<div ng-show="vm.Mode == 'Slideshow'" class="slideshow">
+		{{vm.SlideshowQuery}}<br />
+		<input class="query" ng-model="vm.Query" ng-focus="vm.queryFocus($event.currentTarget)" />
 		<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
 		<img ng-click="vm.changeImage(-1)" src="back.svg" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<img ng-click="vm.setQuery(vm.query)" src="play.svg" />
+		<img ng-click="vm.setQuery(vm.Query)" src="play.svg" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<img ng-click="vm.changeImage(1)" src="forward.svg" />
 		<br />
-		<input style="width: 100%" type="range" min="0" max="300" ng-model="vm.slideshowDelay" ng-change="vm.setSlideshowDelay(vm.slideshowDelay)" />
+		<input style="width: 100%" type="range" min="0" max="300" ng-model="vm.SlideshowDisplayTime" ng-change="vm.setSlideshowDisplayTime(vm.SlideshowDisplayTime)" />
 		<br /><br /><br /><br />
-		({{vm.slideshowDelay}})
+		({{vm.SlideshowDisplayTime}})
 	</div>
 
 	<img class="toggleMode" ng-click="vm.toggleMode()" src="mode.svg" />
 
 	<div class="footer">
-		<div class="slider"><input type="range" min="0" max="{{vm.maxPos}}" ng-model="vm.curPos" ng-change="vm.setPosition(vm.curPos, false)" /></div>
-		<div class="currentSong">{{vm.currentSong}}</div>
+		<div class="slider"><input type="range" min="0" max="{{vm.PlayerMax}}" ng-model="vm.PlayerPosition" ng-change="vm.setPosition(vm.PlayerPosition, false)" /></div>
+		<div class="currentSong">{{vm.PlayerCurrentSong}}</div>
 		<div class="buttons">
 			<img ng-click="vm.setPosition(-30, true)" src="back30.svg" />
 			<img ng-click="vm.setPosition(-5, true)" src="back5.svg" />
-			<img ng-click="vm.pause()" ng-src="{{vm.playing ? 'pause.svg' : 'play.svg'}}" />
+			<img ng-click="vm.pause()" ng-src="{{vm.PlayerIsPlaying ? 'pause.svg' : 'play.svg'}}" />
 			<img ng-click="vm.setPosition(5, true)" src="forward5.svg" />
 			<img ng-click="vm.setPosition(30, true)" src="forward30.svg" />
 			<img ng-click="vm.next()" src="forward.svg" />

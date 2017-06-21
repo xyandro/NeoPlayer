@@ -76,7 +76,7 @@ namespace NeoRemote
 						break;
 
 					var result = default(Response);
-					if (request.URL.StartsWith("service/"))
+					if (request.URL.StartsWith("Service/"))
 					{
 						try { result = service(request.URL); }
 						catch { result = Response.Code404; }
