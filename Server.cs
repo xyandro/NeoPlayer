@@ -67,9 +67,9 @@ namespace NeoRemote
 		async static void RunClient(TcpClient client, Func<string, Response> service)
 		{
 			var stream = client.GetStream();
-			while (true)
+			try
 			{
-				try
+				while (true)
 				{
 					var request = await GetRequest(stream);
 					if (request == null)
@@ -87,13 +87,8 @@ namespace NeoRemote
 
 					await result.Send(stream);
 				}
-				catch (Exception ex) when ((ex.InnerException as SocketException)?.ErrorCode == 10054) { break; }
-				catch (Exception ex)
-				{
-					if (Settings.Debug)
-						MessageBox.Show($"Error: {ex.Message}");
-				}
 			}
+			catch { }
 			client.Close();
 		}
 	}

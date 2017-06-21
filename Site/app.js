@@ -1,31 +1,23 @@
-﻿// Define the `app` module
-var app = angular.module('app', []);
+﻿var app = angular.module("app", []);
 
-angular.module('app').controller('NeoMediaController', NeoMediaController);
+angular.module("app").controller("NeoMediaController", NeoMediaController);
 
-NeoMediaController.$inject = ['$http', '$filter'];
+NeoMediaController.$inject = ["$http", "$filter"];
 function NeoMediaController($http, $filter) {
 	var vm = this;
-	vm.searchText = '';
+	vm.searchText = "";
 	vm.curPos = 0;
 	vm.maxPos = 0;
 	vm.playing = false;
-	vm.currentSong = '';
+	vm.currentSong = "";
 	vm.first = true;
 
-	vm.refresh = function () {
-		$http.get('service/videos').then(function (response) {
-			vm.videos = response.data;
-			setTimeout(vm.refresh, 5000);
-		});
-	}
-
 	vm.resetSearch = function (video) {
-		vm.searchText = '';
+		vm.searchText = "";
 	}
 
 	vm.queueVideo = function (video) {
-		var url = 'service/' + (video.queued ? "de" : "en") + 'queue?video=' + encodeURIComponent(video.name);
+		var url = "service/" + (video.queued ? "de" : "en") + "queue?video=" + encodeURIComponent(video.name);
 		$http.get(url).then(function (response) {
 			video.queued = !video.queued;
 		});
@@ -33,15 +25,15 @@ function NeoMediaController($http, $filter) {
 
 	vm.queueVideos = function () {
 		var enqueue = false;
-		var result = $filter('filter')(vm.videos, vm.searchText);
+		var result = $filter("filter")(vm.videos, vm.searchText);
 		var str = "";
 		for (var x = 0; x < result.length; ++x) {
 			str += x == 0 ? "?" : "&";
-			str += 'video=' + encodeURIComponent(result[x].name);
+			str += "video=" + encodeURIComponent(result[x].name);
 			if (!result[x].queued)
 				enqueue = true;
 		}
-		var url = 'service/' + (enqueue ? "en" : "de") + 'queue' + str;
+		var url = "service/" + (enqueue ? "en" : "de") + "queue" + str;
 		$http.get(url).then(function (response) {
 			for (var x = 0; x < result.length; ++x) {
 				result[x].queued = enqueue;
@@ -50,12 +42,12 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.pause = function () {
-		$http.get('service/pause');
+		$http.get("service/pause");
 		vm.playing = !vm.playing;
 	}
 
 	vm.next = function () {
-		$http.get('service/next');
+		$http.get("service/next");
 	}
 
 	vm.setPosition = function (position, relative) {
@@ -64,19 +56,21 @@ function NeoMediaController($http, $filter) {
 			vm.first = false;
 			return;
 		}
-		$http.get('service/setposition?position=' + position + '&relative=' + relative);
+		$http.get("service/setPosition?position=" + position + "&relative=" + relative);
 	}
 
-	vm.updatePlayInfo = function () {
-		$http.get('service/getplayinfo').then(function (response) {
+	vm.getStatus = function () {
+		$http.get("service/getStatus").then(function (response) {
 			vm.maxPos = response.data.Max;
 			vm.curPos = response.data.Position;
 			vm.playing = response.data.Playing;
 			vm.currentSong = response.data.CurrentSong;
-			vm.test = true;
+			vm.videos = response.data.Videos;
+			setTimeout(vm.getStatus, 1000);
+		}, function (response) {
+			setTimeout(vm.getStatus, 5000);
 		});
 	}
 
-	vm.refresh();
-	setInterval(vm.updatePlayInfo, 1000);
+	vm.getStatus();
 }

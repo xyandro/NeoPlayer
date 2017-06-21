@@ -204,29 +204,35 @@ namespace NeoRemote
 			var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
 			switch (url)
 			{
-				case "videos": return GetVideos();
+				case "getStatus": return GetStatus();
 				case "enqueue": return Enqueue(parameters["video"], true);
 				case "dequeue": return Enqueue(parameters["video"], false);
 				case "pause": return Pause();
 				case "next": return Next();
-				case "setposition": return SetPosition(int.Parse(parameters["position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["relative"].FirstOrDefault() ?? "false"));
-				case "getplayinfo": return GetPlayInfo();
-				default:
-					if (Settings.Debug)
-						MessageBox.Show($"Service: {url}");
-					return Response.Empty;
+				case "setPosition": return SetPosition(int.Parse(parameters["position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["relative"].FirstOrDefault() ?? "false"));
+				default: return Response.Code404;
 			}
 		}
 
-		Response GetVideos()
+		Response GetStatus()
 		{
-			var files = Directory
-				.EnumerateFiles(Settings.VideosPath)
-				.Select(file => Path.GetFileName(file))
-				.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
-				.ToList();
-			var str = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.VideoIsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
-			return Response.CreateFromText(str);
+			return Dispatcher.Invoke(() =>
+			{
+				var files = Directory
+					.EnumerateFiles(Settings.VideosPath)
+					.Select(file => Path.GetFileName(file))
+					.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
+					.ToList();
+				var videos = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.VideoIsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
+				var max = Math.Max(0, (int)vlc.input.length / 1000);
+				var position = Math.Min(max, Math.Max(0, (int)vlc.input.time / 1000));
+				var playing = vlc.playlist.isPlaying.ToString().ToLowerInvariant();
+				string currentSong = "";
+				if (vlc.playlist.currentItem != -1)
+					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+
+				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing}, ""CurrentSong"": ""{currentSong}"", ""Videos"": {videos} }}");
+			});
 		}
 
 		Response Enqueue(IEnumerable<string> fileNames, bool enqueue)
@@ -256,20 +262,6 @@ namespace NeoRemote
 		{
 			Dispatcher.Invoke(() => vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000);
 			return Response.Empty;
-		}
-
-		Response GetPlayInfo()
-		{
-			return Dispatcher.Invoke(() =>
-			{
-				var max = Math.Max(0, (int)vlc.input.length / 1000);
-				var position = Math.Min(max, Math.Max(0, (int)vlc.input.time / 1000));
-				var playing = vlc.playlist.isPlaying;
-				string currentSong = "";
-				if (vlc.playlist.currentItem != -1)
-					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing.ToString().ToLowerInvariant()}, ""CurrentSong"": ""{currentSong}"" }}");
-			});
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
