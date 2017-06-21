@@ -261,30 +261,27 @@ namespace NeoRemote
 
 		Response GetStatus()
 		{
-			return Dispatcher.Invoke(() =>
-			{
-				var status = new Status();
-				status.Videos = Directory.EnumerateFiles(Settings.VideosPath)
-					.Select(file => Path.GetFileName(file))
-					.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
-					.Select(file => new Status.MusicData
-					{
-						Name = file,
-						Queued = actions.VideoIsQueued(file),
-					})
-					.ToList();
-				status.PlayerMax = Math.Max(0, (int)vlc.input.length / 1000);
-				status.PlayerPosition = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.PlayerMax));
-				status.PlayerIsPlaying = vlc.playlist.isPlaying;
-				status.PlayerTitle = "";
-				if (vlc.playlist.currentItem != -1)
-					try { status.PlayerTitle = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				status.SlidesQuery = actions.SlidesQuery;
-				status.SlideDisplayTime = actions.SlideDisplayTime;
-				status.SlidesPaused = actions.SlidesPaused;
+			var status = new Status();
+			status.Videos = Directory.EnumerateFiles(Settings.VideosPath)
+				.Select(file => Path.GetFileName(file))
+				.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
+				.Select(file => new Status.MusicData
+				{
+					Name = file,
+					Queued = actions.VideoIsQueued(file),
+				})
+				.ToList();
+			status.PlayerMax = Math.Max(0, (int)vlc.input.length / 1000);
+			status.PlayerPosition = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.PlayerMax));
+			status.PlayerIsPlaying = vlc.playlist.isPlaying;
+			status.PlayerTitle = "";
+			if (vlc.playlist.currentItem != -1)
+				try { status.PlayerTitle = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+			status.SlidesQuery = actions.SlidesQuery;
+			status.SlideDisplayTime = actions.SlideDisplayTime;
+			status.SlidesPaused = actions.SlidesPaused;
 
-				return JSON.GetResponse(status);
-			});
+			return JSON.GetResponse(status);
 		}
 
 		Response Enqueue(IEnumerable<string> fileNames, bool enqueue)
@@ -299,7 +296,7 @@ namespace NeoRemote
 		{
 			if (actions.CurrentAction == ActionType.Slideshow)
 				actions.SlideMusicAutoPlay = true;
-			Dispatcher.Invoke(() => vlc.playlist.togglePause());
+			vlc.playlist.togglePause();
 			return Response.Empty;
 		}
 
@@ -314,7 +311,7 @@ namespace NeoRemote
 
 		Response SetPosition(int position, bool relative)
 		{
-			Dispatcher.Invoke(() => vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000);
+			vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000;
 			return Response.Empty;
 		}
 
