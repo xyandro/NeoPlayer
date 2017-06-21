@@ -27,7 +27,6 @@ namespace NeoRemote
 		}
 
 		int currentSlide = 0;
-
 		public string CurrentSlide => slides.Any() ? slides[currentSlide % slides.Count] : null;
 		public string CurrentSong => songs.FirstOrDefault();
 		public string CurrentVideo => videos.FirstOrDefault();
@@ -57,22 +56,6 @@ namespace NeoRemote
 		public void EnqueueSongs(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(songs, fileNames, enqueue);
 		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
 
-		void CycleList(List<string> list, bool readd, bool fromStart = true)
-		{
-			if (!list.Any())
-				return;
-
-			var takeIndex = fromStart ? 0 : list.Count - 1;
-			var addIndex = fromStart ? list.Count - 1 : 0;
-
-			var item = list[takeIndex];
-			list.RemoveAt(takeIndex);
-			if (readd)
-				list.Insert(addIndex, item);
-
-			changed();
-		}
-
 		public void CycleSlide(bool fromStart = true)
 		{
 			if (!slides.Any())
@@ -86,19 +69,34 @@ namespace NeoRemote
 				currentSlide -= slides.Count;
 			changed();
 		}
-		public void CycleSong() => CycleList(songs, true);
-		public void CycleVideo() => CycleList(videos, false);
 
-		void ClearList(List<string> list)
+		public void CycleSong()
 		{
-			if (!list.Any())
+			if (!songs.Any())
 				return;
-			list.Clear();
+
+			songs.Add(songs[0]);
+			songs.RemoveAt(0);
+
 			changed();
 		}
 
-		public void ClearSlides() { ClearList(slides); currentSlide = 0; }
-		public void ClearSongs() => ClearList(songs);
-		public void ClearVideos() => ClearList(videos);
+		public void CycleVideo()
+		{
+			if (!videos.Any())
+				return;
+
+			videos.RemoveAt(0);
+			changed();
+		}
+
+		public void ClearSlides()
+		{
+			if (!slides.Any())
+				return;
+
+			slides.Clear();
+			currentSlide = 0;
+		}
 	}
 }
