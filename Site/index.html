@@ -26,16 +26,17 @@
 	<div ng-show="vm.Mode == 'Slideshow'" class="slideshow">
 		{{vm.SlideshowQuery}}<br />
 		<input class="query" ng-model="vm.Query" ng-focus="vm.queryFocus($event.currentTarget)" />
+		<img class="sendQuery" src="play.svg" ng-click="vm.setQuery(vm.Query)" />
 		<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
 		<img ng-click="vm.changeImage(-1)" src="back.svg" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<img ng-click="vm.setQuery(vm.Query)" src="play.svg" />
+		<img ng-click="vm.toggleSlideshowImagesPaused()" ng-src="{{vm.SlideshowImagesPaused ? 'play.svg' : 'pause.svg'}}" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<img ng-click="vm.changeImage(1)" src="forward.svg" />
 		<br />
-		<input style="width: 100%" type="range" min="0" max="300" ng-model="vm.SlideshowDisplayTime" ng-change="vm.setSlideshowDisplayTime(vm.SlideshowDisplayTime)" />
+		<input style="width: 100%" type="range" min="5" max="300" step="5" ng-model="vm.SlideshowImageDisplayTime" ng-change="vm.setSlideshowImageDisplayTime(vm.SlideshowImageDisplayTime)" />
 		<br /><br /><br /><br />
-		({{vm.SlideshowDisplayTime}})
+		Display time: {{vm.SlideshowImageDisplayTime}}
 	</div>
 
 	<img class="toggleMode" ng-click="vm.toggleMode()" src="mode.svg" />

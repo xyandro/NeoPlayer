@@ -17,6 +17,7 @@ namespace NeoRemote
 
 		public List<SongData> Videos { get; set; }
 		public string SlideshowQuery { get; set; }
-		public int SlideshowDisplayTime { get; set; }
+		public int SlideshowImageDisplayTime { get; set; }
+		public bool SlideshowImagesPaused { get; set; }
 	}
 }

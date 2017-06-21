@@ -12,8 +12,8 @@ namespace NeoRemote
 		string imageQuery = "landscape";
 		public string ImageQuery { get { return imageQuery; } set { imageQuery = value; changed(); } }
 
-		int slideshowDisplayTime = 60;
-		public int SlideshowDisplayTime { get { return slideshowDisplayTime; } set { slideshowDisplayTime = value; changed(); } }
+		public int SlideshowImageDisplayTime { get; set; } = 60;
+		public bool SlideshowImagesPaused { get; set; }
 
 		readonly List<string> images = new List<string>();
 		readonly List<string> songs = new List<string>();

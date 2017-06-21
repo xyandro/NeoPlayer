@@ -75,7 +75,8 @@ function NeoMediaController($http, $filter) {
 			vm.PlayerCurrentSong = response.data.PlayerCurrentSong;
 			vm.Videos = response.data.Videos;
 			vm.SlideshowQuery = response.data.SlideshowQuery;
-			vm.SlideshowDisplayTime = response.data.SlideshowDisplayTime;
+			vm.SlideshowImageDisplayTime = response.data.SlideshowImageDisplayTime;
+			vm.SlideshowImagesPaused = response.data.SlideshowImagesPaused;
 
 			setTimeout(vm.getStatus, 1000);
 		}, function (response) {
@@ -98,19 +99,24 @@ function NeoMediaController($http, $filter) {
 		$http.get("Service/ChangeImage?Offset=" + encodeURIComponent(offset));
 	}
 
-	vm.firstSetSlideshowDisplayTime = true;
-	vm.setSlideshowDisplayTime = function (displayTime) {
-		if (vm.firstSetSlideshowDisplayTime) {
-			vm.firstSetSlideshowDisplayTime = false;
+	vm.firstSetSlideshowImageDisplayTime = true;
+	vm.setSlideshowImageDisplayTime = function (displayTime) {
+		if (vm.firstSetSlideshowImageDisplayTime) {
+			vm.firstSetSlideshowImageDisplayTime = false;
 			return;
 		}
-		$http.get("Service/SetSlideshowDisplayTime?DisplayTime=" + encodeURIComponent(displayTime));
+		$http.get("Service/SetSlideshowImageDisplayTime?DisplayTime=" + encodeURIComponent(displayTime));
 	}
 
 	vm.queryFocus = function (target) {
 		if (!target.value)
 			target.value = vm.SlideshowQuery;
 		target.select();
+	}
+
+	vm.toggleSlideshowImagesPaused = function () {
+		$http.get("Service/ToggleSlideshowImagesPaused");
+		vm.SlideshowImagesPaused = !vm.SlideshowImagesPaused;
 	}
 
 	vm.getStatus();

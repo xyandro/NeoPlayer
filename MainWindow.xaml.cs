@@ -15,6 +15,7 @@ namespace NeoRemote
 	partial class MainWindow
 	{
 		readonly Actions actions;
+		readonly DispatcherTimer changeImageTimer = null;
 
 		public MainWindow()
 		{
@@ -30,6 +31,10 @@ namespace NeoRemote
 			vlc.MediaPlayerEndReached += (s, e) => Next();
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
+
+			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+			changeImageTimer.Tick += (s, e) => CheckCycleImage();
+			changeImageTimer.Start();
 		}
 
 		DispatcherTimer actionChangedTimer = null;
@@ -82,17 +87,24 @@ namespace NeoRemote
 		}
 
 		string currentImage = null;
-		DispatcherTimer changeImageTimer = null;
 		DoubleAnimation fadeAnimation;
+		DateTime? imageTime = null;
+
+		void CheckCycleImage()
+		{
+			if ((imageTime == null) || (actions.SlideshowImagesPaused))
+				return;
+			if ((DateTime.Now - imageTime.Value).TotalSeconds >= actions.SlideshowImageDisplayTime)
+				actions.CycleImage();
+		}
+
 		void HideImageIfNecessary()
 		{
 			if ((currentImage == null) || ((actions.CurrentAction.HasFlag(ActionType.SlideshowImages)) && (currentImage == actions.CurrentImage)))
 				return;
 
 			currentImage = null;
-
-			changeImageTimer.Stop();
-			changeImageTimer = null;
+			imageTime = null;
 
 			StopImageFade();
 
@@ -128,14 +140,11 @@ namespace NeoRemote
 			}
 
 			currentImage = actions.CurrentImage;
+			imageTime = DateTime.Now;
 
 			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(1)));
 			fadeAnimation.Completed += StopImageFade;
 			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
-
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(actions.SlideshowDisplayTime) };
-			changeImageTimer.Tick += (s, e) => actions.CycleImage();
-			changeImageTimer.Start();
 		}
 
 		void StopImageFade(object sender = null, EventArgs e = null)
@@ -211,16 +220,23 @@ namespace NeoRemote
 				case "Pause": return Pause();
 				case "Next": return Next();
 				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
-				case "SetSlideshowDisplayTime": return SetSlideshowDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
+				case "SetSlideshowImageDisplayTime": return SetSlideshowImageDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
 				case "ChangeImage": return ChangeImage(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
 				case "SetQuery": return SetQuery(parameters["Query"].FirstOrDefault());
+				case "ToggleSlideshowImagesPaused": return ToggleSlideshowImagesPaused();
 				default: return Response.Code404;
 			}
 		}
 
-		Response SetSlideshowDisplayTime(int displayTime)
+		Response ToggleSlideshowImagesPaused()
 		{
-			actions.SlideshowDisplayTime = displayTime;
+			actions.SlideshowImagesPaused = !actions.SlideshowImagesPaused;
+			return Response.Empty;
+		}
+
+		Response SetSlideshowImageDisplayTime(int displayTime)
+		{
+			actions.SlideshowImageDisplayTime = displayTime;
 			return Response.Empty;
 		}
 
@@ -256,7 +272,8 @@ namespace NeoRemote
 				if (vlc.playlist.currentItem != -1)
 					try { status.PlayerCurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
 				status.SlideshowQuery = actions.ImageQuery.Replace(@"""", "'");
-				status.SlideshowDisplayTime = actions.SlideshowDisplayTime;
+				status.SlideshowImageDisplayTime = actions.SlideshowImageDisplayTime;
+				status.SlideshowImagesPaused = actions.SlideshowImagesPaused;
 
 				return JSON.GetResponse(status);
 			});

@@ -81,12 +81,20 @@ div {
 			position: absolute;
 			top: 5vh;
 			left: 5vw;
-			width: 90vw;
+			width: 70vw;
 			height: 20vh;
 			background: transparent;
 			border: 8px groove;
 			color: black;
 			font-size: 3vh;
+		}
+
+		div.slideshow img.sendQuery {
+			position: absolute;
+			top: 5vh;
+			left: 80vw;
+			height: 5vw;
+			background: transparent;
 		}
 
 	div.footer {
