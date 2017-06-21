@@ -77,7 +77,10 @@ namespace NeoRemote
 
 					var result = default(Response);
 					if (request.URL.StartsWith("service/"))
-						result = service(request.URL);
+					{
+						try { result = service(request.URL); }
+						catch { result = Response.Code404; }
+					}
 
 					if (result == null)
 						result = Response.CreateFromFile(request.URL, request.ETags);

@@ -33,11 +33,7 @@ namespace NeoRemote
 			var ext = Path.GetExtension(name).ToLowerInvariant();
 			result.ContentType = ContentTypeData.GetContentTypeDataByExtension(ext);
 			if (result.ContentType == null)
-			{
-				result = CreateFromFile("InvalidType.html", null);
-				result.Code = HttpStatusCode.UnsupportedMediaType;
-				return result;
-			}
+				return InvalidType;
 
 			var fileName = Path.GetDirectoryName(typeof(Server).Assembly.Location);
 			if (Settings.Debug)
@@ -46,11 +42,7 @@ namespace NeoRemote
 
 			var fileInfo = new FileInfo(fileName);
 			if (!fileInfo.Exists)
-			{
-				result = CreateFromFile("404.html", null);
-				result.Code = HttpStatusCode.NotFound;
-				return result;
-			}
+				return Code404;
 
 			result.eTag = $"{fileInfo.LastWriteTimeUtc.Ticks}-{fileInfo.Length}";
 			if (eTags?.Contains(result.eTag) == true)
@@ -82,6 +74,26 @@ namespace NeoRemote
 			result.CheckCompress();
 
 			return result;
+		}
+
+		public static Response Code404
+		{
+			get
+			{
+				var result = CreateFromFile("404.html", null);
+				result.Code = HttpStatusCode.NotFound;
+				return result;
+			}
+		}
+
+		public static Response InvalidType
+		{
+			get
+			{
+				var result = CreateFromFile("InvalidType.html", null);
+				result.Code = HttpStatusCode.UnsupportedMediaType;
+				return result;
+			}
 		}
 
 		public static Response Empty => new Response
