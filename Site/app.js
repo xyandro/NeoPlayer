@@ -24,9 +24,9 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.queueVideo = function (video) {
-		var url = "service/" + (video.queued ? "de" : "en") + "queue?video=" + encodeURIComponent(video.name);
+		var url = "service/" + (video.Queued ? "de" : "en") + "queue?video=" + encodeURIComponent(video.Name);
 		$http.get(url).then(function (response) {
-			video.queued = !video.queued;
+			video.Queued = !video.Queued;
 		});
 	}
 
@@ -36,14 +36,14 @@ function NeoMediaController($http, $filter) {
 		var str = "";
 		for (var x = 0; x < result.length; ++x) {
 			str += x == 0 ? "?" : "&";
-			str += "video=" + encodeURIComponent(result[x].name);
-			if (!result[x].queued)
+			str += "video=" + encodeURIComponent(result[x].Name);
+			if (!result[x].Queued)
 				enqueue = true;
 		}
 		var url = "service/" + (enqueue ? "en" : "de") + "queue" + str;
 		$http.get(url).then(function (response) {
 			for (var x = 0; x < result.length; ++x) {
-				result[x].queued = enqueue;
+				result[x].Queued = enqueue;
 			}
 		});
 	}

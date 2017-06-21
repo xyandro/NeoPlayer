@@ -79,6 +79,7 @@
     <Compile Include="ContentTypeData.cs" />
     <Compile Include="ImageDownloader.cs" />
     <Compile Include="Interceptor.cs" />
+    <Compile Include="JSON.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -162,6 +163,7 @@
     <Content Include="Site\yellow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Status.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

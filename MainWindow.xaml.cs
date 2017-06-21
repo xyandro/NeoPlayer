@@ -238,22 +238,27 @@ namespace NeoRemote
 		{
 			return Dispatcher.Invoke(() =>
 			{
-				var files = Directory
+				var status = new Status();
+				status.Videos = Directory
 					.EnumerateFiles(Settings.VideosPath)
 					.Select(file => Path.GetFileName(file))
 					.OrderBy(file => Regex.Replace(file, @"\d+", match => match.Value.PadLeft(10, '0')))
+					.Select(file => new Status.SongData
+					{
+						Name = file,
+						Queued = actions.VideoIsQueued(file),
+					})
 					.ToList();
-				var videos = $"[ {string.Join(", ", files.Select(file => $@"{{ ""name"": ""{file}"", ""queued"": {actions.VideoIsQueued(file).ToString().ToLowerInvariant()} }}"))} ]";
-				var max = Math.Max(0, (int)vlc.input.length / 1000);
-				var position = Math.Min(max, Math.Max(0, (int)vlc.input.time / 1000));
-				var playing = vlc.playlist.isPlaying.ToString().ToLowerInvariant();
-				string currentSong = "";
+				status.Max = Math.Max(0, (int)vlc.input.length / 1000);
+				status.Position = Math.Max(0, Math.Min((int)vlc.input.time / 1000, status.Max));
+				status.Playing = vlc.playlist.isPlaying;
+				status.CurrentSong = "";
 				if (vlc.playlist.currentItem != -1)
-					try { currentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
-				var imageQuery = actions.ImageQuery.Replace(@"""", "'");
-				var slideshowDelay = actions.SlideshowDelay;
+					try { status.CurrentSong = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+				status.ImageQuery = actions.ImageQuery.Replace(@"""", "'");
+				status.SlideshowDelay = actions.SlideshowDelay;
 
-				return Response.CreateFromText($@"{{ ""Position"": {position}, ""Max"": {max}, ""Playing"": {playing}, ""CurrentSong"": ""{currentSong}"", ""Videos"": {videos}, ""ImageQuery"": ""{imageQuery}"", ""SlideshowDelay"": {slideshowDelay} }}");
+				return JSON.GetResponse(status);
 			});
 		}
 

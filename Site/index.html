@@ -19,7 +19,7 @@
 
 	<div ng-show="vm.mode == 'Video'" class="videos">
 		<div ng-repeat="video in vm.videos | filter:vm.searchText" ng-click="vm.queueVideo(video)">
-			<img ng-src="{{video.queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.name}}
+			<img ng-src="{{video.Queued ? 'check.svg' : 'uncheck.svg'}}" /> {{::video.Name}}
 		</div>
 	</div>
 

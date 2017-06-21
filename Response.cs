@@ -58,7 +58,7 @@ namespace NeoRemote
 			return result;
 		}
 
-		public static Response CreateFromText(string text, string ext = ".jsn")
+		public static Response CreateFromText(string text, string ext)
 		{
 			var result = new Response();
 
