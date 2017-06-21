@@ -29,11 +29,11 @@
 		<img class="sendQuery" src="play.svg" ng-click="vm.setSlidesQuery(vm.NewSlidesQuery)" />
 		<img ng-click="vm.NewSlidesQuery = vm.SlidesQuery" src="clear.svg" />
 		<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
-		<img ng-click="vm.changeImage(-1)" src="back.svg" />
+		<img ng-click="vm.changeSlide(-1)" src="back.svg" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<img ng-click="vm.toggleSlidesPaused()" ng-src="{{vm.SlidesPaused ? 'play.svg' : 'pause.svg'}}" />
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<img ng-click="vm.changeImage(1)" src="forward.svg" />
+		<img ng-click="vm.changeSlide(1)" src="forward.svg" />
 		<br />
 		<input style="width: 100%" type="range" min="5" max="300" step="5" ng-model="vm.SlideDisplayTime" ng-change="vm.setSlideDisplayTime(vm.SlideDisplayTime)" />
 		<br /><br /><br /><br />

@@ -99,8 +99,8 @@ function NeoMediaController($http, $filter) {
 		$http.get("Service/SetSlidesQuery?SlidesQuery=" + encodeURIComponent(slidesQuery));
 	}
 
-	vm.changeImage = function (offset) {
-		$http.get("Service/ChangeImage?Offset=" + encodeURIComponent(offset));
+	vm.changeSlide = function (offset) {
+		$http.get("Service/ChangeSlide?Offset=" + encodeURIComponent(offset));
 	}
 
 	vm.firstSetSlideDisplayTime = true;

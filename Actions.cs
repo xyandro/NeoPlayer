@@ -16,7 +16,7 @@ namespace NeoRemote
 		public bool SlidesPaused { get; set; }
 		public bool SlideMusicAutoPlay { get; set; } = false;
 
-		readonly List<string> images = new List<string>();
+		readonly List<string> slides = new List<string>();
 		readonly List<string> songs = new List<string>();
 		readonly List<string> videos = new List<string>();
 		readonly Action changed;
@@ -26,9 +26,9 @@ namespace NeoRemote
 			this.changed = changed;
 		}
 
-		int currentImage = 0;
+		int currentSlide = 0;
 
-		public string CurrentImage => images.Any() ? images[currentImage % images.Count] : null;
+		public string CurrentSlide => slides.Any() ? slides[currentSlide % slides.Count] : null;
 		public string CurrentSong => songs.FirstOrDefault();
 		public string CurrentVideo => videos.FirstOrDefault();
 
@@ -53,7 +53,7 @@ namespace NeoRemote
 				changed();
 		}
 
-		public void EnqueueImages(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(images, fileNames, enqueue);
+		public void EnqueueSlides(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(slides, fileNames, enqueue);
 		public void EnqueueSongs(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(songs, fileNames, enqueue);
 		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
 
@@ -73,17 +73,17 @@ namespace NeoRemote
 			changed();
 		}
 
-		public void CycleImage(bool fromStart = true)
+		public void CycleSlide(bool fromStart = true)
 		{
-			if (!images.Any())
+			if (!slides.Any())
 				return;
 
-			currentImage = Math.Max(0, Math.Min(currentImage, images.Count - 1));
-			currentImage += (fromStart ? 1 : -1);
-			while (currentImage < 0)
-				currentImage += images.Count;
-			while (currentImage >= images.Count)
-				currentImage -= images.Count;
+			currentSlide = Math.Max(0, Math.Min(currentSlide, slides.Count - 1));
+			currentSlide += (fromStart ? 1 : -1);
+			while (currentSlide < 0)
+				currentSlide += slides.Count;
+			while (currentSlide >= slides.Count)
+				currentSlide -= slides.Count;
 			changed();
 		}
 		public void CycleSong() => CycleList(songs, true);
@@ -97,7 +97,7 @@ namespace NeoRemote
 			changed();
 		}
 
-		public void ClearImages() { ClearList(images); currentImage = 0; }
+		public void ClearSlides() { ClearList(slides); currentSlide = 0; }
 		public void ClearSongs() => ClearList(songs);
 		public void ClearVideos() => ClearList(videos);
 	}

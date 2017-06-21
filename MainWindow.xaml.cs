@@ -16,7 +16,7 @@ namespace NeoRemote
 	partial class MainWindow
 	{
 		readonly Actions actions;
-		readonly DispatcherTimer changeImageTimer = null;
+		readonly DispatcherTimer changeSlideTimer = null;
 
 		public MainWindow()
 		{
@@ -33,9 +33,9 @@ namespace NeoRemote
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
-			changeImageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-			changeImageTimer.Tick += (s, e) => CheckCycleImage();
-			changeImageTimer.Start();
+			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
+			changeSlideTimer.Start();
 		}
 
 		DispatcherTimer actionChangedTimer = null;
@@ -62,106 +62,106 @@ namespace NeoRemote
 				actions.SlideMusicAutoPlay = false;
 			}
 
-			SetupImageDownloader();
+			SetupSlideDownloader();
 
-			HideImageIfNecessary();
+			HideSlideIfNecessary();
 			StopSongIfNecessary();
 			StopVideoIfNecessary();
 
 			SetControlsVisibility();
 
-			DisplayNewImage();
+			DisplayNewSlide();
 			StartNewSong();
 			StartNewVideo();
 		}
 
 		string currentSlidesQuery;
-		void SetupImageDownloader()
+		void SetupSlideDownloader()
 		{
 			if (currentSlidesQuery == actions.SlidesQuery)
 				return;
 			currentSlidesQuery = actions.SlidesQuery;
-			ImageDownloader.Run(currentSlidesQuery, "2mp", actions);
+			SlideDownloader.Run(currentSlidesQuery, "2mp", actions);
 		}
 
 		void SetControlsVisibility()
 		{
-			image1.Visibility = image2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
+			slide1.Visibility = slide2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
 			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
 		}
 
-		string currentImage = null;
+		string currentSlide = null;
 		DoubleAnimation fadeAnimation;
-		DateTime? imageTime = null;
+		DateTime? slideTime = null;
 
-		void CheckCycleImage()
+		void CheckCycleSlide()
 		{
-			if ((imageTime == null) || (actions.SlidesPaused))
+			if ((slideTime == null) || (actions.SlidesPaused))
 				return;
-			if ((DateTime.Now - imageTime.Value).TotalSeconds >= actions.SlideDisplayTime)
-				actions.CycleImage();
+			if ((DateTime.Now - slideTime.Value).TotalSeconds >= actions.SlideDisplayTime)
+				actions.CycleSlide();
 		}
 
-		void HideImageIfNecessary()
+		void HideSlideIfNecessary()
 		{
-			if ((currentImage == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentImage == actions.CurrentImage)))
+			if ((currentSlide == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentSlide == actions.CurrentSlide)))
 				return;
 
-			currentImage = null;
-			imageTime = null;
+			currentSlide = null;
+			slideTime = null;
 
-			StopImageFade();
+			StopSlideFade();
 
-			if ((actions.CurrentAction != ActionType.Slideshow) || (actions.CurrentImage == null))
-				image1.Source = null;
+			if ((actions.CurrentAction != ActionType.Slideshow) || (actions.CurrentSlide == null))
+				slide1.Source = null;
 		}
 
-		void DisplayNewImage()
+		void DisplayNewSlide()
 		{
 			if (actions.CurrentAction != ActionType.Slideshow)
 				return;
 
 			while (true)
 			{
-				if (currentImage == actions.CurrentImage)
+				if (currentSlide == actions.CurrentSlide)
 					return;
 
 				try
 				{
-					var bitmapImage = new BitmapImage();
-					bitmapImage.BeginInit();
-					bitmapImage.UriSource = new Uri(actions.CurrentImage);
-					bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-					bitmapImage.EndInit();
-					image2.Source = bitmapImage;
+					var slide = new BitmapImage();
+					slide.BeginInit();
+					slide.UriSource = new Uri(actions.CurrentSlide);
+					slide.CacheOption = BitmapCacheOption.OnLoad;
+					slide.EndInit();
+					slide2.Source = slide;
 					break;
 				}
 				catch
 				{
-					actions.EnqueueImages(new List<string> { actions.CurrentImage }, false);
+					actions.EnqueueSlides(new List<string> { actions.CurrentSlide }, false);
 					continue;
 				}
 			}
 
-			currentImage = actions.CurrentImage;
-			imageTime = DateTime.Now;
+			currentSlide = actions.CurrentSlide;
+			slideTime = DateTime.Now;
 
 			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(1)));
-			fadeAnimation.Completed += StopImageFade;
-			fadeImage.BeginAnimation(OpacityProperty, fadeAnimation);
+			fadeAnimation.Completed += StopSlideFade;
+			fadeSlide.BeginAnimation(OpacityProperty, fadeAnimation);
 		}
 
-		void StopImageFade(object sender = null, EventArgs e = null)
+		void StopSlideFade(object sender = null, EventArgs e = null)
 		{
 			if (fadeAnimation == null)
 				return;
 
-			fadeAnimation.Completed -= StopImageFade;
+			fadeAnimation.Completed -= StopSlideFade;
 			fadeAnimation = null;
-			fadeImage.BeginAnimation(OpacityProperty, null);
-			fadeImage.Opacity = 0;
-			image1.Source = image2.Source ?? image1.Source;
-			image2.Source = null;
+			fadeSlide.BeginAnimation(OpacityProperty, null);
+			fadeSlide.Opacity = 0;
+			slide1.Source = slide2.Source ?? slide1.Source;
+			slide2.Source = null;
 		}
 
 		string currentSong = null;
@@ -230,7 +230,7 @@ namespace NeoRemote
 				case "Next": return Next();
 				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
 				case "SetSlideDisplayTime": return SetSlideDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
-				case "ChangeImage": return ChangeImage(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
+				case "ChangeSlide": return ChangeSlide(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
 				case "SetSlidesQuery": return SetSlidesQuery(parameters["SlidesQuery"].FirstOrDefault());
 				case "ToggleSlidesPaused": return ToggleSlidesPaused();
 				default: return Response.Code404;
@@ -250,12 +250,12 @@ namespace NeoRemote
 		}
 
 
-		Response ChangeImage(int offset)
+		Response ChangeSlide(int offset)
 		{
 			if (offset > 0)
-				actions.CycleImage();
+				actions.CycleSlide();
 			if (offset < 0)
-				actions.CycleImage(false);
+				actions.CycleSlide(false);
 			return Response.Empty;
 		}
 

@@ -77,7 +77,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ContentTypeData.cs" />
-    <Compile Include="ImageDownloader.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
     <Page Include="MainWindow.xaml">
@@ -163,6 +162,7 @@
     <Content Include="Site\yellow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="SlideDownloader.cs" />
     <Compile Include="Status.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -5,9 +5,9 @@
 	Title="NeoRemote" Width="800" Height="600" Background="Black" WindowStyle="None">
 
 	<Grid>
-		<Image Name="image1"/>
-		<Grid Name="fadeImage" Background="Black" Opacity="0">
-			<Image Name="image2"/>
+		<Image Name="slide1"/>
+		<Grid Name="fadeSlide" Background="Black" Opacity="0">
+			<Image Name="slide2"/>
 		</Grid>
 		<WindowsFormsHost Name="vlcHost">
 			<vlc:AxVLCPlugin2 x:Name="vlc"/>
