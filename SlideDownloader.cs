@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,23 +16,15 @@ namespace NeoRemote
 {
 	static class SlideDownloader
 	{
-		const int ResizerCount = 4;
 		const int DownloaderCount = 20;
 
 		static Task task = null;
 		static CancellationTokenSource token = null;
-		static readonly BlockingCollection<Action> threadWork = new BlockingCollection<Action>();
 
-		static SlideDownloader()
-		{
-			for (var ctr = 0; ctr < ResizerCount; ++ctr)
-				new Thread(() => { while (true) threadWork.Take()(); }).Start();
-		}
-
-		static Task RunInThread(Action action)
+		static Task ThreadPoolRunAsync(Action action)
 		{
 			var tcs = new TaskCompletionSource<object>();
-			threadWork.Add(() =>
+			ThreadPool.QueueUserWorkItem(state =>
 			{
 				try
 				{
@@ -155,7 +146,7 @@ namespace NeoRemote
 								using (var stream = await response.Content.ReadAsStreamAsync())
 									await stream.CopyToAsync(ms);
 								ms.Position = 0;
-								await RunInThread(() => ShrinkSlide(ms, fileName, token));
+								await ThreadPoolRunAsync(() => ShrinkSlide(ms, fileName, token));
 							}
 						}
 					}
