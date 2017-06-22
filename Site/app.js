@@ -137,5 +137,10 @@ function NeoMediaController($http, $filter) {
 		return m;
 	}
 
+	vm.clearSlidesQuery = function () {
+		vm.NewSlidesQuery = vm.SlidesQuery;
+		vm.NewSlidesSize = vm.SlidesSize;
+	}
+
 	vm.getStatus();
 }

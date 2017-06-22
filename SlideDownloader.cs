@@ -166,19 +166,8 @@ namespace NeoRemote
 			slide.CacheOption = BitmapCacheOption.OnLoad;
 			slide.EndInit();
 
-			var width = slide.PixelWidth;
-			var height = slide.PixelHeight;
-			var group = new DrawingGroup();
-			RenderOptions.SetBitmapScalingMode(group, BitmapScalingMode.HighQuality);
-			group.Children.Add(new ImageDrawing(slide, new Rect(0, 0, width, height)));
-
-			var drawingVisual = new DrawingVisual();
-			using (var drawingContext = drawingVisual.RenderOpen())
-				drawingContext.DrawDrawing(group);
-
-			var scale = Math.Min(SystemParameters.PrimaryScreenWidth / width, SystemParameters.PrimaryScreenHeight / height);
-			var resizedSlide = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96, 96, PixelFormats.Default);
-			resizedSlide.Render(drawingVisual);
+			var scale = Math.Min(SystemParameters.PrimaryScreenWidth / slide.PixelWidth, SystemParameters.PrimaryScreenHeight / slide.PixelHeight);
+			var resizedSlide = new TransformedBitmap(slide, new ScaleTransform(scale, scale));
 
 			var encoder = new BmpBitmapEncoder();
 			encoder.Frames.Add(BitmapFrame.Create(resizedSlide));
