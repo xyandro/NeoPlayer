@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Web;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -208,27 +206,23 @@ namespace NeoRemote
 			vlc.playlist.playItem(0);
 		}
 
-		Response HandleServiceCall(string url)
+		Response HandleServiceCall(Request request)
 		{
-			if (url.StartsWith("Service/"))
-				url = url.Substring("Service/".Length);
+			if (!request.URL.StartsWith("Service/"))
+				return null;
+			var url = request.URL.Substring("Service/".Length);
 
-			var queryIndex = url.IndexOf('?');
-			var query = queryIndex == -1 ? "" : url.Substring(queryIndex + 1);
-			url = queryIndex == -1 ? url : url.Remove(queryIndex);
-			var parsed = HttpUtility.ParseQueryString(query);
-			var parameters = parsed.AllKeys.ToDictionary(key => key, key => parsed.GetValues(key));
 			switch (url)
 			{
 				case "GetStatus": return GetStatus();
-				case "Enqueue": return Enqueue(parameters["Video"], true);
-				case "Dequeue": return Enqueue(parameters["Video"], false);
+				case "Enqueue": return Enqueue(request.Parameters["Video"], true);
+				case "Dequeue": return Enqueue(request.Parameters["Video"], false);
 				case "Pause": return Pause();
 				case "Next": return Next();
-				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
-				case "SetSlideDisplayTime": return SetSlideDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
-				case "ChangeSlide": return ChangeSlide(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
-				case "SetSlidesQuery": return SetSlidesQuery(parameters["SlidesQuery"].FirstOrDefault(), parameters["SlidesSize"].FirstOrDefault() ?? "2mp");
+				case "SetPosition": return SetPosition(int.Parse(request.Parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(request.Parameters["Relative"].FirstOrDefault() ?? "false"));
+				case "SetSlideDisplayTime": return SetSlideDisplayTime(int.Parse(request.Parameters["DisplayTime"].FirstOrDefault() ?? "0"));
+				case "ChangeSlide": return ChangeSlide(int.Parse(request.Parameters["Offset"].FirstOrDefault() ?? "0"));
+				case "SetSlidesQuery": return SetSlidesQuery(request.Parameters["SlidesQuery"].FirstOrDefault(), request.Parameters["SlidesSize"].FirstOrDefault() ?? "2mp");
 				case "ToggleSlidesPaused": return ToggleSlidesPaused();
 				default: return Response.Code404;
 			}

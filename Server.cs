@@ -12,7 +12,7 @@ namespace NeoRemote
 {
 	public static class Server
 	{
-		async public static void Run(int port, Func<string, Response> service)
+		async public static void Run(int port, Func<Request, Response> service)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
@@ -64,7 +64,7 @@ namespace NeoRemote
 			}
 		}
 
-		async static void RunClient(TcpClient client, Func<string, Response> service)
+		async static void RunClient(TcpClient client, Func<Request, Response> service)
 		{
 			var stream = client.GetStream();
 			try
@@ -76,11 +76,9 @@ namespace NeoRemote
 						break;
 
 					var result = default(Response);
-					if (request.URL.StartsWith("Service/"))
-					{
-						try { result = service(request.URL); }
-						catch { result = Response.Code404; }
-					}
+
+					try { result = service(request); }
+					catch { result = Response.Code404; }
 
 					if (result == null)
 						result = Response.CreateFromFile(request.URL, request.ETags);
