@@ -7,18 +7,20 @@ function NeoMediaController($http, $filter) {
 	var vm = this;
 
 	vm.Modes = {
-		Video: "Video",
+		Videos: "Videos",
 		Slideshow: "Slideshow",
 	}
 
+	vm.Mode = vm.Modes.Slideshow;
 	vm.SearchText = "";
 	vm.PlayerPosition = 0;
 	vm.PlayerMax = 0;
 	vm.PlayerIsPlaying = false;
 	vm.PlayerTitle = "";
-	vm.Mode = vm.Modes.Slideshow;
 	vm.SlidesQuery = "";
+	vm.SlidesSize = "";
 	vm.NewSlidesQuery = null;
+	vm.NewSlidesSize = "";
 
 	vm.resetSearch = function (video) {
 		vm.SearchText = "";
@@ -72,6 +74,8 @@ function NeoMediaController($http, $filter) {
 		$http.get("Service/GetStatus").then(function (response) {
 			if (vm.SlidesQuery != response.data.SlidesQuery)
 				vm.NewSlidesQuery = response.data.SlidesQuery;
+			if (vm.SlidesSize != response.data.SlidesSize)
+				vm.NewSlidesSize = response.data.SlidesSize;
 
 			vm.PlayerMax = response.data.PlayerMax;
 			vm.PlayerPosition = response.data.PlayerPosition;
@@ -79,6 +83,7 @@ function NeoMediaController($http, $filter) {
 			vm.PlayerTitle = response.data.PlayerTitle;
 			vm.Videos = response.data.Videos;
 			vm.SlidesQuery = response.data.SlidesQuery;
+			vm.SlidesSize = response.data.SlidesSize;
 			vm.SlideDisplayTime = response.data.SlideDisplayTime;
 			vm.SlidesPaused = response.data.SlidesPaused;
 
@@ -89,14 +94,14 @@ function NeoMediaController($http, $filter) {
 	}
 
 	vm.toggleMode = function () {
-		if (vm.Mode == vm.Modes.Video)
+		if (vm.Mode == vm.Modes.Videos)
 			vm.Mode = vm.Modes.Slideshow;
 		else
-			vm.Mode = vm.Modes.Video;
+			vm.Mode = vm.Modes.Videos;
 	}
 
-	vm.setSlidesQuery = function (slidesQuery) {
-		$http.get("Service/SetSlidesQuery?SlidesQuery=" + encodeURIComponent(slidesQuery));
+	vm.setSlidesQuery = function (slidesQuery, slidesSize) {
+		$http.get("Service/SetSlidesQuery?SlidesQuery=" + encodeURIComponent(slidesQuery) + "&SlidesSize=" + encodeURIComponent(slidesSize));
 	}
 
 	vm.changeSlide = function (offset) {
@@ -115,6 +120,21 @@ function NeoMediaController($http, $filter) {
 	vm.toggleSlidesPaused = function () {
 		$http.get("Service/ToggleSlidesPaused");
 		vm.SlidesPaused = !vm.SlidesPaused;
+	}
+
+	vm.padZero = function (str) {
+		return ("00" + str).slice(-2);
+	}
+
+	vm.getTime = function (totalSeconds) {
+		var h = Math.floor(totalSeconds / 3600);
+		var m = Math.floor(totalSeconds % 3600 / 60);
+		var s = Math.floor(totalSeconds % 3600 % 60);
+
+		if (h > 0)
+			m = h + ':' + vm.padZero(m, 2);
+		m += ":" + vm.padZero(s, 2);
+		return m;
 	}
 
 	vm.getStatus();

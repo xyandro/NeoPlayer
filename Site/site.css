@@ -77,24 +77,73 @@ div {
 		background-image: url(teal.png);
 	}
 
-		div.slideshow textarea.slidesQuery {
-			position: absolute;
-			top: 5vh;
-			left: 5vw;
-			width: 70vw;
-			height: 20vh;
-			background: transparent;
+		div.slideshow textarea {
+			width: calc(100vw - 5vh);
+			height: 50vh;
+			background: url("yellow.png");
 			border: 8px groove;
 			color: black;
 			font-size: 3vh;
+			padding: 10px;
 		}
 
-		div.slideshow img.sendQuery {
-			position: absolute;
-			top: 5vh;
-			left: 80vw;
-			height: 5vw;
+		div.slideshow select {
 			background: transparent;
+			font-size: 3vh;
+			border: 0;
+			outline: 0;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			text-indent: 1px;
+			text-overflow: '';
+		}
+
+		div.slideshow div.slideDisplay {
+			margin-top: 2vh;
+			height: 2vh;
+			font-size: 1.8vh;
+		}
+
+			div.slideshow div.slideDisplay div.label {
+				font-size: 3vh;
+			}
+
+			div.slideshow div.slideDisplay input {
+				float: left;
+				width: 90vw;
+				height: 2vh;
+			}
+
+			div.slideshow div.slideDisplay div.time {
+				float: right;
+				margin-right: 1vw;
+				height: 2vh;
+				font-size: 1.8vh;
+				text-align: right;
+			}
+
+
+		div.slideshow div.buttons {
+			width: 100vw;
+			text-align: justify;
+			height: 8vh;
+			white-space: initial; /* Necessary for buttons to automatically space out */
+		}
+
+			div.slideshow div.buttons img {
+				height: 8vh;
+				display: inline-block;
+			}
+
+			div.slideshow div.buttons .stretch {
+				width: 100%;
+				display: inline-block;
+				font-size: 0;
+				line-height: 0;
+			}
+
+		div.slideshow div.buttons2 {
+			margin-top: 10vh;
 		}
 
 	div.footer {
@@ -115,12 +164,29 @@ div {
 
 		div.footer div.slider {
 			height: 2vh;
+			font-size: 1.8vh;
 		}
 
+			div.footer div.slider div {
+				margin-left: 1vw;
+				margin-right: 1vw;
+				width: 10vw;
+			}
+
+				div.footer div.slider div.current {
+					float: left;
+				}
+
 			div.footer div.slider input {
-				width: 100%;
+				float: left;
+				width: 76vw;
 				height: 2vh;
 				margin: 0;
+			}
+
+			div.footer div.slider div.total {
+				float: right;
+				text-align: right;
 			}
 
 		div.footer div.buttons {

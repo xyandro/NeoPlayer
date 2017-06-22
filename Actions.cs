@@ -12,9 +12,13 @@ namespace NeoRemote
 		string slidesQuery = "landscape";
 		public string SlidesQuery { get { return slidesQuery; } set { slidesQuery = value; changed(); } }
 
+		string slidesSize = "2mp";
+		public string SlidesSize { get { return slidesSize; } set { slidesSize = value; changed(); } }
+
 		public int SlideDisplayTime { get; set; } = 60;
 		public bool SlidesPaused { get; set; }
-		public bool SlideMusicAutoPlay { get; set; } = false;
+		public bool musicAutoPlay { get; set; } = false;
+		public bool MusicAutoPlay { get { return musicAutoPlay; } set { musicAutoPlay = value; changed(); } }
 
 		readonly List<string> slides = new List<string>();
 		readonly List<string> music = new List<string>();

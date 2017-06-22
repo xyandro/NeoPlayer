@@ -17,6 +17,7 @@ namespace NeoRemote
 
 		public List<MusicData> Videos { get; set; }
 		public string SlidesQuery { get; set; }
+		public string SlidesSize { get; set; }
 		public int SlideDisplayTime { get; set; }
 		public bool SlidesPaused { get; set; }
 	}

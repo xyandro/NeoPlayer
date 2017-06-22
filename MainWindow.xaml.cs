@@ -59,7 +59,7 @@ namespace NeoRemote
 			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
 			{
 				actions.CurrentAction = ActionType.Slideshow;
-				actions.SlideMusicAutoPlay = false;
+				actions.MusicAutoPlay = false;
 			}
 
 			SetupSlideDownloader();
@@ -76,12 +76,14 @@ namespace NeoRemote
 		}
 
 		string currentSlidesQuery;
+		string currentSlidesSize;
 		void SetupSlideDownloader()
 		{
-			if (currentSlidesQuery == actions.SlidesQuery)
+			if ((currentSlidesQuery == actions.SlidesQuery) && (currentSlidesSize == actions.SlidesSize))
 				return;
 			currentSlidesQuery = actions.SlidesQuery;
-			SlideDownloader.Run(currentSlidesQuery, "2mp", actions);
+			currentSlidesSize = actions.SlidesSize;
+			SlideDownloader.Run(currentSlidesQuery, currentSlidesSize, actions);
 		}
 
 		void SetControlsVisibility()
@@ -177,17 +179,12 @@ namespace NeoRemote
 
 		void StartNewMusic()
 		{
-			if ((actions.CurrentAction != ActionType.Slideshow) || (currentMusic == actions.CurrentMusic))
+			if ((actions.CurrentAction != ActionType.Slideshow) || (currentMusic == actions.CurrentMusic) || (!actions.MusicAutoPlay))
 				return;
 
 			currentMusic = actions.CurrentMusic;
 			vlc.playlist.add($@"file:///{currentMusic}");
 			vlc.playlist.playItem(0);
-			if (!actions.SlideMusicAutoPlay)
-			{
-				Thread.Sleep(50);
-				vlc.playlist.pause();
-			}
 		}
 
 		string currentVideo = null;
@@ -231,7 +228,7 @@ namespace NeoRemote
 				case "SetPosition": return SetPosition(int.Parse(parameters["Position"].FirstOrDefault() ?? "0"), bool.Parse(parameters["Relative"].FirstOrDefault() ?? "false"));
 				case "SetSlideDisplayTime": return SetSlideDisplayTime(int.Parse(parameters["DisplayTime"].FirstOrDefault() ?? "0"));
 				case "ChangeSlide": return ChangeSlide(int.Parse(parameters["Offset"].FirstOrDefault() ?? "0"));
-				case "SetSlidesQuery": return SetSlidesQuery(parameters["SlidesQuery"].FirstOrDefault());
+				case "SetSlidesQuery": return SetSlidesQuery(parameters["SlidesQuery"].FirstOrDefault(), parameters["SlidesSize"].FirstOrDefault() ?? "2mp");
 				case "ToggleSlidesPaused": return ToggleSlidesPaused();
 				default: return Response.Code404;
 			}
@@ -276,8 +273,22 @@ namespace NeoRemote
 			status.PlayerIsPlaying = vlc.playlist.isPlaying;
 			status.PlayerTitle = "";
 			if (vlc.playlist.currentItem != -1)
-				try { status.PlayerTitle = Path.GetFileName(vlc.mediaDescription.title); } catch { }
+			{
+				try { status.PlayerTitle = Path.GetFileNameWithoutExtension(vlc.mediaDescription.title?.Trim()); } catch { }
+				try
+				{
+					var artist = vlc.mediaDescription.artist?.Trim();
+					if (!string.IsNullOrWhiteSpace(artist))
+					{
+						if (status.PlayerTitle != "")
+							status.PlayerTitle += " - ";
+						status.PlayerTitle += artist;
+					}
+				}
+				catch { }
+			}
 			status.SlidesQuery = actions.SlidesQuery;
+			status.SlidesSize = actions.SlidesSize;
 			status.SlideDisplayTime = actions.SlideDisplayTime;
 			status.SlidesPaused = actions.SlidesPaused;
 
@@ -295,7 +306,8 @@ namespace NeoRemote
 		Response Pause()
 		{
 			if (actions.CurrentAction == ActionType.Slideshow)
-				actions.SlideMusicAutoPlay = true;
+				actions.MusicAutoPlay = true;
+
 			vlc.playlist.togglePause();
 			return Response.Empty;
 		}
@@ -315,7 +327,7 @@ namespace NeoRemote
 			return Response.Empty;
 		}
 
-		Response SetSlidesQuery(string slidesQuery)
+		Response SetSlidesQuery(string slidesQuery, string slidesSize)
 		{
 			slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
 			slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
@@ -324,6 +336,7 @@ namespace NeoRemote
 			slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
 			slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
 			actions.SlidesQuery = slidesQuery;
+			actions.SlidesSize = slidesSize;
 			return Response.Empty;
 		}
 

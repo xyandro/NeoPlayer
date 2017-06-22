@@ -43,7 +43,7 @@ namespace NeoRemote
 			return tcs.Task;
 		}
 
-		async public static void Run(string slidesQuery, string slideSize, Actions actions)
+		async public static void Run(string slidesQuery, string size, Actions actions)
 		{
 			if (task != null)
 			{
@@ -62,7 +62,7 @@ namespace NeoRemote
 				return;
 
 			token = new CancellationTokenSource();
-			task = DownloadSlides(slidesQuery, slideSize, actions, token.Token);
+			task = DownloadSlides(slidesQuery, size, actions, token.Token);
 		}
 
 		async static Task<List<TOutput>> RunTasks<TInput, TOutput>(IEnumerable<TInput> input, Func<TInput, Task<TOutput>> func, CancellationToken token)
@@ -87,7 +87,7 @@ namespace NeoRemote
 
 		async static Task RunTasks<TInput>(IEnumerable<TInput> input, Func<TInput, Task> func, CancellationToken token) => await RunTasks(input, async item => { await func(item); return false; }, token);
 
-		async static Task DownloadSlides(string slidesQuery, string slideSize, Actions actions, CancellationToken token)
+		async static Task DownloadSlides(string slidesQuery, string size, Actions actions, CancellationToken token)
 		{
 			var client = new HttpClient();
 			client.Timeout = TimeSpan.FromSeconds(30);
@@ -95,7 +95,7 @@ namespace NeoRemote
 
 			var queries = slidesQuery.Split('\n').ToList();
 
-			var urls = (await RunTasks(queries, query => GetSlideURLs(client, query, slideSize, token), token)).SelectMany(x => x).ToList();
+			var urls = (await RunTasks(queries, query => GetSlideURLs(client, query, size, token), token)).SelectMany(x => x).ToList();
 
 			var random = new Random();
 			urls = urls.OrderBy(x => random.Next()).ToList();
@@ -103,19 +103,19 @@ namespace NeoRemote
 			await RunTasks(urls, url => FetchSlide(client, url, actions, token), token);
 		}
 
-		async static Task<List<string>> GetSlideURLs(HttpClient client, string query, string slideSize, CancellationToken token)
+		async static Task<List<string>> GetSlideURLs(HttpClient client, string query, string size, CancellationToken token)
 		{
 			try
 			{
 				List<string> urls = null;
 
-				var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-URLs-{query}.txt";
+				var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-URLs-{query}-{size}.txt";
 				if ((Settings.Debug) && (File.Exists(fileName)))
 					urls = File.ReadAllLines(fileName).ToList();
 
 				if (urls == null)
 				{
-					var uri = $"https://www.google.com/search?q={Uri.EscapeUriString(query)}&tbm=isch&tbs=isz:lt,islt:{slideSize}";
+					var uri = $"https://www.google.com/search?q={Uri.EscapeUriString(query)}&tbm=isch&tbs=isz:lt,islt:{size}";
 					var response = await client.GetAsync(uri, token);
 					var data = await response.Content.ReadAsStringAsync();
 					urls = Regex.Matches(data, @"""ou"":""(.*?)""").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
@@ -136,9 +136,9 @@ namespace NeoRemote
 				md5 = BitConverter.ToString(md5cng.ComputeHash(Encoding.UTF8.GetBytes(url))).Replace("-", "");
 			var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-Slide-{md5}.bmp";
 
-			try
+			if (!File.Exists(fileName))
 			{
-				if (!File.Exists(fileName))
+				try
 				{
 					var request = new HttpRequestMessage(HttpMethod.Get, url);
 					request.Headers.Referrer = new Uri(url);
@@ -149,10 +149,11 @@ namespace NeoRemote
 
 					await RunInThread(() => ShrinkSlide(stream, fileName, token));
 				}
-
-				actions.EnqueueSlides(new List<string> { fileName });
+				catch { File.WriteAllBytes(fileName, new byte[] { }); }
 			}
-			catch { File.WriteAllBytes(fileName, new byte[] { }); }
+
+			if (new FileInfo(fileName).Length != 0)
+				actions.EnqueueSlides(new List<string> { fileName });
 		}
 
 		static void ShrinkSlide(Stream stream, string outputFileName, CancellationToken token)
