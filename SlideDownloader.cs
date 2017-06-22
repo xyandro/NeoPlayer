@@ -17,7 +17,8 @@ namespace NeoRemote
 {
 	static class SlideDownloader
 	{
-		const int NumTasks = 20;
+		const int ResizerCount = 4;
+		const int DownloaderCount = 20;
 
 		static Task task = null;
 		static CancellationTokenSource token = null;
@@ -25,7 +26,8 @@ namespace NeoRemote
 
 		static SlideDownloader()
 		{
-			new Thread(() => { while (true) threadWork.Take()(); }).Start();
+			for (var ctr = 0; ctr < ResizerCount; ++ctr)
+				new Thread(() => { while (true) threadWork.Take()(); }).Start();
 		}
 
 		static Task RunInThread(Action action)
@@ -72,7 +74,7 @@ namespace NeoRemote
 			var enumerator = input.GetEnumerator();
 			while (true)
 			{
-				while ((tasks.Count < NumTasks) && (!token.IsCancellationRequested) && (enumerator.MoveNext()))
+				while ((tasks.Count < DownloaderCount) && (!token.IsCancellationRequested) && (enumerator.MoveNext()))
 					tasks.Add(func(enumerator.Current));
 
 				if (!tasks.Any())
@@ -140,19 +142,29 @@ namespace NeoRemote
 			{
 				try
 				{
-					var request = new HttpRequestMessage(HttpMethod.Get, url);
-					request.Headers.Referrer = new Uri(url);
-					var response = await client.SendAsync(request, token);
-					if (response.StatusCode != System.Net.HttpStatusCode.OK)
-						throw new Exception($"Failed to fetch page: {response.StatusCode}");
-					var stream = await response.Content.ReadAsStreamAsync();
+					using (var request = new HttpRequestMessage(HttpMethod.Get, url))
+					{
+						request.Headers.Referrer = new Uri(url);
+						using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token))
+						{
+							if (response.StatusCode != System.Net.HttpStatusCode.OK)
+								throw new Exception($"Failed to fetch page: {response.StatusCode}");
 
-					await RunInThread(() => ShrinkSlide(stream, fileName, token));
+							using (var ms = new MemoryStream((int)(response.Content.Headers.ContentLength ?? 0)))
+							{
+								using (var stream = await response.Content.ReadAsStreamAsync())
+									await stream.CopyToAsync(ms);
+								ms.Position = 0;
+								await RunInThread(() => ShrinkSlide(ms, fileName, token));
+							}
+						}
+					}
 				}
 				catch { File.WriteAllBytes(fileName, new byte[] { }); }
 			}
 
-			if (new FileInfo(fileName).Length != 0)
+			var fileInfo = new FileInfo(fileName);
+			if ((fileInfo.Exists) && (fileInfo.Length != 0))
 				actions.EnqueueSlides(new List<string> { fileName });
 		}
 
