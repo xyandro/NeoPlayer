@@ -9,7 +9,7 @@ namespace NeoRemote
 		ActionType currentAction = ActionType.Slideshow;
 		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; changed(); } }
 
-		string slidesQuery = "landscape";
+		string slidesQuery = Settings.Debug ? "test" : "landscape";
 		public string SlidesQuery { get { return slidesQuery; } set { slidesQuery = value; changed(); } }
 
 		string slidesSize = "2mp";

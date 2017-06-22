@@ -118,32 +118,16 @@ namespace NeoRemote
 
 		void DisplayNewSlide()
 		{
-			if (actions.CurrentAction != ActionType.Slideshow)
+			if ((actions.CurrentAction != ActionType.Slideshow) || (currentSlide == actions.CurrentSlide))
 				return;
 
-			while (true)
-			{
-				if (currentSlide == actions.CurrentSlide)
-					return;
-
-				try
-				{
-					var slide = new BitmapImage();
-					slide.BeginInit();
-					slide.UriSource = new Uri(actions.CurrentSlide);
-					slide.CacheOption = BitmapCacheOption.OnLoad;
-					slide.EndInit();
-					slide2.Source = slide;
-					break;
-				}
-				catch
-				{
-					actions.EnqueueSlides(new List<string> { actions.CurrentSlide }, false);
-					continue;
-				}
-			}
-
 			currentSlide = actions.CurrentSlide;
+			var slide = new BitmapImage();
+			slide.BeginInit();
+			slide.UriSource = new Uri(currentSlide);
+			slide.CacheOption = BitmapCacheOption.OnLoad;
+			slide.EndInit();
+			slide2.Source = slide;
 			slideTime = DateTime.Now;
 
 			fadeAnimation = new DoubleAnimation(1, new Duration(TimeSpan.FromSeconds(1)));

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -47,8 +46,7 @@ namespace NeoRemote
 			}
 
 			var regex = new Regex($@"^{nameof(NeoRemote)}-Slide-[0-9a-f]{{32}}\.bmp$$", RegexOptions.IgnoreCase);
-			if (!Settings.Debug)
-				Directory.EnumerateFiles(Settings.SlidesPath).Where(file => regex.IsMatch(Path.GetFileName(file))).ToList().ForEach(file => File.Delete(file));
+			Directory.EnumerateFiles(Settings.SlidesPath).Where(file => regex.IsMatch(Path.GetFileName(file))).ToList().ForEach(file => File.Delete(file));
 			actions.ClearSlides();
 
 			if (string.IsNullOrWhiteSpace(slidesQuery))
@@ -82,47 +80,28 @@ namespace NeoRemote
 
 		async static Task DownloadSlides(string slidesQuery, string size, Actions actions, CancellationToken token)
 		{
-			var client = new HttpClient();
-			client.Timeout = TimeSpan.FromSeconds(30);
-			client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0");
-
 			var queries = slidesQuery.Split('\n').ToList();
 
-			var urls = (await RunTasks(queries, query => GetSlideURLs(client, query, size, token), token)).SelectMany(x => x).ToList();
+			var urls = (await RunTasks(queries, query => GetSlideURLs(query, size, token), token)).SelectMany(x => x).ToList();
 
 			var random = new Random();
 			urls = urls.OrderBy(x => random.Next()).ToList();
 
-			await RunTasks(urls, url => FetchSlide(client, url, actions, token), token);
+			await RunTasks(urls, url => FetchSlide(url, actions, token), token);
 		}
 
-		async static Task<List<string>> GetSlideURLs(HttpClient client, string query, string size, CancellationToken token)
+		async static Task<List<string>> GetSlideURLs(string query, string size, CancellationToken token)
 		{
 			try
 			{
-				List<string> urls = null;
-
-				var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-URLs-{query}-{size}.txt";
-				if ((Settings.Debug) && (File.Exists(fileName)))
-					urls = File.ReadAllLines(fileName).ToList();
-
-				if (urls == null)
-				{
-					var uri = $"https://www.google.com/search?q={Uri.EscapeUriString(query)}&tbm=isch&tbs=isz:lt,islt:{size}";
-					var response = await client.GetAsync(uri, token);
-					var data = await response.Content.ReadAsStringAsync();
-					urls = Regex.Matches(data, @"""ou"":""(.*?)""").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
-
-					if (Settings.Debug)
-						File.WriteAllLines(fileName, urls);
-				}
-
-				return urls;
+				var url = $"https://www.google.com/search?q={Uri.EscapeUriString(query)}&tbm=isch&tbs=isz:lt,islt:{size}";
+				var data = await URLDownloader.GetURLString(url, token);
+				return Regex.Matches(data, @"""ou"":""(.*?)""").Cast<Match>().Select(match => match.Groups[1].Value).ToList();
 			}
 			catch { return new List<string>(); }
 		}
 
-		async static Task FetchSlide(HttpClient client, string url, Actions actions, CancellationToken token)
+		async static Task FetchSlide(string url, Actions actions, CancellationToken token)
 		{
 			string md5;
 			using (var md5cng = new MD5Cng())
@@ -133,23 +112,8 @@ namespace NeoRemote
 			{
 				try
 				{
-					using (var request = new HttpRequestMessage(HttpMethod.Get, url))
-					{
-						request.Headers.Referrer = new Uri(url);
-						using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token))
-						{
-							if (response.StatusCode != System.Net.HttpStatusCode.OK)
-								throw new Exception($"Failed to fetch page: {response.StatusCode}");
-
-							using (var ms = new MemoryStream((int)(response.Content.Headers.ContentLength ?? 0)))
-							{
-								using (var stream = await response.Content.ReadAsStreamAsync())
-									await stream.CopyToAsync(ms);
-								ms.Position = 0;
-								await ThreadPoolRunAsync(() => ShrinkSlide(ms, fileName, token));
-							}
-						}
-					}
+					using (var ms = await URLDownloader.GetURLData(url, token))
+						await ThreadPoolRunAsync(() => ShrinkSlide(ms, fileName, token));
 				}
 				catch { File.WriteAllBytes(fileName, new byte[] { }); }
 			}
@@ -168,6 +132,8 @@ namespace NeoRemote
 			slide.StreamSource = stream;
 			slide.CacheOption = BitmapCacheOption.OnLoad;
 			slide.EndInit();
+
+			token.ThrowIfCancellationRequested();
 
 			var scale = Math.Min(SystemParameters.PrimaryScreenWidth / slide.PixelWidth, SystemParameters.PrimaryScreenHeight / slide.PixelHeight);
 			var resizedSlide = new TransformedBitmap(slide, new ScaleTransform(scale, scale));
