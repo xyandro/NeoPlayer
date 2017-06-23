@@ -11,7 +11,7 @@ function NeoMediaController($http, $filter) {
 		Slideshow: "Slideshow",
 	}
 
-	vm.Mode = vm.Modes.Slideshow;
+	vm.Mode = vm.Modes.Videos;
 	vm.SearchText = "";
 	vm.PlayerPosition = 0;
 	vm.PlayerMax = 0;

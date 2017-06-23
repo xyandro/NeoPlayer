@@ -110,6 +110,7 @@ div {
 
 			div.slideshow div.slideDisplay input {
 				float: left;
+				margin-left: 1vw;
 				width: 90vw;
 				height: 2vh;
 			}
