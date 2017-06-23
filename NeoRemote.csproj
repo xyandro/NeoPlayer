@@ -47,6 +47,9 @@
       <Isolated>False</Isolated>
     </COMReference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.mshtml, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -164,6 +167,7 @@
     </Content>
     <Compile Include="SlideDownloader.cs" />
     <Compile Include="Status.cs" />
+    <Compile Include="TumblrDownloader.cs" />
     <Compile Include="URLDownloader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
