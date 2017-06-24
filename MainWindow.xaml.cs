@@ -88,7 +88,8 @@ namespace NeoRemote
 			currentSlidesQuery = actions.SlidesQuery;
 			currentSlidesSize = actions.SlidesSize;
 			tokenSource = new CancellationTokenSource();
-			GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+			//GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+			TumblrSlideSource.Run("<username>", "<password>", fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 		}
 
 		void SetControlsVisibility()

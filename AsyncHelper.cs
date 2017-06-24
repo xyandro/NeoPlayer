@@ -8,7 +8,7 @@ namespace NeoRemote
 {
 	static class AsyncHelper
 	{
-		const int DownloaderCount = 20;
+		const int Concurrency = 20;
 
 		static public Task ThreadPoolRunAsync(Action action)
 		{
@@ -32,7 +32,7 @@ namespace NeoRemote
 			Task hasItemsTask = null;
 			while (true)
 			{
-				if ((!isFinished) && (tasks.Count < DownloaderCount) && (!token.IsCancellationRequested))
+				if ((hasItemsTask == null) && (!isFinished) && (tasks.Count < Concurrency) && (!token.IsCancellationRequested))
 				{
 					hasItemsTask = input.HasItemsAsync(token);
 					tasks.Add(hasItemsTask);
@@ -48,6 +48,7 @@ namespace NeoRemote
 					isFinished = !(finished as Task<bool>).Result;
 					if (!isFinished)
 						tasks.Add(func(input.Dequeue()));
+					hasItemsTask = null;
 				}
 				else
 					output.Enqueue((finished as Task<TOutput>).Result);

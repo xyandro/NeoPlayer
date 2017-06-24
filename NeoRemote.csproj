@@ -167,7 +167,7 @@
     </Content>
     <Compile Include="SlideDownloader.cs" />
     <Compile Include="Status.cs" />
-    <Compile Include="TumblrDownloader.cs" />
+    <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -9,20 +9,15 @@ using System.Windows.Forms;
 
 namespace NeoRemote
 {
-	static class TumblrDownloader
+	static class TumblrSlideSource
 	{
-		public static void Run()
+		async public static void Run(string username, string password, Action<string> action, CancellationToken token)
 		{
-			RunAsync();
-		}
-
-		async static void RunAsync()
-		{
+			var urls = new AsyncQueue<string>();
+			SlideDownloader.Run(urls, action, token);
 			using (var browser = new WebBrowser())
 				try
 				{
-					var tokenSource = new CancellationTokenSource();
-					var token = tokenSource.Token;
 					var uri = new Uri("https://www.tumblr.com");
 
 					ClearCookies(uri);
@@ -30,7 +25,7 @@ namespace NeoRemote
 					browser.Navigate(uri);
 					await WaitForPageLoadAsync(browser, token);
 
-					await LoginToTumblr(browser, token);
+					await LoginToTumblr(username, password, browser, token);
 
 					var doc = browser.Document;
 					var found = new HashSet<string>();
@@ -51,12 +46,18 @@ namespace NeoRemote
 								if ((className == "post_avatar_image") || (className == "reblog-avatar-image-thumb"))
 									continue;
 
-								found.Add(new Uri(browser.Url, image.GetAttribute("src")).AbsoluteUri);
+								var src = new Uri(browser.Url, image.GetAttribute("src")).AbsoluteUri;
+								if (!found.Contains(src))
+									urls.Enqueue(src);
+								found.Add(src);
 							}
 						}
 
 						if (found.Count >= 100)
+						{
+							urls.SetFinished();
 							break;
+						}
 
 						doc.Body.ScrollIntoView(false);
 
@@ -66,7 +67,7 @@ namespace NeoRemote
 				catch { }
 		}
 
-		async static Task LoginToTumblr(WebBrowser browser, CancellationToken token)
+		async static Task LoginToTumblr(string username, string password, WebBrowser browser, CancellationToken token)
 		{
 			var doc = browser.Document;
 			var loginButton = doc.GetElementById("signup_login_button");
@@ -81,7 +82,7 @@ namespace NeoRemote
 
 			var emailField = doc.GetElementById("signup_determine_email");
 			if (emailField != null)
-				emailField.SetAttribute("value", "<username>");
+				emailField.SetAttribute("value", username);
 
 			var emailSubmit = doc.GetElementById("signup_forms_submit");
 			if (emailSubmit != null)
@@ -89,7 +90,7 @@ namespace NeoRemote
 
 			var passwordField = doc.GetElementById("signup_password");
 			if (passwordField != null)
-				passwordField.SetAttribute("value", "<password>");
+				passwordField.SetAttribute("value", password);
 
 			await Task.Delay(250);
 
