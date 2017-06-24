@@ -5,9 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
+using System.Windows.Forms;
 
 namespace NeoRemote
 {
@@ -18,105 +16,89 @@ namespace NeoRemote
 			RunAsync();
 		}
 
-		static Task<bool> WaitForPageLoadAsync(WebBrowser browser, CancellationToken token)
-		{
-			var tcs = new TaskCompletionSource<bool>();
-			token.Register(() => tcs.TrySetCanceled());
-			LoadCompletedEventHandler handler = null;
-			handler = (s, e) =>
-			{
-				browser.LoadCompleted -= handler;
-				tcs.TrySetResult(true);
-			};
-			browser.LoadCompleted += handler;
-			return tcs.Task;
-		}
-
 		async static void RunAsync()
 		{
-			var window = new Window { Width = 300, Height = 300, WindowState = WindowState.Maximized };
-			window.Closed += (s, e) => Environment.Exit(0);
-			var browser = new WebBrowser();
-			window.Content = browser;
-			window.Show();
-
-			var tokenSource = new CancellationTokenSource();
-			var token = tokenSource.Token;
-			var uri = new Uri("https://www.tumblr.com");
-
-			//ClearCookies(uri);
-
-			browser.Source = uri;
-			await WaitForPageLoadAsync(browser, token);
-
-			var doc = browser.Document as mshtml.HTMLDocument;
-
-			//await LoginToTumblr(doc, token);
-
-			var found = new HashSet<string>();
-			while (true)
-			{
-				token.ThrowIfCancellationRequested();
-
-				var posts = doc.getElementById("posts");
-				if (posts == null)
-					break;
-
-				foreach (var child in posts.children)
+			using (var browser = new WebBrowser())
+				try
 				{
-					if (child.className != "post_container")
-						continue;
+					var tokenSource = new CancellationTokenSource();
+					var token = tokenSource.Token;
+					var uri = new Uri("https://www.tumblr.com");
 
-					var asdf = child;
-					foreach (var childNode in child.all)
+					ClearCookies(uri);
+
+					browser.Navigate(uri);
+					await WaitForPageLoadAsync(browser, token);
+
+					await LoginToTumblr(browser, token);
+
+					var doc = browser.Document;
+					var found = new HashSet<string>();
+					while (!token.IsCancellationRequested)
 					{
-						//	if ((childNode.tagName != "IMG") || (childNode.className == "post_avatar_image") || (childNode.className == "reblog-avatar-image-thumb"))
-						//		continue;
+						var posts = doc.GetElementById("posts");
+						if (posts == null)
+							break;
 
-						//	var src = new Uri(browser.Source, childNode.src).AbsoluteUri;
-						//	if (!found.Contains(src))
-						//		found.Add(src);
+						foreach (HtmlElement child in posts.Children)
+						{
+							if (child.GetAttribute("classname") != "post_container")
+								continue;
+
+							foreach (HtmlElement image in child.GetElementsByTagName("img"))
+							{
+								var className = image.GetAttribute("classname");
+								if ((className == "post_avatar_image") || (className == "reblog-avatar-image-thumb"))
+									continue;
+
+								found.Add(new Uri(browser.Url, image.GetAttribute("src")).AbsoluteUri);
+							}
+						}
+
+						if (found.Count >= 100)
+							break;
+
+						doc.Body.ScrollIntoView(false);
+
+						await Task.Delay(250);
 					}
 				}
-
-				if (found.Count >= 100)
-					break;
-
-				doc.parentWindow.scroll(0, 10000000);
-
-				await Task.Delay(250);
-			}
+				catch { }
 		}
 
 		async static Task LoginToTumblr(WebBrowser browser, CancellationToken token)
 		{
-			var doc = browser.Document as mshtml.HTMLDocument;
-			var loginButton = doc.getElementById("signup_login_button");
+			var doc = browser.Document;
+			var loginButton = doc.GetElementById("signup_login_button");
 			if (loginButton != null)
 			{
-				loginButton.click();
+				loginButton.InvokeMember("click");
+				var start = DateTime.Now;
 				await WaitForPageLoadAsync(browser, token);
+				var end = DateTime.Now;
+				var elapsed = (end - start).TotalMilliseconds;
 			}
 
-			var emailField = doc.getElementById("signup_determine_email");
+			var emailField = doc.GetElementById("signup_determine_email");
 			if (emailField != null)
-				((dynamic)emailField).value = "<username>";
+				emailField.SetAttribute("value", "<username>");
 
-			var emailSubmit = doc.getElementById("signup_forms_submit");
+			var emailSubmit = doc.GetElementById("signup_forms_submit");
 			if (emailSubmit != null)
-				emailSubmit.click();
+				emailSubmit.InvokeMember("click");
 
-			var passwordField = doc.getElementById("signup_password");
+			var passwordField = doc.GetElementById("signup_password");
 			if (passwordField != null)
-				((dynamic)passwordField).value = "<password>";
+				passwordField.SetAttribute("value", "<password>");
 
-			await Task.Delay(1000);
+			await Task.Delay(250);
 
-			var emailSubmit2 = doc.getElementById("signup_forms_submit");
+			var emailSubmit2 = doc.GetElementById("signup_forms_submit");
 			if (emailSubmit2 != null)
-				emailSubmit2.click();
-
-			await WaitForPageLoadAsync(browser, token);
+			{
+				emailSubmit2.InvokeMember("click");
+				await WaitForPageLoadAsync(browser, token);
+			}
 		}
 
 		static void ClearCookies(Uri uri)
@@ -141,10 +123,27 @@ namespace NeoRemote
 				Win32.InternetSetCookieEx(uri.ToString(), cookie.Name, "value; expires = Sat,01-Jan-2000 00:00:00 GMT", Win32.InternetCookieHttponly, 0);
 		}
 
+		static Task<bool> WaitForPageLoadAsync(WebBrowser browser, CancellationToken token)
+		{
+			var tcs = new TaskCompletionSource<bool>();
+			token.Register(() => tcs.TrySetCanceled());
+			WebBrowserDocumentCompletedEventHandler handler = null;
+			handler = (s, e) =>
+			{
+				if (e.Url.AbsolutePath == "blank")
+					return;
+
+				browser.DocumentCompleted -= handler;
+				tcs.TrySetResult(true);
+			};
+			browser.DocumentCompleted += handler;
+			return tcs.Task;
+		}
+
 		class Win32
 		{
 			[DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]
-			public static extern bool InternetGetCookieEx(string url, string cookieName, StringBuilder cookieData, ref int size, int dwFlags, IntPtr lpReserved);
+			public static extern bool InternetGetCookieEx(string url, string cookieName, StringBuilder cookieData, ref int size, int flags, IntPtr reserved);
 
 			[DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]
 			public static extern int InternetSetCookieEx(string url, string cookieName, string cookieData, int flags, int reserved);

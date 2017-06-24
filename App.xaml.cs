@@ -44,8 +44,7 @@ namespace NeoRemote
 			//var outputFile = Path.Combine(Path.GetDirectoryName(typeof(App).Assembly.Location), "Interceptor.txt");
 			//Interceptor.Run(5555, "localhost", 2073, outputFile);
 			//Interceptor.Run(5555, "localhost", 7399, outputFile);
-			new MainWindow().ShowDialog();
-			Environment.Exit(0);
+			new MainWindow().Show();
 		}
 
 		void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

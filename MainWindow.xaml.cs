@@ -19,18 +19,17 @@ namespace NeoRemote
 		public MainWindow()
 		{
 			InitializeComponent();
-			TumblrDownloader.Run();
 
 			actions = new Actions(ActionChanged);
 			var random = new Random();
 			actions.EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
 
-			//Server.Run(7399, HandleServiceCall);
+			Server.Run(7399, HandleServiceCall);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
 			vlc.MediaPlayerEndReached += (s, e) => Next();
-			//System.Windows.Forms.Cursor.Hide();
-			//Loaded += (s, e) => WindowState = WindowState.Maximized;
+			System.Windows.Forms.Cursor.Hide();
+			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
 			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
@@ -61,7 +60,7 @@ namespace NeoRemote
 				actions.MusicAutoPlay = false;
 			}
 
-			//SetupSlideDownloader();
+			SetupSlideDownloader();
 
 			HideSlideIfNecessary();
 			StopMusicIfNecessary();
