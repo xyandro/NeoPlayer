@@ -24,16 +24,34 @@ namespace NeoRemote
 			if (string.IsNullOrWhiteSpace(slidesQuery))
 				return;
 
-			var queries = slidesQuery.Split('\n').ToList();
-			var urls = (await AsyncHelper.RunTasks(queries, query => GetSlideURLs(query, size, token), token)).SelectMany(x => x).ToList();
+			var inputQueries = new AsyncQueue<string>();
+			slidesQuery.Split('\n').ToList().ForEach(query => inputQueries.Enqueue(query));
+			inputQueries.SetFinished();
+			var outputURLs = new AsyncQueue<List<string>>();
+
+			AsyncHelper.RunTasks(inputQueries, query => GetSlideURLs(query, size, token), outputURLs, token);
+
+			var urls = new List<string>();
+			while (await outputURLs.HasItemsAsync(token))
+				foreach (var item in outputURLs.Dequeue())
+					urls.Add(item);
 
 			var random = new Random();
 			urls = urls.OrderBy(x => random.Next()).ToList();
 
-			var files = await AsyncHelper.RunTasks(urls, url => FetchSlideAsync(url, action, token), token);
+			var inputURLs = new AsyncQueue<string>();
+			urls.ForEach(url => inputURLs.Enqueue(url));
+			inputURLs.SetFinished();
+			var outputFiles = new AsyncQueue<string>();
+			AsyncHelper.RunTasks(inputURLs, url => FetchSlideAsync(url, action, token), outputFiles, token);
+
+			var fileNames = new List<string>();
+			while (await outputFiles.HasItemsAsync(token))
+				fileNames.Add(outputFiles.Dequeue());
+
 			try { await Task.Delay(-1, token); }
 			catch (TaskCanceledException) { }
-			files.Where(file => file != null).ToList().ForEach(File.Delete);
+			fileNames.Where(file => file != null).ToList().ForEach(File.Delete);
 		}
 
 		async static Task<List<string>> GetSlideURLs(string query, string size, CancellationToken token)
