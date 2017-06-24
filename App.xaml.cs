@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -41,10 +40,6 @@ namespace NeoRemote
 		public App()
 		{
 			DispatcherUnhandledException += App_DispatcherUnhandledException;
-			//var outputFile = Path.Combine(Path.GetDirectoryName(typeof(App).Assembly.Location), "Interceptor.txt");
-			//Interceptor.Run(5555, "localhost", 2073, outputFile);
-			//Interceptor.Run(5555, "localhost", 7399, outputFile);
-			new MainWindow().Show();
 		}
 
 		void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

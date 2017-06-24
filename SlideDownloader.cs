@@ -15,25 +15,8 @@ namespace NeoRemote
 {
 	static class SlideDownloader
 	{
-		const int DownloaderCount = 20;
-
 		static Task task = null;
 		static CancellationTokenSource token = null;
-
-		static Task ThreadPoolRunAsync(Action action)
-		{
-			var tcs = new TaskCompletionSource<object>();
-			ThreadPool.QueueUserWorkItem(state =>
-			{
-				try
-				{
-					action();
-					tcs.SetResult(null);
-				}
-				catch (Exception ex) { tcs.SetException(ex); }
-			});
-			return tcs.Task;
-		}
 
 		async public static void Run(string slidesQuery, string size, Actions actions)
 		{
@@ -56,38 +39,16 @@ namespace NeoRemote
 			task = DownloadSlides(slidesQuery, size, actions, token.Token);
 		}
 
-		async static Task<List<TOutput>> RunTasks<TInput, TOutput>(IEnumerable<TInput> input, Func<TInput, Task<TOutput>> func, CancellationToken token)
-		{
-			var tasks = new HashSet<Task<TOutput>>();
-			var results = new List<TOutput>();
-			var enumerator = input.GetEnumerator();
-			while (true)
-			{
-				while ((tasks.Count < DownloaderCount) && (!token.IsCancellationRequested) && (enumerator.MoveNext()))
-					tasks.Add(func(enumerator.Current));
-
-				if (!tasks.Any())
-					break;
-
-				var finished = await Task.WhenAny(tasks.ToArray());
-				results.Add(finished.Result);
-				tasks.Remove(finished);
-			}
-			return results;
-		}
-
-		async static Task RunTasks<TInput>(IEnumerable<TInput> input, Func<TInput, Task> func, CancellationToken token) => await RunTasks(input, async item => { await func(item); return false; }, token);
-
 		async static Task DownloadSlides(string slidesQuery, string size, Actions actions, CancellationToken token)
 		{
 			var queries = slidesQuery.Split('\n').ToList();
 
-			var urls = (await RunTasks(queries, query => GetSlideURLs(query, size, token), token)).SelectMany(x => x).ToList();
+			var urls = (await AsyncHelper.RunTasks(queries, query => GetSlideURLs(query, size, token), token)).SelectMany(x => x).ToList();
 
 			var random = new Random();
 			urls = urls.OrderBy(x => random.Next()).ToList();
 
-			await RunTasks(urls, url => FetchSlide(url, actions, token), token);
+			await AsyncHelper.RunTasks(urls, url => FetchSlide(url, actions, token), token);
 		}
 
 		async static Task<List<string>> GetSlideURLs(string query, string size, CancellationToken token)
@@ -113,7 +74,7 @@ namespace NeoRemote
 				try
 				{
 					using (var ms = await URLDownloader.GetURLData(url, token))
-						await ThreadPoolRunAsync(() => ShrinkSlide(ms, fileName, token));
+						await AsyncHelper.ThreadPoolRunAsync(() => ShrinkSlide(ms, fileName, token));
 				}
 				catch { File.WriteAllBytes(fileName, new byte[] { }); }
 			}

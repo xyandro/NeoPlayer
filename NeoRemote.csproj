@@ -76,6 +76,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AsyncHelper.cs" />
     <Compile Include="ContentTypeData.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
