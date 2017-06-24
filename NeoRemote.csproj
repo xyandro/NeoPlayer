@@ -79,6 +79,7 @@
     <Compile Include="AsyncHelper.cs" />
     <Compile Include="AsyncQueue.cs" />
     <Compile Include="ContentTypeData.cs" />
+    <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
     <Page Include="MainWindow.xaml">

@@ -88,7 +88,7 @@ namespace NeoRemote
 			currentSlidesQuery = actions.SlidesQuery;
 			currentSlidesSize = actions.SlidesSize;
 			tokenSource = new CancellationTokenSource();
-			SlideDownloader.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+			GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 		}
 
 		void SetControlsVisibility()
