@@ -40,6 +40,19 @@ namespace NeoRemote
 							if (child.GetAttribute("classname") != "post_container")
 								continue;
 
+							var ad = false;
+							foreach (HtmlElement divs in child.GetElementsByTagName("div"))
+							{
+								var className = $" {divs.GetAttribute("classname").ToLowerInvariant()} ";
+								if (className.Contains(" sponsored_post "))
+								{
+									ad = true;
+									break;
+								}
+							}
+							if (ad)
+								continue;
+
 							foreach (HtmlElement image in child.GetElementsByTagName("img"))
 							{
 								var className = image.GetAttribute("classname");
@@ -53,7 +66,7 @@ namespace NeoRemote
 							}
 						}
 
-						if (found.Count >= 100)
+						if (found.Count >= 200)
 						{
 							urls.SetFinished();
 							break;
