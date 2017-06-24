@@ -87,17 +87,6 @@ div {
 			padding: 10px;
 		}
 
-		div.slideshow select {
-			background: transparent;
-			font-size: 3vh;
-			border: 0;
-			outline: 0;
-			-webkit-appearance: none;
-			-moz-appearance: none;
-			text-indent: 1px;
-			text-overflow: '';
-		}
-
 		div.slideshow div.slideDisplay {
 			margin-top: 2vh;
 			height: 2vh;
@@ -134,6 +123,18 @@ div {
 			div.slideshow div.buttons img {
 				height: 8vh;
 				display: inline-block;
+			}
+
+			div.slideshow div.buttons select {
+				background: transparent;
+				font-size: 3vh;
+				border: 0;
+				outline: 0;
+				-webkit-appearance: none;
+				-moz-appearance: none;
+				text-indent: 1px;
+				text-overflow: '';
+				vertical-align: 70%;
 			}
 
 			div.slideshow div.buttons .stretch {

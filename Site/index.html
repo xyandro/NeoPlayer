@@ -25,28 +25,28 @@
 
 	<div ng-show="vm.Mode == 'Slideshow'" class="slideshow">
 		<textarea ng-model="vm.NewSlidesQuery" ng-focus="$event.currentTarget.select()"></textarea><br />
-		<select ng-model="vm.NewSlidesSize">
-			<option value="">Any size</option>
-			<option value="l">Large</option>
-			<option value="m">Medium</option>
-			<option value="i">Icon</option>
-			<option value="qsvga">400×300</option>
-			<option value="vga">640×480</option>
-			<option value="svga">800×600</option>
-			<option value="xga">1024×768</option>
-			<option value="2mp">2 MP</option>
-			<option value="4mp">4 MP</option>
-			<option value="6mp">6 MP</option>
-			<option value="8mp">8 MP</option>
-			<option value="10mp">10 MP</option>
-			<option value="12mp">12 MP</option>
-			<option value="15mp">15 MP</option>
-			<option value="20mp">20 MP</option>
-			<option value="40mp">40 MP</option>
-			<option value="70mp">70 MP</option>
-		</select>
 		<div class="buttons">
 			<img ng-click="vm.setSlidesQuery(vm.NewSlidesQuery, vm.NewSlidesSize)" src="check.svg" />
+			<select ng-model="vm.NewSlidesSize">
+				<option value="">Any size</option>
+				<option value="l">Large</option>
+				<option value="m">Medium</option>
+				<option value="i">Icon</option>
+				<option value="qsvga">400×300</option>
+				<option value="vga">640×480</option>
+				<option value="svga">800×600</option>
+				<option value="xga">1024×768</option>
+				<option value="2mp">2 MP</option>
+				<option value="4mp">4 MP</option>
+				<option value="6mp">6 MP</option>
+				<option value="8mp">8 MP</option>
+				<option value="10mp">10 MP</option>
+				<option value="12mp">12 MP</option>
+				<option value="15mp">15 MP</option>
+				<option value="20mp">20 MP</option>
+				<option value="40mp">40 MP</option>
+				<option value="70mp">70 MP</option>
+			</select>
 			<img ng-click="vm.clearSlidesQuery()" src="clear.svg" />
 			<div class="stretch"></div>
 		</div>
