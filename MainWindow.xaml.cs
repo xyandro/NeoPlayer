@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -75,13 +76,19 @@ namespace NeoRemote
 
 		string currentSlidesQuery;
 		string currentSlidesSize;
+		CancellationTokenSource tokenSource;
 		void SetupSlideDownloader()
 		{
 			if ((currentSlidesQuery == actions.SlidesQuery) && (currentSlidesSize == actions.SlidesSize))
 				return;
+
+			if (tokenSource != null)
+				tokenSource.Cancel();
+			actions.ClearSlides();
 			currentSlidesQuery = actions.SlidesQuery;
 			currentSlidesSize = actions.SlidesSize;
-			SlideDownloader.Run(currentSlidesQuery, currentSlidesSize, actions);
+			tokenSource = new CancellationTokenSource();
+			SlideDownloader.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 		}
 
 		void SetControlsVisibility()
