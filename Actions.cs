@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NeoRemote
 {
@@ -10,7 +11,23 @@ namespace NeoRemote
 		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; changed(); } }
 
 		string slidesQuery = Settings.Debug ? "test" : "landscape";
-		public string SlidesQuery { get { return slidesQuery; } set { slidesQuery = value; changed(); } }
+		public string SlidesQuery
+		{
+			get { return slidesQuery; }
+			set
+			{
+				slidesQuery = value;
+				slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
+				slidesQuery = Regex.Replace(slidesQuery, @"[^\S\n]+", " ");
+				slidesQuery = Regex.Replace(slidesQuery, @"(^ | $)", "", RegexOptions.Multiline);
+				slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
+				slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
+				slidesQuery = GetTumblrInfo(slidesQuery);
+				if (!slidesQuery.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
+					slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
+				changed();
+			}
+		}
 
 		string slidesSize = "2mp";
 		public string SlidesSize { get { return slidesSize; } set { slidesSize = value; changed(); } }
@@ -101,6 +118,22 @@ namespace NeoRemote
 
 			slides.Clear();
 			currentSlide = 0;
+		}
+
+		string GetTumblrInfo(string query)
+		{
+			if (!query.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
+				return query;
+
+			var nonTumblrQuery = "tumblr " + query.Remove(0, "tumblr:".Length);
+			var parts = query.Split(':').ToList();
+			if (parts.Count != 3)
+				return nonTumblrQuery;
+			parts[0] = parts[0].ToLowerInvariant();
+			parts[1] = parts[1].ToLowerInvariant();
+			if (!parts[2].StartsWith("#"))
+				parts[2] = $"#{Cryptor.Encrypt(parts[2])}";
+			return string.Join(":", parts);
 		}
 	}
 }

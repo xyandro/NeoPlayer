@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
@@ -34,7 +32,7 @@ namespace NeoRemote
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
-			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.25) };
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
 			changeSlideTimer.Start();
 		}
@@ -94,8 +92,7 @@ namespace NeoRemote
 			if (currentSlidesQuery.StartsWith("tumblr:"))
 			{
 				var parts = currentSlidesQuery.Split(':');
-				var password = Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(parts[2].Substring(1))));
-				TumblrSlideSource.Run(parts[1], password, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+				TumblrSlideSource.Run(parts[1], Cryptor.Decrypt(parts[2].Substring(1)), fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 			}
 			else
 				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
@@ -324,66 +321,9 @@ namespace NeoRemote
 
 		Response SetSlidesQuery(string slidesQuery, string slidesSize)
 		{
-			slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
-			slidesQuery = Regex.Replace(slidesQuery, @"[^\S\n]+", " ");
-			slidesQuery = Regex.Replace(slidesQuery, @"(^ | $)", "", RegexOptions.Multiline);
-			slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
-			slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
-			slidesQuery = GetTumblrInfo(slidesQuery);
-			if (!slidesQuery.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
-				slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
 			actions.SlidesQuery = slidesQuery;
 			actions.SlidesSize = slidesSize;
 			return Response.Empty;
-		}
-
-		static byte[] Encrypt(byte[] data)
-		{
-			using (var alg = new AesCryptoServiceProvider())
-			{
-				alg.Key = Convert.FromBase64String("uSuggboVimnGAZ1cO8SOi+/GVAebh7lHKzc03OeiLBc=");
-
-				using (var encryptor = alg.CreateEncryptor())
-				using (var ms = new MemoryStream())
-				{
-					ms.Write(BitConverter.GetBytes(alg.IV.Length), 0, sizeof(int));
-					ms.Write(alg.IV, 0, alg.IV.Length);
-					var encrypted = encryptor.TransformFinalBlock(data, 0, data.Length);
-					ms.Write(encrypted, 0, encrypted.Length);
-					return ms.ToArray();
-				}
-			}
-		}
-
-		static byte[] Decrypt(byte[] data)
-		{
-			using (var alg = new AesCryptoServiceProvider())
-			{
-				alg.Key = Convert.FromBase64String("uSuggboVimnGAZ1cO8SOi+/GVAebh7lHKzc03OeiLBc=");
-
-				var iv = new byte[BitConverter.ToInt32(data, 0)];
-				Array.Copy(data, sizeof(int), iv, 0, iv.Length);
-				alg.IV = iv;
-
-				using (var decryptor = alg.CreateDecryptor())
-					return decryptor.TransformFinalBlock(data, sizeof(int) + iv.Length, data.Length - sizeof(int) - iv.Length);
-			}
-		}
-
-		string GetTumblrInfo(string query)
-		{
-			if (!query.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
-				return query;
-
-			var nonTumblrQuery = "tumblr " + query.Remove(0, "tumblr:".Length);
-			var parts = query.Split(':').ToList();
-			if (parts.Count != 3)
-				return nonTumblrQuery;
-			parts[0] = parts[0].ToLowerInvariant();
-			parts[1] = parts[1].ToLowerInvariant();
-			if (!parts[2].StartsWith("#"))
-				parts[2] = $"#{Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(parts[2])))}";
-			return string.Join(":", parts);
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
@@ -393,6 +333,24 @@ namespace NeoRemote
 				new SettingsDialog().ShowDialog();
 				e.Handled = true;
 			}
+			if (e.Key == Key.Space)
+			{
+				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+					Pause();
+				else
+					ToggleSlidesPaused();
+			}
+			if (e.Key == Key.Right)
+			{
+				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+					Next();
+				else
+					ChangeSlide(1);
+			}
+			if (e.Key == Key.Left)
+				ChangeSlide(-1);
+			if (e.Key == Key.Q)
+				new QueryDialog(actions).ShowDialog();
 			base.OnKeyDown(e);
 		}
 	}

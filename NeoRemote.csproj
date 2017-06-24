@@ -79,6 +79,7 @@
     <Compile Include="AsyncHelper.cs" />
     <Compile Include="AsyncQueue.cs" />
     <Compile Include="ContentTypeData.cs" />
+    <Compile Include="Cryptor.cs" />
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
@@ -93,6 +94,13 @@
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
+    </Compile>
+    <Page Include="QueryDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="QueryDialog.xaml.cs">
+      <DependentUpon>QueryDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
