@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -48,7 +49,7 @@ namespace NeoRemote
 				request.Headers.Referrer = new Uri(url);
 				using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token))
 				{
-					if (response.StatusCode != System.Net.HttpStatusCode.OK)
+					if (response.StatusCode != HttpStatusCode.OK)
 						throw new Exception($"Failed to URL: {response.StatusCode}");
 
 					result = new MemoryStream((int)(response.Content.Headers.ContentLength ?? 0));

@@ -10,20 +10,18 @@ namespace NeoRemote
 	{
 		const int Concurrency = 20;
 
-		static public Task ThreadPoolRunAsync(Action action)
+		static public Task<TOutput> ThreadPoolRunAsync<TOutput>(Func<TOutput> action)
 		{
-			var tcs = new TaskCompletionSource<object>();
+			var tcs = new TaskCompletionSource<TOutput>();
 			ThreadPool.QueueUserWorkItem(state =>
 			{
-				try
-				{
-					action();
-					tcs.SetResult(null);
-				}
+				try { tcs.SetResult(action()); }
 				catch (Exception ex) { tcs.SetException(ex); }
 			});
 			return tcs.Task;
 		}
+
+		async static public Task ThreadPoolRunAsync(Action action) => await ThreadPoolRunAsync(() => { action(); return false; });
 
 		async public static void RunTasks<TInput, TOutput>(AsyncQueue<TInput> input, Func<TInput, Task<TOutput>> func, AsyncQueue<TOutput> output, CancellationToken token)
 		{
@@ -56,10 +54,12 @@ namespace NeoRemote
 			output.SetFinished();
 		}
 
-		public static void RunTasks<TInput>(AsyncQueue<TInput> input, Func<TInput, Task> func, CancellationToken token)
+		async public static Task RunTasks<TInput>(AsyncQueue<TInput> input, Func<TInput, Task> func, CancellationToken token)
 		{
 			var output = new AsyncQueue<bool>();
 			RunTasks(input, async item => { await func(item); return false; }, output, token);
+			while (await output.HasItemsAsync(token))
+				output.Dequeue();
 		}
 	}
 }
