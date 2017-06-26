@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	static class URLDownloader
 	{

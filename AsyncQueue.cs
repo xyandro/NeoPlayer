@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	public class AsyncQueue<T>
 	{

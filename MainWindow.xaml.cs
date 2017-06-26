@@ -10,7 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	partial class MainWindow
 	{

@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	class Cryptor
 	{

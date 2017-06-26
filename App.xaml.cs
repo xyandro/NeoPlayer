@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	partial class App
 	{

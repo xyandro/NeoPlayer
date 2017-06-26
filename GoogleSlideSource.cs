@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	static class GoogleSlideSource
 	{

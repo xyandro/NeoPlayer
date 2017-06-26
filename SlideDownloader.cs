@@ -9,13 +9,13 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	static class SlideDownloader
 	{
 		static SlideDownloader()
 		{
-			var regex = new Regex($@"^{Regex.Escape($@"{Settings.SlidesPath}\{nameof(NeoRemote)}-Slide-")}\d{{10}}.bmp$", RegexOptions.IgnoreCase);
+			var regex = new Regex($@"^{Regex.Escape($@"{Settings.SlidesPath}\{nameof(NeoPlayer)}-Slide-")}\d{{10}}.bmp$", RegexOptions.IgnoreCase);
 			Directory.EnumerateFiles(Settings.SlidesPath).Where(file => regex.IsMatch(file)).ToList().ForEach(File.Delete);
 		}
 
@@ -36,7 +36,7 @@ namespace NeoRemote
 		static int slideCount = 0;
 		async static Task<string> FetchSlideAsync(string url, Action<string> action, CancellationToken token)
 		{
-			var fileName = $@"{Settings.SlidesPath}\{nameof(NeoRemote)}-Slide-{++slideCount:0000000000}.bmp";
+			var fileName = $@"{Settings.SlidesPath}\{nameof(NeoPlayer)}-Slide-{++slideCount:0000000000}.bmp";
 
 			try
 			{

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Web;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	public class Request
 	{

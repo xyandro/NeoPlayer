@@ -1,4 +1,4 @@
-﻿namespace NeoRemote
+﻿namespace NeoPlayer
 {
 	class YouTubeItem
 	{

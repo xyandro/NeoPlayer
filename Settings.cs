@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	public static class Settings
 	{

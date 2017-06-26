@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	class Status
 	{

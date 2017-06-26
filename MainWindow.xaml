@@ -1,8 +1,8 @@
-﻿<Window x:Class="NeoRemote.MainWindow"
+﻿<Window x:Class="NeoPlayer.MainWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:vlc="clr-namespace:AxAXVLC;assembly=AxInterop.AXVLC"
-	Title="NeoRemote" Width="800" Height="600" Background="Black" WindowStyle="None">
+	Title="NeoPlayer" Width="800" Height="600" Background="Black" WindowStyle="None">
 
 	<Grid>
 		<Image Name="slide1"/>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NeoRemote
+namespace NeoPlayer
 {
 	static class MoreLinq
 	{
