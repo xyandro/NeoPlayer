@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
@@ -20,6 +21,9 @@ namespace NeoPlayer
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			// Keep screen/computer on
+			Win32.SetThreadExecutionState(Win32.ES_CONTINUOUS | Win32.ES_DISPLAY_REQUIRED | Win32.ES_SYSTEM_REQUIRED);
 
 			actions = new Actions(ActionChanged);
 			var random = new Random();
@@ -352,6 +356,17 @@ namespace NeoPlayer
 			if (e.Key == Key.Q)
 				new QueryDialog(actions).ShowDialog();
 			base.OnKeyDown(e);
+		}
+
+		static class Win32
+		{
+			// Import SetThreadExecutionState Win32 API and necessary flags
+			[DllImport("kernel32.dll")]
+			public static extern uint SetThreadExecutionState(uint esFlags);
+
+			public const uint ES_CONTINUOUS = 0x80000000;
+			public const uint ES_SYSTEM_REQUIRED = 0x00000001;
+			public const uint ES_DISPLAY_REQUIRED = 0x00000002;
 		}
 	}
 }
