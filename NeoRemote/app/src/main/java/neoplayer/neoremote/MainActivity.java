@@ -1,14 +1,23 @@
 package neoplayer.neoremote;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
+    private static final int NUM_PAGES = 5;
+
+    private ViewPager mPager;
+    private PagerAdapter mPagerAdapter;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -32,6 +41,11 @@ public class MainActivity extends AppCompatActivity {
         });
         session.setPlaybackToRemote(createVolumeProvider());
         session.setActive(true);
+
+        // Instantiate a ViewPager and a PagerAdapter.
+        mPager = (ViewPager) findViewById(R.id.pager);
+        mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
+        mPager.setAdapter(mPagerAdapter);
     }
 
     private VolumeProviderCompat createVolumeProvider() {
@@ -52,5 +66,21 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onSetVolumeTo: " + newVolume);
             }
         };
+    }
+
+    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+        public ScreenSlidePagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return ScreenSlidePageFragment.create(position);
+        }
+
+        @Override
+        public int getCount() {
+            return NUM_PAGES;
+        }
     }
 }
