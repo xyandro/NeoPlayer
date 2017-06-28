@@ -75,6 +75,8 @@ public class MainActivity extends Activity {
 
         @Override
         public Fragment getItem(int position) {
+            if (position == 0)
+                return VideosFragment.create();
             return ScreenSlidePageFragment.create(position);
         }
 

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/yellow"
+        android:layout_weight="5"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/check"
+            android:background="@null"/>
+
+        <Space
+            android:layout_width="5dp"
+            android:layout_height="match_parent" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Happy go lucky"
+            android:layout_weight="1"
+            android:textColor="@android:color/black"/>
+
+        <Space
+            android:layout_width="5dp"
+            android:layout_height="match_parent" />
+
+        <ImageButton
+            android:id="@+id/clearButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/clear"
+            android:background="@null"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/teal"
+        android:layout_weight="82.8"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/yellow"
+        android:layout_weight="12"/>
+</LinearLayout>
