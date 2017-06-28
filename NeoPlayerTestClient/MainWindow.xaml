@@ -2,8 +2,33 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="NeoPlayer Test Client" Height="350" Width="525">
-	
-    <Grid>
-    </Grid>
+
+	<TabControl>
+		<TabItem Header="Videos">
+			<Grid Background="Black">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="5*"/>
+					<RowDefinition Height=".1*"/>
+					<RowDefinition Height="82.8*"/>
+					<RowDefinition Height=".1*"/>
+					<RowDefinition Height="12*"/>
+				</Grid.RowDefinitions>
+
+				<Grid Grid.Row="0">
+					<Grid.Background>
+						<ImageBrush ImageSource="..\NeoRemote\app\src\main\res\drawable\yellow.png"/>
+					</Grid.Background>
+				</Grid>
+				<Grid Grid.Row="1"/>
+				<Grid Grid.Row="2">
+					<Grid.Background>
+						<ImageBrush ImageSource="..\NeoRemote\app\src\main\res\drawable\teal.png"/>
+					</Grid.Background>
+				</Grid>
+				<Grid Grid.Row="3"/>
+				<Grid Grid.Row="4" Background="Yellow"/>
+			</Grid>
+		</TabItem>
+	</TabControl>
 	
 </Window>
