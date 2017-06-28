@@ -64,8 +64,6 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions.cs" />
-    <Compile Include="ActionType.cs" />
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -81,12 +79,12 @@
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
-    <Page Include="MainWindow.xaml">
+    <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="NeoPlayerWindow.xaml.cs">
+      <DependentUpon>NeoPlayerWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MoreLinq.cs" />

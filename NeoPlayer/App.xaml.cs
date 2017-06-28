@@ -7,7 +7,7 @@ namespace NeoPlayer
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			base.OnStartup(e);
-			new MainWindow().Show();
+			new NeoPlayerWindow().Show();
 		}
 
 		public App()

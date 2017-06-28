@@ -13,21 +13,148 @@ using System.Windows.Threading;
 
 namespace NeoPlayer
 {
-	partial class MainWindow
+	partial class NeoPlayerWindow
 	{
-		readonly Actions actions;
+		public enum ActionType
+		{
+			Slideshow,
+			Videos,
+		}
+
+		ActionType currentAction = ActionType.Slideshow;
+		public ActionType CurrentAction { get { return currentAction; } set { currentAction = value; ActionChanged(); } }
+
+		string slidesQuery = Settings.Debug ? "test" : "landscape";
+		public string SlidesQuery
+		{
+			get { return slidesQuery; }
+			set
+			{
+				slidesQuery = value;
+				slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
+				slidesQuery = Regex.Replace(slidesQuery, @"[^\S\n]+", " ");
+				slidesQuery = Regex.Replace(slidesQuery, @"(^ | $)", "", RegexOptions.Multiline);
+				slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
+				slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
+				slidesQuery = GetTumblrInfo(slidesQuery);
+				if (!slidesQuery.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
+					slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
+				ActionChanged();
+			}
+		}
+
+		string slidesSize = "2mp";
+		public string SlidesSize { get { return slidesSize; } set { slidesSize = value; ActionChanged(); } }
+
+		public int SlideDisplayTime { get; set; } = 60;
+		public bool SlidesPaused { get; set; }
+		public bool musicAutoPlay { get; set; } = false;
+		public bool MusicAutoPlay { get { return musicAutoPlay; } set { musicAutoPlay = value; ActionChanged(); } }
+
+		readonly List<string> slides = new List<string>();
+		readonly List<string> music = new List<string>();
+		readonly List<string> videos = new List<string>();
+
+		int currentSlideIndex = 0;
+		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex % slides.Count] : null;
+		public string CurrentMusic => music.FirstOrDefault();
+		public string CurrentVideo => videos.FirstOrDefault();
+
+		public bool VideoIsQueued(string video) => videos.Contains(video);
+
+		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
+		{
+			var found = false;
+			foreach (var fileName in items)
+			{
+				var present = list.Contains(fileName);
+				if (present == enqueue)
+					continue;
+
+				if (enqueue)
+					list.Add(fileName);
+				else
+					list.Remove(fileName);
+				found = true;
+			}
+			if (found)
+				ActionChanged();
+		}
+
+		public void EnqueueSlides(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(slides, fileNames, enqueue);
+		public void EnqueueMusic(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(music, fileNames, enqueue);
+		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
+
+		public void CycleSlide(bool fromStart = true)
+		{
+			if (!slides.Any())
+				return;
+
+			currentSlideIndex = Math.Max(0, Math.Min(currentSlideIndex, slides.Count - 1));
+			currentSlideIndex += (fromStart ? 1 : -1);
+			while (currentSlideIndex < 0)
+				currentSlideIndex += slides.Count;
+			while (currentSlideIndex >= slides.Count)
+				currentSlideIndex -= slides.Count;
+			ActionChanged();
+		}
+
+		public void CycleMusic()
+		{
+			if (!music.Any())
+				return;
+
+			music.Add(music[0]);
+			music.RemoveAt(0);
+
+			ActionChanged();
+		}
+
+		public void CycleVideo()
+		{
+			if (!videos.Any())
+				return;
+
+			videos.RemoveAt(0);
+			ActionChanged();
+		}
+
+		public void ClearSlides()
+		{
+			if (!slides.Any())
+				return;
+
+			slides.Clear();
+			currentSlideIndex = 0;
+		}
+
+		string GetTumblrInfo(string query)
+		{
+			if (!query.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
+				return query;
+
+			var nonTumblrQuery = "tumblr " + query.Remove(0, "tumblr:".Length);
+			var parts = query.Split(':').ToList();
+			if (parts.Count != 3)
+				return nonTumblrQuery;
+			parts[0] = parts[0].ToLowerInvariant();
+			parts[1] = parts[1].ToLowerInvariant();
+			if (!parts[2].StartsWith("#"))
+				parts[2] = $"#{Cryptor.Encrypt(parts[2])}";
+			return string.Join(":", parts);
+		}
+
 		readonly DispatcherTimer changeSlideTimer = null;
 
-		public MainWindow()
+		public NeoPlayerWindow()
 		{
 			InitializeComponent();
 
 			// Keep screen/computer on
 			Win32.SetThreadExecutionState(Win32.ES_CONTINUOUS | Win32.ES_DISPLAY_REQUIRED | Win32.ES_SYSTEM_REQUIRED);
 
-			actions = new Actions(ActionChanged);
 			var random = new Random();
-			actions.EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
+			EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
 
 			Server.Run(7399, HandleServiceCall);
 
@@ -59,10 +186,10 @@ namespace NeoPlayer
 
 		void HandleActions()
 		{
-			if ((actions.CurrentAction == ActionType.Videos) && (actions.CurrentVideo == null))
+			if ((CurrentAction == ActionType.Videos) && (CurrentVideo == null))
 			{
-				actions.CurrentAction = ActionType.Slideshow;
-				actions.MusicAutoPlay = false;
+				CurrentAction = ActionType.Slideshow;
+				MusicAutoPlay = false;
 			}
 
 			SetupSlideDownloader();
@@ -83,29 +210,29 @@ namespace NeoPlayer
 		CancellationTokenSource tokenSource;
 		void SetupSlideDownloader()
 		{
-			if ((currentSlidesQuery == actions.SlidesQuery) && (currentSlidesSize == actions.SlidesSize))
+			if ((currentSlidesQuery == SlidesQuery) && (currentSlidesSize == SlidesSize))
 				return;
 
 			if (tokenSource != null)
 				tokenSource.Cancel();
-			actions.ClearSlides();
-			currentSlidesQuery = actions.SlidesQuery;
-			currentSlidesSize = actions.SlidesSize;
+			ClearSlides();
+			currentSlidesQuery = SlidesQuery;
+			currentSlidesSize = SlidesSize;
 			tokenSource = new CancellationTokenSource();
 
 			if (currentSlidesQuery.StartsWith("tumblr:"))
 			{
 				var parts = currentSlidesQuery.Split(':');
-				TumblrSlideSource.Run(parts[1], Cryptor.Decrypt(parts[2].Substring(1)), fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+				TumblrSlideSource.Run(parts[1], Cryptor.Decrypt(parts[2].Substring(1)), fileName => EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 			}
 			else
-				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => actions.EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
+				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => EnqueueSlides(new List<string> { fileName }), tokenSource.Token);
 		}
 
 		void SetControlsVisibility()
 		{
-			slide1.Visibility = slide2.Visibility = actions.CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
-			vlcHost.Visibility = actions.CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
+			slide1.Visibility = slide2.Visibility = CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
+			vlcHost.Visibility = CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		string currentSlide = null;
@@ -114,15 +241,15 @@ namespace NeoPlayer
 
 		void CheckCycleSlide()
 		{
-			if ((slideTime == null) || (actions.SlidesPaused))
+			if ((slideTime == null) || (SlidesPaused))
 				return;
-			if ((DateTime.Now - slideTime.Value).TotalSeconds >= actions.SlideDisplayTime)
-				actions.CycleSlide();
+			if ((DateTime.Now - slideTime.Value).TotalSeconds >= SlideDisplayTime)
+				CycleSlide();
 		}
 
 		void HideSlideIfNecessary()
 		{
-			if ((currentSlide == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentSlide == actions.CurrentSlide)))
+			if ((currentSlide == null) || ((CurrentAction == ActionType.Slideshow) && (currentSlide == CurrentSlide)))
 				return;
 
 			currentSlide = null;
@@ -130,16 +257,16 @@ namespace NeoPlayer
 
 			StopSlideFade();
 
-			if ((actions.CurrentAction != ActionType.Slideshow) || (actions.CurrentSlide == null))
+			if ((CurrentAction != ActionType.Slideshow) || (CurrentSlide == null))
 				slide1.Source = null;
 		}
 
 		void DisplayNewSlide()
 		{
-			if ((actions.CurrentAction != ActionType.Slideshow) || (currentSlide == actions.CurrentSlide))
+			if ((CurrentAction != ActionType.Slideshow) || (currentSlide == CurrentSlide))
 				return;
 
-			currentSlide = actions.CurrentSlide;
+			currentSlide = CurrentSlide;
 			var slide = new BitmapImage();
 			slide.BeginInit();
 			slide.UriSource = new Uri(currentSlide);
@@ -169,7 +296,7 @@ namespace NeoPlayer
 		string currentMusic = null;
 		void StopMusicIfNecessary()
 		{
-			if ((currentMusic == null) || ((actions.CurrentAction == ActionType.Slideshow) && (currentMusic == actions.CurrentMusic)))
+			if ((currentMusic == null) || ((CurrentAction == ActionType.Slideshow) && (currentMusic == CurrentMusic)))
 				return;
 
 			currentMusic = null;
@@ -179,10 +306,10 @@ namespace NeoPlayer
 
 		void StartNewMusic()
 		{
-			if ((actions.CurrentAction != ActionType.Slideshow) || (currentMusic == actions.CurrentMusic) || (!actions.MusicAutoPlay))
+			if ((CurrentAction != ActionType.Slideshow) || (currentMusic == CurrentMusic) || (!MusicAutoPlay))
 				return;
 
-			currentMusic = actions.CurrentMusic;
+			currentMusic = CurrentMusic;
 			vlc.playlist.add($@"file:///{currentMusic}");
 			vlc.playlist.playItem(0);
 		}
@@ -190,7 +317,7 @@ namespace NeoPlayer
 		string currentVideo = null;
 		void StopVideoIfNecessary()
 		{
-			if ((currentVideo == null) || ((actions.CurrentAction == ActionType.Videos) && (currentVideo == actions.CurrentVideo)))
+			if ((currentVideo == null) || ((CurrentAction == ActionType.Videos) && (currentVideo == CurrentVideo)))
 				return;
 
 			currentVideo = null;
@@ -200,10 +327,10 @@ namespace NeoPlayer
 
 		void StartNewVideo()
 		{
-			if ((actions.CurrentAction != ActionType.Videos) || (currentVideo == actions.CurrentVideo))
+			if ((CurrentAction != ActionType.Videos) || (currentVideo == CurrentVideo))
 				return;
 
-			currentVideo = actions.CurrentVideo;
+			currentVideo = CurrentVideo;
 			vlc.playlist.add($@"file:///{Settings.VideosPath}\{currentVideo}");
 			vlc.playlist.playItem(0);
 		}
@@ -232,13 +359,13 @@ namespace NeoPlayer
 
 		Response ToggleSlidesPaused()
 		{
-			actions.SlidesPaused = !actions.SlidesPaused;
+			SlidesPaused = !SlidesPaused;
 			return Response.Empty;
 		}
 
 		Response SetSlideDisplayTime(int displayTime)
 		{
-			actions.SlideDisplayTime = displayTime;
+			SlideDisplayTime = displayTime;
 			return Response.Empty;
 		}
 
@@ -246,9 +373,9 @@ namespace NeoPlayer
 		Response ChangeSlide(int offset)
 		{
 			if (offset > 0)
-				actions.CycleSlide();
+				CycleSlide();
 			if (offset < 0)
-				actions.CycleSlide(false);
+				CycleSlide(false);
 			return Response.Empty;
 		}
 
@@ -261,7 +388,7 @@ namespace NeoPlayer
 				.Select(file => new Status.MusicData
 				{
 					Name = file,
-					Queued = actions.VideoIsQueued(file),
+					Queued = VideoIsQueued(file),
 				})
 				.ToList();
 			status.PlayerMax = Math.Max(0, (int)vlc.input.length / 1000);
@@ -283,26 +410,26 @@ namespace NeoPlayer
 				}
 				catch { }
 			}
-			status.SlidesQuery = actions.SlidesQuery;
-			status.SlidesSize = actions.SlidesSize;
-			status.SlideDisplayTime = actions.SlideDisplayTime;
-			status.SlidesPaused = actions.SlidesPaused;
+			status.SlidesQuery = SlidesQuery;
+			status.SlidesSize = SlidesSize;
+			status.SlideDisplayTime = SlideDisplayTime;
+			status.SlidesPaused = SlidesPaused;
 
 			return JSON.GetResponse(status);
 		}
 
 		Response Enqueue(IEnumerable<string> fileNames, bool enqueue)
 		{
-			actions.EnqueueVideos(fileNames, enqueue);
+			EnqueueVideos(fileNames, enqueue);
 			if ((enqueue) && (fileNames.Any()))
-				actions.CurrentAction = ActionType.Videos;
+				CurrentAction = ActionType.Videos;
 			return Response.Empty;
 		}
 
 		Response Pause()
 		{
-			if (actions.CurrentAction == ActionType.Slideshow)
-				actions.MusicAutoPlay = true;
+			if (CurrentAction == ActionType.Slideshow)
+				MusicAutoPlay = true;
 
 			vlc.playlist.togglePause();
 			return Response.Empty;
@@ -310,10 +437,10 @@ namespace NeoPlayer
 
 		Response Next()
 		{
-			if (actions.CurrentAction == ActionType.Videos)
-				actions.CycleVideo();
+			if (CurrentAction == ActionType.Videos)
+				CycleVideo();
 			else
-				actions.CycleMusic();
+				CycleMusic();
 			return Response.Empty;
 		}
 
@@ -325,8 +452,8 @@ namespace NeoPlayer
 
 		Response SetSlidesQuery(string slidesQuery, string slidesSize)
 		{
-			actions.SlidesQuery = slidesQuery;
-			actions.SlidesSize = slidesSize;
+			SlidesQuery = slidesQuery;
+			SlidesSize = slidesSize;
 			return Response.Empty;
 		}
 
@@ -354,7 +481,7 @@ namespace NeoPlayer
 			if (e.Key == Key.Left)
 				ChangeSlide(-1);
 			if (e.Key == Key.Q)
-				new QueryDialog(actions).ShowDialog();
+				new QueryDialog(this).ShowDialog();
 			base.OnKeyDown(e);
 		}
 

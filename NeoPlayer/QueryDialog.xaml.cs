@@ -12,22 +12,22 @@ namespace NeoPlayer
 		string SlidesSize { get { return (string)GetValue(SlidesSizeProperty); } set { SetValue(SlidesSizeProperty, value); } }
 		int SlideDisplayTime { get { return (int)GetValue(SlideDisplayTimeProperty); } set { SetValue(SlideDisplayTimeProperty, value); } }
 
-		readonly Actions actions;
-		public QueryDialog(Actions actions)
+		readonly NeoPlayerWindow neoPlayerWindow;
+		public QueryDialog(NeoPlayerWindow neoPlayerWindow)
 		{
-			this.actions = actions;
+			this.neoPlayerWindow = neoPlayerWindow;
 			InitializeComponent();
 			DataContext = this;
-			SlidesQuery = actions.SlidesQuery;
-			SlidesSize = actions.SlidesSize;
-			SlideDisplayTime = actions.SlideDisplayTime;
+			SlidesQuery = neoPlayerWindow.SlidesQuery;
+			SlidesSize = neoPlayerWindow.SlidesSize;
+			SlideDisplayTime = neoPlayerWindow.SlideDisplayTime;
 		}
 
 		void OnOKClick(object sender, RoutedEventArgs e)
 		{
-			actions.SlidesQuery = SlidesQuery;
-			actions.SlidesSize = SlidesSize;
-			actions.SlideDisplayTime = SlideDisplayTime;
+			neoPlayerWindow.SlidesQuery = SlidesQuery;
+			neoPlayerWindow.SlidesSize = SlidesSize;
+			neoPlayerWindow.SlideDisplayTime = SlideDisplayTime;
 			DialogResult = true;
 		}
 	}
