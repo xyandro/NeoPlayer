@@ -36,6 +36,7 @@
             android:layout_height="match_parent" />
 
         <ImageButton
+            android:id="@+id/clear_search"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:adjustViewBounds="true"
@@ -55,7 +56,7 @@
         android:background="@drawable/teal">
 
         <ListView
-            android:id="@+id/videosList"
+            android:id="@+id/videos_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"></ListView>
     </LinearLayout>

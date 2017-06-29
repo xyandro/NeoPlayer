@@ -2,7 +2,6 @@ package neoplayer.neoremote;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,75 +18,78 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class VideosFragment extends Fragment implements TextWatcher {
-    private final ArrayList<VideoData> mAllItems;
+public class VideosFragment extends Fragment {
     private final VideosListAdapter mAdapter;
 
     public VideosFragment(Activity activity) {
-        mAllItems = new ArrayList<>();
-        mAllItems.add(new VideoData("Randon Spackman", "Randon", false));
-        mAllItems.add(new VideoData("Ben Christensen", "Ben", true));
-        mAllItems.add(new VideoData("Sophie Christensen", "Sophie", true));
-        mAllItems.add(new VideoData("Timothy Christensen", "Timothy", false));
-        mAllItems.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        mAllItems.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        mAllItems.add(new VideoData("Megan Spackman", "Megan", true));
-        mAllItems.add(new VideoData("Randon Spackman", "Randon", false));
-        mAllItems.add(new VideoData("Ben Christensen", "Ben", true));
-        mAllItems.add(new VideoData("Sophie Christensen", "Sophie", true));
-        mAllItems.add(new VideoData("Timothy Christensen", "Timothy", false));
-        mAllItems.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        mAllItems.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        mAllItems.add(new VideoData("Megan Spackman", "Megan", true));
-        mAllItems.add(new VideoData("Randon Spackman", "Randon", false));
-        mAllItems.add(new VideoData("Ben Christensen", "Ben", true));
-        mAllItems.add(new VideoData("Sophie Christensen", "Sophie", true));
-        mAllItems.add(new VideoData("Timothy Christensen", "Timothy", false));
-        mAllItems.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        mAllItems.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        mAllItems.add(new VideoData("Megan Spackman", "Megan", true));
-        mAllItems.add(new VideoData("Randon Spackman", "Randon", false));
-        mAllItems.add(new VideoData("Ben Christensen", "Ben", true));
-        mAllItems.add(new VideoData("Sophie Christensen", "Sophie", true));
-        mAllItems.add(new VideoData("Timothy Christensen", "Timothy", false));
-        mAllItems.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        mAllItems.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        mAllItems.add(new VideoData("Megan Spackman", "Megan", true));
-        mAllItems.add(new VideoData("Randon Spackman", "Randon", false));
-        mAllItems.add(new VideoData("Ben Christensen", "Ben", true));
-        mAllItems.add(new VideoData("Sophie Christensen", "Sophie", true));
-        mAllItems.add(new VideoData("Timothy Christensen", "Timothy", false));
-        mAllItems.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        mAllItems.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        mAllItems.add(new VideoData("Megan Spackman", "Megan", true));
-        mAdapter = new VideosListAdapter(activity, mAllItems);
+        final ArrayList<VideoData> items = new ArrayList<>();
+        items.add(new VideoData("Randon Spackman", "Randon", false));
+        items.add(new VideoData("Ben Christensen", "Ben", true));
+        items.add(new VideoData("Sophie Christensen", "Sophie", true));
+        items.add(new VideoData("Timothy Christensen", "Timothy", false));
+        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
+        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
+        items.add(new VideoData("Megan Spackman", "Megan", true));
+        items.add(new VideoData("Randon Spackman", "Randon", false));
+        items.add(new VideoData("Ben Christensen", "Ben", true));
+        items.add(new VideoData("Sophie Christensen", "Sophie", true));
+        items.add(new VideoData("Timothy Christensen", "Timothy", false));
+        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
+        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
+        items.add(new VideoData("Megan Spackman", "Megan", true));
+        items.add(new VideoData("Randon Spackman", "Randon", false));
+        items.add(new VideoData("Ben Christensen", "Ben", true));
+        items.add(new VideoData("Sophie Christensen", "Sophie", true));
+        items.add(new VideoData("Timothy Christensen", "Timothy", false));
+        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
+        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
+        items.add(new VideoData("Megan Spackman", "Megan", true));
+        items.add(new VideoData("Randon Spackman", "Randon", false));
+        items.add(new VideoData("Ben Christensen", "Ben", true));
+        items.add(new VideoData("Sophie Christensen", "Sophie", true));
+        items.add(new VideoData("Timothy Christensen", "Timothy", false));
+        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
+        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
+        items.add(new VideoData("Megan Spackman", "Megan", true));
+        items.add(new VideoData("Randon Spackman", "Randon", false));
+        items.add(new VideoData("Ben Christensen", "Ben", true));
+        items.add(new VideoData("Sophie Christensen", "Sophie", true));
+        items.add(new VideoData("Timothy Christensen", "Timothy", false));
+        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
+        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
+        items.add(new VideoData("Megan Spackman", "Megan", true));
+        mAdapter = new VideosListAdapter(activity, items);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View result = inflater.inflate(R.layout.fragment_videos, container, false);
 
-        final EditText editText = result.findViewById(R.id.search_text);
-        editText.addTextChangedListener(this);
+        final EditText searchText = result.findViewById(R.id.search_text);
+        searchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
 
-        ListView listView = result.findViewById(R.id.videosList);
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mAdapter.getFilter().filter(charSequence);
+            }
 
-        listView.setAdapter(mAdapter);
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        ((ListView) result.findViewById(R.id.videos_list)).setAdapter(mAdapter);
+        result.findViewById(R.id.clear_search).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchText.setText("");
+            }
+        });
 
         return result;
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        mAdapter.getFilter().filter(charSequence);
-    }
-
-    @Override
-    public void afterTextChanged(Editable editable) {
     }
 
     private class VideosListAdapter extends BaseAdapter implements Filterable {
@@ -118,18 +120,17 @@ public class VideosFragment extends Fragment implements TextWatcher {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = (LayoutInflater) activity.getLayoutInflater();
-            View rowView = inflater.inflate(R.layout.fragment_videos_listitem, parent, false);
+            View view = activity.getLayoutInflater().inflate(R.layout.fragment_videos_listitem, parent, false);
 
             VideoData videoData = mFilteredList.get(position);
 
-            ImageView imageView = rowView.findViewById(R.id.image);
+            ImageView imageView = view.findViewById(R.id.image);
             imageView.setImageResource(videoData.Selected ? R.drawable.check : R.drawable.uncheck);
 
-            TextView textView = rowView.findViewById(R.id.name);
+            TextView textView = view.findViewById(R.id.name);
             textView.setText(videoData.Description);
 
-            return rowView;
+            return view;
         }
 
         @Override
@@ -140,13 +141,13 @@ public class VideosFragment extends Fragment implements TextWatcher {
                     String find = search.toString().toLowerCase();
                     FilterResults result = new FilterResults();
                     if (search.length() == 0) {
-                        result.values = mAllItems;
-                        result.count = mAllItems.size();
+                        result.values = mFullList;
+                        result.count = mFullList.size();
                     } else {
                         final ArrayList<VideoData> items = new ArrayList<>();
-                        for (VideoData d : mFullList) {
-                            if (d.Description.toLowerCase().contains(find))
-                                items.add(d);
+                        for (VideoData videoData : mFullList) {
+                            if (videoData.Description.toLowerCase().contains(find))
+                                items.add(videoData);
                         }
                         result.values = items;
                         result.count = items.size();
