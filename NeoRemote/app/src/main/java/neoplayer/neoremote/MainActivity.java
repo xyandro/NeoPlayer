@@ -18,11 +18,15 @@ public class MainActivity extends Activity {
 
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
-    private VideosFragment mVideosFragment = new VideosFragment();
+    private VideosFragment mVideosFragment;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private MediaSessionCompat session;
+
+    public MainActivity() {
+        mVideosFragment = new VideosFragment(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
