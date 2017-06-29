@@ -157,6 +157,7 @@ namespace NeoPlayer
 			EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
 
 			Server.Run(7399, HandleServiceCall);
+			SocketServer.Run(7398);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
 			vlc.MediaPlayerEndReached += (s, e) => Next();

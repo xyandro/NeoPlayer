@@ -79,6 +79,7 @@
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="JSON.cs" />
+    <Compile Include="MoreLinq.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -87,7 +88,6 @@
       <DependentUpon>NeoPlayerWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MoreLinq.cs" />
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -177,6 +177,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="SlideDownloader.cs" />
+    <Compile Include="SocketServer.cs" />
     <Compile Include="Status.cs" />
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
