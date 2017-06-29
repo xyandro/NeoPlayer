@@ -9,9 +9,9 @@ namespace NeoPlayer
 		readonly Queue<T> queue = new Queue<T>();
 		bool finished = false;
 		TaskCompletionSource<bool> tcs = null;
-		CancellationTokenRegistration ctr;
+		CancellationTokenRegistration? ctr;
 
-		async public Task<bool> HasItemsAsync(CancellationToken token)
+		async public Task<bool> HasItemsAsync(CancellationToken? token = null)
 		{
 			if (queue.Count != 0)
 				return true;
@@ -19,11 +19,15 @@ namespace NeoPlayer
 				return false;
 
 			tcs = new TaskCompletionSource<bool>();
-			ctr = token.Register(() =>
+			ctr = null;
+			if (token.HasValue)
 			{
-				finished = true;
-				SetTaskResult(false);
-			});
+				ctr = token.Value.Register(() =>
+				{
+					finished = true;
+					SetTaskResult(false);
+				});
+			}
 			return await tcs.Task;
 		}
 
@@ -46,7 +50,8 @@ namespace NeoPlayer
 			if (tcs == null)
 				return;
 
-			ctr.Dispose();
+			ctr?.Dispose();
+			ctr = null;
 			var stored = tcs;
 			tcs = null;
 			stored.SetResult(result);

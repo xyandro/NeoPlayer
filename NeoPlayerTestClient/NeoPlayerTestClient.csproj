@@ -46,6 +46,45 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NeoPlayer\AsyncQueue.cs">
+      <Link>AsyncQueue.cs</Link>
+    </Compile>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\back5.png">
+      <Link>back5.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\back30.png">
+      <Link>back30.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\check.png">
+      <Link>check.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\clear.png">
+      <Link>clear.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\forward.png">
+      <Link>forward.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\forward5.png">
+      <Link>forward5.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\forward30.png">
+      <Link>forward30.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\pause.png">
+      <Link>pause.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\play.png">
+      <Link>play.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\teal.png">
+      <Link>teal.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\uncheck.png">
+      <Link>uncheck.png</Link>
+    </Resource>
+    <Resource Include="..\NeoRemote\app\src\main\res\drawable\yellow.png">
+      <Link>yellow.png</Link>
+    </Resource>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -65,6 +104,8 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SocketClient.cs" />
+    <Compile Include="VideoData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

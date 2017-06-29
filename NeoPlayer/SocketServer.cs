@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace NeoPlayer
 {
 	public static class SocketServer
 	{
+		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
+
 		async public static void Run(int port)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
@@ -20,7 +19,9 @@ namespace NeoPlayer
 			while (true)
 			{
 				var client = await listener.AcceptTcpClientAsync();
-				RunClient(client);
+				var queue = new AsyncQueue<byte[]>();
+				Reader(client, queue);
+				Writer(client, queue);
 			}
 		}
 
@@ -38,7 +39,7 @@ namespace NeoPlayer
 			return buffer;
 		}
 
-		async static void RunClient(TcpClient client)
+		async static void Reader(TcpClient client, AsyncQueue<byte[]> queue)
 		{
 			try
 			{
@@ -46,15 +47,39 @@ namespace NeoPlayer
 				while (true)
 				{
 					var buffer = await Read(stream, sizeof(int));
-					var size = BitConverter.ToInt32(buffer, 0);
-					buffer = await Read(stream, size);
+					buffer = await Read(stream, BitConverter.ToInt32(buffer, 0));
 
-					var reply = new byte[] { 71, 0, 0, 0, 84, 104, 105, 115, 32, 105, 115, 32, 109, 121, 32, 115, 117, 112, 101, 114, 32, 97, 119, 101, 115, 111, 109, 101, 32, 97, 109, 97, 122, 105, 110, 103, 32, 115, 116, 114, 105, 110, 103, 32, 116, 104, 97, 116, 32, 73, 32, 106, 117, 115, 116, 32, 109, 97, 100, 101, 32, 117, 112, 46, 32, 78, 101, 97, 116, 44, 32, 104, 117, 104, 63 };
-					stream.Write(reply, 0, reply.Length);
+					var str = Encoding.UTF8.GetString(buffer);
+					var response = Encoding.UTF8.GetBytes($"You sent {str}");
+					var length = response.Length;
+					Array.Resize(ref response, length + 4);
+					Array.Copy(response, 0, response, 4, length);
+					Array.Copy(BitConverter.GetBytes(length), response, 4);
+					queue.Enqueue(response);
 				}
 			}
-			catch { }
+			catch (Exception ex) { ex = ex; }
 			finally { client.Close(); }
+			queue.SetFinished();
 		}
+
+		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)
+		{
+			outputQueues.Add(queue);
+			try
+			{
+				var stream = client.GetStream();
+				while (await queue.HasItemsAsync())
+				{
+					var buffer = queue.Dequeue();
+					await stream.WriteAsync(buffer, 0, buffer.Length);
+				}
+			}
+			catch (Exception ex) { ex = ex; }
+			finally { client.Close(); }
+			outputQueues.Remove(queue);
+		}
+
+		public static void SendAll(byte[] buffer) => outputQueues.ForEach(queue => queue.Enqueue(buffer));
 	}
 }
