@@ -105,7 +105,7 @@ namespace NeoPlayer
 			if (passwordField != null)
 				passwordField.SetAttribute("value", password);
 
-			await Task.Delay(250);
+			await Task.Delay(2000);
 
 			var emailSubmit2 = doc.GetElementById("signup_forms_submit");
 			if (emailSubmit2 != null)
