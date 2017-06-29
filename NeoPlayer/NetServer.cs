@@ -58,7 +58,7 @@ namespace NeoPlayer
 					queue.Enqueue(response);
 				}
 			}
-			catch (Exception ex) { ex = ex; }
+			catch { }
 			finally { client.Close(); }
 			queue.SetFinished();
 		}
@@ -75,7 +75,7 @@ namespace NeoPlayer
 					await stream.WriteAsync(buffer, 0, buffer.Length);
 				}
 			}
-			catch (Exception ex) { ex = ex; }
+			catch { }
 			finally { client.Close(); }
 			outputQueues.Remove(queue);
 		}

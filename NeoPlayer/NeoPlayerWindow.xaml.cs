@@ -52,15 +52,15 @@ namespace NeoPlayer
 		public bool MusicAutoPlay { get { return musicAutoPlay; } set { musicAutoPlay = value; ActionChanged(); } }
 
 		readonly List<string> slides = new List<string>();
-		readonly List<string> music = new List<string>();
-		readonly List<string> videos = new List<string>();
+		readonly List<MediaData> music = new List<MediaData>();
+		readonly List<MediaData> videos = new List<MediaData>();
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex % slides.Count] : null;
-		public string CurrentMusic => music.FirstOrDefault();
-		public string CurrentVideo => videos.FirstOrDefault();
+		public MediaData CurrentMusic => music.FirstOrDefault();
+		public MediaData CurrentVideo => videos.FirstOrDefault();
 
-		public bool VideoIsQueued(string video) => videos.Contains(video);
+		public bool VideoIsQueued(string url) => videos.Any(video => video.URL == url);
 
 		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
 		{
@@ -82,8 +82,16 @@ namespace NeoPlayer
 		}
 
 		public void EnqueueSlides(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(slides, fileNames, enqueue);
-		public void EnqueueMusic(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(music, fileNames, enqueue);
-		public void EnqueueVideos(IEnumerable<string> fileNames, bool enqueue = true) => EnqueueItems(videos, fileNames, enqueue);
+		public void EnqueueMusic(MediaData musicData)
+		{
+			music.Add(musicData);
+			ActionChanged();
+		}
+		public void EnqueueVideo(MediaData videoData)
+		{
+			videos.Add(videoData);
+			ActionChanged();
+		}
 
 		public void CycleSlide(bool fromStart = true)
 		{
@@ -154,7 +162,7 @@ namespace NeoPlayer
 			Win32.SetThreadExecutionState(Win32.ES_CONTINUOUS | Win32.ES_DISPLAY_REQUIRED | Win32.ES_SYSTEM_REQUIRED);
 
 			var random = new Random();
-			EnqueueMusic(Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()));
+			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => EnqueueMusic(new MediaData(Path.GetFileNameWithoutExtension(fileName), $"file:///{fileName}")));
 
 			NetServer.Run(7399);
 
@@ -293,7 +301,7 @@ namespace NeoPlayer
 			slide2.Source = null;
 		}
 
-		string currentMusic = null;
+		MediaData currentMusic = null;
 		void StopMusicIfNecessary()
 		{
 			if ((currentMusic == null) || ((CurrentAction == ActionType.Slideshow) && (currentMusic == CurrentMusic)))
@@ -310,11 +318,11 @@ namespace NeoPlayer
 				return;
 
 			currentMusic = CurrentMusic;
-			vlc.playlist.add($@"file:///{currentMusic}");
+			vlc.playlist.add(currentMusic.URL);
 			vlc.playlist.playItem(0);
 		}
 
-		string currentVideo = null;
+		MediaData currentVideo = null;
 		void StopVideoIfNecessary()
 		{
 			if ((currentVideo == null) || ((CurrentAction == ActionType.Videos) && (currentVideo == CurrentVideo)))
@@ -331,7 +339,7 @@ namespace NeoPlayer
 				return;
 
 			currentVideo = CurrentVideo;
-			vlc.playlist.add($@"file:///{Settings.VideosPath}\{currentVideo}");
+			vlc.playlist.add(currentVideo.URL);
 			vlc.playlist.playItem(0);
 		}
 
@@ -352,13 +360,6 @@ namespace NeoPlayer
 				CycleSlide();
 			if (offset < 0)
 				CycleSlide(false);
-		}
-
-		void Enqueue(IEnumerable<string> fileNames, bool enqueue)
-		{
-			EnqueueVideos(fileNames, enqueue);
-			if ((enqueue) && (fileNames.Any()))
-				CurrentAction = ActionType.Videos;
 		}
 
 		void Pause()

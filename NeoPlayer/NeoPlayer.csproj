@@ -78,6 +78,7 @@
     <Compile Include="Cryptor.cs" />
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
+    <Compile Include="MediaData.cs" />
     <Compile Include="MoreLinq.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

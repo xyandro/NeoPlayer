@@ -43,7 +43,6 @@ namespace NeoPlayerTestClient
 					{
 						var buffer = await Read(stream, sizeof(int));
 						buffer = await Read(stream, BitConverter.ToInt32(buffer, 0));
-						buffer = buffer;
 					}
 				}
 				catch { }
