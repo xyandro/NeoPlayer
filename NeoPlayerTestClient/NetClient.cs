@@ -6,7 +6,7 @@ using NeoPlayer;
 
 namespace NeoPlayerTestClient
 {
-	public class SocketClient
+	public class NetClient
 	{
 		static AsyncQueue<byte[]> queue = new AsyncQueue<byte[]>();
 
@@ -31,7 +31,7 @@ namespace NeoPlayerTestClient
 				var client = new TcpClient();
 				try
 				{
-					await client.ConnectAsync("localhost", 7398);
+					await client.ConnectAsync("localhost", 7399);
 
 					RunSender(client);
 

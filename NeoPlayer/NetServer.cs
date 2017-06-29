@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NeoPlayer
 {
-	public static class SocketServer
+	public static class NetServer
 	{
 		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
 

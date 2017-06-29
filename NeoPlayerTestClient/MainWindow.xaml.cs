@@ -67,7 +67,7 @@ namespace NeoPlayerTestClient
 				new VideoData { Name = "Megan Spackman",     Description = "Megan",  IsQueued = false },
 			};
 
-			SocketClient.RunSocket();
+			NetClient.RunSocket();
 		}
 	}
 

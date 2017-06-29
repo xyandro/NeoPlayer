@@ -78,7 +78,6 @@
     <Compile Include="Cryptor.cs" />
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
-    <Compile Include="JSON.cs" />
     <Compile Include="MoreLinq.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -88,6 +87,7 @@
       <DependentUpon>NeoPlayerWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NetServer.cs" />
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -99,9 +99,6 @@
     <Compile Include="QueryDialog.xaml.cs">
       <DependentUpon>QueryDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Request.cs" />
-    <Compile Include="Response.cs" />
-    <Compile Include="Server.cs" />
     <Compile Include="Settings.cs" />
     <Page Include="SettingsDialog.xaml">
       <SubType>Designer</SubType>
@@ -177,7 +174,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="SlideDownloader.cs" />
-    <Compile Include="SocketServer.cs" />
     <Compile Include="Status.cs" />
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
