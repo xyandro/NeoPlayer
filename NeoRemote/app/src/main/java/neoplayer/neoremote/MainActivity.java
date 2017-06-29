@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
 
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
+    private VideosFragment mVideosFragment = new VideosFragment();
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -69,20 +70,23 @@ public class MainActivity extends Activity {
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+        private Fragment[] mPages;
+
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
+            mPages = new Fragment[]{
+                    mVideosFragment
+            };
         }
 
         @Override
         public Fragment getItem(int position) {
-            if (position == 0)
-                return VideosFragment.create();
-            return ScreenSlidePageFragment.create(position);
+            return mPages[position];
         }
 
         @Override
         public int getCount() {
-            return NUM_PAGES;
+            return mPages.length;
         }
     }
 }
