@@ -77,7 +77,7 @@ public class SocketService extends Service {
     }
 
     private void requestQueue() {
-        Log.d(TAG, "RequestQueued: Requesting current queue");
+        Log.d(TAG, "requestQueue: Requesting current queue");
         outputQueue.add(new Message(Message.ServerCommand.GetQueue).getBytes());
     }
 

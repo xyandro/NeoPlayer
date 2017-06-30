@@ -13,20 +13,20 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-public class QueuedFragment extends Fragment {
-    private static final String TAG = QueuedFragment.class.getSimpleName();
+public class QueueFragment extends Fragment {
+    private static final String TAG = QueueFragment.class.getSimpleName();
 
     private final MediaListAdapter adapter;
-    private final ArrayList<MediaData> queuedVideos;
+    private final ArrayList<MediaData> queueVideos;
 
-    public QueuedFragment(Activity activity, ArrayList<MediaData> queuedVideos) {
-        this.queuedVideos = queuedVideos;
-        adapter = new MediaListAdapter(activity, queuedVideos, queuedVideos);
+    public QueueFragment(Activity activity, ArrayList<MediaData> queueVideos) {
+        this.queueVideos = queueVideos;
+        adapter = new MediaListAdapter(activity, queueVideos, queueVideos);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View result = inflater.inflate(R.layout.fragment_queued, container, false);
+        View result = inflater.inflate(R.layout.fragment_queue, container, false);
 
         final EditText searchText = result.findViewById(R.id.search_text);
         searchText.addTextChangedListener(new TextWatcher() {

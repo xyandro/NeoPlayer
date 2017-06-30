@@ -12,15 +12,15 @@ import java.util.ArrayList;
 public class MediaListAdapter extends BaseAdapter {
     private final Activity activity;
     private final ArrayList<MediaData> list;
-    private final ArrayList<MediaData> queued;
+    private final ArrayList<MediaData> queue;
     private ArrayList<MediaData> filteredList;
     private String filter = "";
 
-    public MediaListAdapter(Activity activity, ArrayList<MediaData> list, ArrayList<MediaData> queued) {
+    public MediaListAdapter(Activity activity, ArrayList<MediaData> list, ArrayList<MediaData> queue) {
         super();
         this.activity = activity;
         this.list = filteredList = list;
-        this.queued = queued;
+        this.queue = queue;
     }
 
     @Override
@@ -43,8 +43,8 @@ public class MediaListAdapter extends BaseAdapter {
         MediaData mediaData = filteredList.get(position);
 
         boolean found = false;
-        for (MediaData queuedMediaData : queued) {
-            if (queuedMediaData.url == mediaData.url) {
+        for (MediaData queueMediaData : queue) {
+            if (queueMediaData.url == mediaData.url) {
                 found = true;
                 break;
             }

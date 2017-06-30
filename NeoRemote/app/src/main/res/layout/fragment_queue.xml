@@ -17,7 +17,7 @@
             android:layout_height="15dp"
             android:fontFeatureSettings="smcp"
             android:gravity="center"
-            android:text="Queued"
+            android:text="Queue"
             android:textColor="@android:color/black"
             android:textSize="10dp" />
 

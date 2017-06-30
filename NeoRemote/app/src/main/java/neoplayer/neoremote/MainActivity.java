@@ -24,9 +24,9 @@ import java.util.ArrayList;
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private QueuedFragment queuedFragment;
+    private QueueFragment queueFragment;
     private SocketService socketService;
-    private final ArrayList<MediaData> queuedVideos = new ArrayList<>();
+    private final ArrayList<MediaData> queueVideos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +39,9 @@ public class MainActivity extends Activity {
     }
 
     private void createUIElements() {
-        queuedFragment = new QueuedFragment(this, queuedVideos);
+        queueFragment = new QueueFragment(this, queueVideos);
         Fragment[] pages = new Fragment[]{
-                queuedFragment
+                queueFragment,
         };
         ((ViewPager) findViewById(R.id.pager)).setAdapter(new ScreenSlidePagerAdapter(getFragmentManager(), pages));
     }
@@ -108,10 +108,10 @@ public class MainActivity extends Activity {
         Bundle extras = intent.getExtras();
         if (extras.containsKey("Queue")) {
             ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Queue");
-            queuedVideos.clear();
+            queueVideos.clear();
             for (MediaData mediaData : mediaDatas)
-                queuedVideos.add(mediaData);
-            queuedFragment.Refresh();
+                queueVideos.add(mediaData);
+            queueFragment.Refresh();
         }
     }
 
