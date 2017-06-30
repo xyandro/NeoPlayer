@@ -63,7 +63,6 @@ namespace NeoPlayer
 		public MediaData CurrentQueueVideo => queueVideos.FirstOrDefault();
 
 		public IEnumerable<MediaData> QueueVideos => queueVideos;
-		public IEnumerable<MediaData> CoolVideos => Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData(Path.GetFileNameWithoutExtension(fileName), $"file:///{fileName}"));
 
 		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
 		{

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -7,14 +8,6 @@ namespace NeoPlayer
 {
 	public static class NetServer
 	{
-		public enum NetServerCommand
-		{
-			None,
-			QueueVideo,
-			GetQueue,
-			GetCool,
-		}
-
 		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
 
 		async public static void Run(int port)
@@ -40,9 +33,9 @@ namespace NeoPlayer
 					var message = await Message.Read(stream);
 					switch (message.Command)
 					{
-						case NetServerCommand.QueueVideo: QueueVideo(message); break;
-						case NetServerCommand.GetQueue: queue.Enqueue(GetQueue()); break;
-						case NetServerCommand.GetCool: queue.Enqueue(GetCool()); break;
+						case Message.MessageCommand.QueueVideo: QueueVideo(message); break;
+						case Message.MessageCommand.GetQueue: queue.Enqueue(GetQueue()); break;
+						case Message.MessageCommand.GetCool: queue.Enqueue(GetCool()); break;
 					}
 				}
 			}
@@ -51,40 +44,20 @@ namespace NeoPlayer
 			queue.SetFinished();
 		}
 
-		static void QueueVideo(Message message)
-		{
-			var description = message.GetString();
-			var url = message.GetString();
-			var mediaData = new MediaData(description, url);
-			NeoPlayerWindow.Current.EnqueueVideo(mediaData);
-		}
+		static void QueueVideo(Message message) => NeoPlayerWindow.Current.EnqueueVideo(message.GetMediaData());
 
 		public static byte[] GetQueue()
 		{
-			var message = new Message(NetServerCommand.GetQueue);
-			var videos = NeoPlayerWindow.Current.QueueVideos.ToList();
-			message.Add(videos.Count);
-			foreach (var video in videos)
-			{
-				message.Add(video.Description);
-				message.Add(video.URL);
-			}
-
-			return message.GetBytes();
+			var message = new Message(Message.MessageCommand.GetQueue);
+			message.Add(NeoPlayerWindow.Current.QueueVideos.ToList());
+			return message.ToArray();
 		}
 
 		public static byte[] GetCool()
 		{
-			var message = new Message(NetServerCommand.GetCool);
-			var videos = NeoPlayerWindow.Current.CoolVideos.ToList();
-			message.Add(videos.Count);
-			foreach (var video in videos)
-			{
-				message.Add(video.Description);
-				message.Add(video.URL);
-			}
-
-			return message.GetBytes();
+			var message = new Message(Message.MessageCommand.GetCool);
+			message.Add(Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData(Path.GetFileNameWithoutExtension(fileName), $"file:///{fileName}")).ToList());
+			return message.ToArray();
 		}
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,87 +8,96 @@ namespace NeoPlayer
 {
 	public class Message
 	{
-		public byte[] Bytes { get; private set; } = new byte[4];
-		public NetServer.NetServerCommand Command => (NetServer.NetServerCommand)BitConverter.ToInt32(Bytes, 4);
-		int position = 8;
+		public enum MessageCommand
+		{
+			None,
+			QueueVideo,
+			GetQueue,
+			GetCool,
+		}
+
+		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);
+		readonly MemoryStream ms = new MemoryStream();
 
 		public async static Task<Message> Read(Stream stream)
 		{
-			var buffer = new byte[4];
-			var used = 0;
+			var message = new Message();
+			await message.ReadStream(stream);
+			return message;
+		}
+
+		Message()
+		{
+		}
+
+		async Task ReadStream(Stream stream)
+		{
 			var first = true;
-			while (used < buffer.Length)
+			var size = 4;
+			var buffer = new byte[1024];
+			while (ms.Length < size)
 			{
-				var block = await stream.ReadAsync(buffer, used, buffer.Length - used);
+				var block = await stream.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, size - ms.Length));
 				if (block == 0)
 					throw new EndOfStreamException();
-				used += block;
+				ms.Write(buffer, 0, block);
 
-				if ((first) && (used == buffer.Length))
+				if ((first) && (ms.Length == size))
 				{
 					first = false;
-					Array.Resize(ref buffer, BitConverter.ToInt32(buffer, 0));
+					size = BitConverter.ToInt32(ms.GetBuffer(), 0);
 				}
 			}
-			return new Message(buffer);
+			ms.Position = 8;
 		}
 
-		public Message(byte[] bytes)
+		public Message(MessageCommand command)
 		{
-			Bytes = bytes;
-		}
-
-		public Message(NetServer.NetServerCommand command)
-		{
+			Add(0);
 			Add((int)command);
 		}
 
-		public Message Add(byte[] bytes)
-		{
-			var index = Bytes.Length;
-			var newSize = index + bytes.Length;
-			if (Bytes.Length < newSize)
-			{
-				var data = Bytes;
-				Array.Resize(ref data, newSize);
-				Bytes = data;
-				var size = BitConverter.GetBytes(Bytes.Length);
-				Array.Copy(size, Bytes, 4);
-			}
+		public void Add(byte[] value) => ms.Write(value, 0, value.Length);
 
-			Array.Copy(bytes, 0, Bytes, index, bytes.Length);
-			return this;
-		}
+		public void Add(int value) => Add(BitConverter.GetBytes(value));
 
-		public byte[] GetBytes(int count)
-		{
-			if (position + count > Bytes.Length)
-				throw new IndexOutOfRangeException();
-
-			var result = new byte[count];
-			Array.Copy(Bytes, position, result, 0, count);
-			position += count;
-			return result;
-		}
-
-		public int GetInt32() => BitConverter.ToInt32(GetBytes(4), 0);
-
-		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt32()));
-
-		public Message Add(int value)
-		{
-			Add(BitConverter.GetBytes(value));
-			return this;
-		}
-
-		public Message Add(string value)
+		public void Add(string value)
 		{
 			var bytes = Encoding.UTF8.GetBytes(value);
 			Add(bytes.Length);
 			Add(bytes);
-			return this;
 		}
 
-		public byte[] GetBytes() => Bytes;
+		public void Add(MediaData value)
+		{
+			Add(value.Description);
+			Add(value.URL);
+		}
+
+		public void Add(List<MediaData> values)
+		{
+			Add(values.Count);
+			values.ForEach(value => Add(value));
+		}
+
+		public byte[] ToArray()
+		{
+			var result = ms.ToArray();
+			Array.Copy(BitConverter.GetBytes(ms.Length), result, 4);
+			return result;
+		}
+
+		public byte[] GetBytes(int count)
+		{
+			var result = new byte[count];
+			ms.Read(result, 0, count);
+			return result;
+		}
+
+		public int GetInt() => BitConverter.ToInt32(GetBytes(4), 0);
+
+		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
+
+		public MediaData GetMediaData() => new MediaData(GetString(), GetString());
 	}
 }
