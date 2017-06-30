@@ -39,26 +39,31 @@ public class SocketService extends Service {
                 final Socket socket = new Socket();
                 socket.connect(new InetSocketAddress("192.168.1.10", 7399), 1000);
 
-                Log.d(TAG, "runReaderThread: Connected");
+                try {
+                    Log.d(TAG, "runReaderThread: Connected");
 
-                outputQueue.clear();
-                requestQueue();
+                    outputQueue.clear();
+                    requestQueue();
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        runWriterThread(socket);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            runWriterThread(socket);
+                        }
+                    }).start();
+
+                    while (true) {
+                        Message message = new Message(socket.getInputStream());
+                        Log.d(TAG, "runReaderThread: Got message (" + message.command + ")");
+                        switch (message.command) {
+                            case GetQueue:
+                                setQueue(message);
+                                break;
+                        }
                     }
-                }).start();
-
-                while (true) {
-                    Message message = new Message(socket.getInputStream());
-                    Log.d(TAG, "runReaderThread: Got message (" + message.command + ")");
-                    switch (message.command) {
-                        case GetQueue:
-                            setQueue(message);
-                            break;
-                    }
+                } catch (Exception ex) {
+                    socket.close();
+                    throw ex;
                 }
             } catch (Exception ex) {
                 Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
@@ -94,7 +99,7 @@ public class SocketService extends Service {
     private void runWriterThread(Socket socket) {
         try {
             Log.d(TAG, "runWriterThread: Started");
-            while (socket.isConnected()) {
+            while (!socket.isClosed()) {
                 byte[] message = outputQueue.poll(1, TimeUnit.SECONDS);
                 if (message == null)
                     continue;
