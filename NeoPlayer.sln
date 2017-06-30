@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeoPlayer", "NeoPlayer\NeoPlayer.csproj", "{748677E4-0FEB-4789-A358-B1CC52C90E53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeoPlayerTestClient", "NeoPlayerTestClient\NeoPlayerTestClient.csproj", "{34F9834A-1FDE-4704-AAE6-19B30EF12F05}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -17,10 +15,6 @@ Global
 		{748677E4-0FEB-4789-A358-B1CC52C90E53}.Debug|x64.Build.0 = Debug|x64
 		{748677E4-0FEB-4789-A358-B1CC52C90E53}.Release|x64.ActiveCfg = Release|x64
 		{748677E4-0FEB-4789-A358-B1CC52C90E53}.Release|x64.Build.0 = Release|x64
-		{34F9834A-1FDE-4704-AAE6-19B30EF12F05}.Debug|x64.ActiveCfg = Debug|x64
-		{34F9834A-1FDE-4704-AAE6-19B30EF12F05}.Debug|x64.Build.0 = Debug|x64
-		{34F9834A-1FDE-4704-AAE6-19B30EF12F05}.Release|x64.ActiveCfg = Release|x64
-		{34F9834A-1FDE-4704-AAE6-19B30EF12F05}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
