@@ -2,17 +2,16 @@ package neoplayer.neoremote;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class Message {
     public enum ServerCommand {
         None,
-        Queued,
+        GetQueue,
     }
 
-    ByteBuffer byteBuffer;
+    private ByteBuffer byteBuffer;
     public final ServerCommand command;
 
     public Message(ServerCommand command) {
@@ -58,10 +57,14 @@ public class Message {
         return byteBuffer.getInt();
     }
 
-    public String ReadString() throws UnsupportedEncodingException {
+    public String ReadString() {
         int size = ReadInt();
         byte[] bytes = new byte[size];
         byteBuffer.get(bytes, 0, size);
-        return new String(bytes, "UTF-8");
+        try {
+            return new String(bytes, "UTF-8");
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

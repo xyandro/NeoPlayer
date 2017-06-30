@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 
 namespace NeoPlayer
 {
@@ -54,7 +52,7 @@ namespace NeoPlayer
 					var command = (NetServerCommand)BitConverter.ToInt32(buffer, 0);
 					switch (command)
 					{
-						case NetServerCommand.Queued: SendQueued(queue); break;
+						case NetServerCommand.Queued: queue.Enqueue(Queued()); break;
 					}
 				}
 			}
@@ -63,7 +61,7 @@ namespace NeoPlayer
 			queue.SetFinished();
 		}
 
-		static void SendQueued(AsyncQueue<byte[]> queue)
+		public static byte[] Queued()
 		{
 			var message = new Message(NetServerCommand.Queued);
 			var videos = NeoPlayerWindow.Current.QueuedVideos.ToList();
@@ -74,7 +72,7 @@ namespace NeoPlayer
 				message.Add(video.URL);
 			}
 
-			queue.Enqueue(message.GetBytes());
+			return message.GetBytes();
 		}
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)
