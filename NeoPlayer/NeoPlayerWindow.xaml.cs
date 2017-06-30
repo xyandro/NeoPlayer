@@ -55,25 +55,14 @@ namespace NeoPlayer
 
 		readonly List<string> slides = new List<string>();
 		readonly List<MediaData> music = new List<MediaData>();
-		readonly List<MediaData> videos = new List<MediaData>
-		{
-			new MediaData("Randon", "http://randon.com"),
-			new MediaData("Ben", "http://ben.com"),
-			new MediaData("Sophia", "http://sophia.com"),
-			new MediaData("Timothy", "http://timothy.com"),
-			new MediaData("Katelyn", "http://katelyn.com"),
-			new MediaData("Phoebe", "http://phoebe.com"),
-			new MediaData("Megan", "http://megan.com"),
-		};
+		readonly List<MediaData> queuedVideos = new List<MediaData>();
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex % slides.Count] : null;
 		public MediaData CurrentMusic => music.FirstOrDefault();
-		public MediaData CurrentVideo => videos.FirstOrDefault();
+		public MediaData CurrentQueuedVideo => queuedVideos.FirstOrDefault();
 
-		public IEnumerable<MediaData> QueuedVideos => videos;
-
-		public bool VideoIsQueued(string url) => videos.Any(video => video.URL == url);
+		public IEnumerable<MediaData> QueuedVideos => queuedVideos;
 
 		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
 		{
@@ -102,7 +91,7 @@ namespace NeoPlayer
 		}
 		public void EnqueueVideo(MediaData videoData)
 		{
-			videos.Add(videoData);
+			queuedVideos.Add(videoData);
 			ActionChanged();
 		}
 
@@ -133,10 +122,10 @@ namespace NeoPlayer
 
 		public void CycleVideo()
 		{
-			if (!videos.Any())
+			if (!queuedVideos.Any())
 				return;
 
-			videos.RemoveAt(0);
+			queuedVideos.RemoveAt(0);
 			ActionChanged();
 		}
 
@@ -209,7 +198,7 @@ namespace NeoPlayer
 
 		void HandleActions()
 		{
-			if ((CurrentAction == ActionType.Videos) && (CurrentVideo == null))
+			if ((CurrentAction == ActionType.Videos) && (CurrentQueuedVideo == null))
 			{
 				CurrentAction = ActionType.Slideshow;
 				MusicAutoPlay = false;
@@ -340,7 +329,7 @@ namespace NeoPlayer
 		MediaData currentVideo = null;
 		void StopVideoIfNecessary()
 		{
-			if ((currentVideo == null) || ((CurrentAction == ActionType.Videos) && (currentVideo == CurrentVideo)))
+			if ((currentVideo == null) || ((CurrentAction == ActionType.Videos) && (currentVideo == CurrentQueuedVideo)))
 				return;
 
 			currentVideo = null;
@@ -350,10 +339,10 @@ namespace NeoPlayer
 
 		void StartNewVideo()
 		{
-			if ((CurrentAction != ActionType.Videos) || (currentVideo == CurrentVideo))
+			if ((CurrentAction != ActionType.Videos) || (currentVideo == CurrentQueuedVideo))
 				return;
 
-			currentVideo = CurrentVideo;
+			currentVideo = CurrentQueuedVideo;
 			vlc.playlist.add(currentVideo.URL);
 			vlc.playlist.playItem(0);
 		}

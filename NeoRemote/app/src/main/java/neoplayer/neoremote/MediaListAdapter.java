@@ -50,7 +50,9 @@ public class MediaListAdapter extends BaseAdapter {
             }
         }
 
-        View view = activity.getLayoutInflater().inflate(R.layout.fragment_videos_listitem, parent, false);
+        View view = convertView;
+        if (view == null)
+            view = activity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
         ((ImageView) view.findViewById(R.id.image)).setImageResource(found ? R.drawable.check : R.drawable.uncheck);
         ((TextView) view.findViewById(R.id.name)).setText(mediaData.description);
 

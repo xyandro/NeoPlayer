@@ -26,7 +26,7 @@ public class QueuedFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View result = inflater.inflate(R.layout.fragment_videos, container, false);
+        View result = inflater.inflate(R.layout.fragment_queued, container, false);
 
         final EditText searchText = result.findViewById(R.id.search_text);
         searchText.addTextChangedListener(new TextWatcher() {
