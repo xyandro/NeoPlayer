@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace NeoPlayer
 {
@@ -47,20 +49,32 @@ namespace NeoPlayer
 				while (true)
 				{
 					var buffer = await Read(stream, sizeof(int));
-					buffer = await Read(stream, BitConverter.ToInt32(buffer, 0));
+					buffer = await Read(stream, BitConverter.ToInt32(buffer, 0) - 4);
 
-					var str = Encoding.UTF8.GetString(buffer);
-					var response = Encoding.UTF8.GetBytes($"You sent {str}");
-					var length = response.Length;
-					Array.Resize(ref response, length + 4);
-					Array.Copy(response, 0, response, 4, length);
-					Array.Copy(BitConverter.GetBytes(length), response, 4);
-					queue.Enqueue(response);
+					var command = (NetServerCommand)BitConverter.ToInt32(buffer, 0);
+					switch (command)
+					{
+						case NetServerCommand.Queued: SendQueued(queue); break;
+					}
 				}
 			}
 			catch { }
 			finally { client.Close(); }
 			queue.SetFinished();
+		}
+
+		static void SendQueued(AsyncQueue<byte[]> queue)
+		{
+			var message = new Message(NetServerCommand.Queued);
+			var videos = NeoPlayerWindow.Current.QueuedVideos.ToList();
+			message.Add(videos.Count);
+			foreach (var video in videos)
+			{
+				message.Add(video.Description);
+				message.Add(video.URL);
+			}
+
+			queue.Enqueue(message.GetBytes());
 		}
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)

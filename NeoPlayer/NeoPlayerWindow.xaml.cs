@@ -15,6 +15,8 @@ namespace NeoPlayer
 {
 	partial class NeoPlayerWindow
 	{
+		public static NeoPlayerWindow Current { get; private set; }
+
 		public enum ActionType
 		{
 			Slideshow,
@@ -53,12 +55,23 @@ namespace NeoPlayer
 
 		readonly List<string> slides = new List<string>();
 		readonly List<MediaData> music = new List<MediaData>();
-		readonly List<MediaData> videos = new List<MediaData>();
+		readonly List<MediaData> videos = new List<MediaData>
+		{
+			new MediaData("Randon", "http://randon.com"),
+			new MediaData("Ben", "http://ben.com"),
+			new MediaData("Sophia", "http://sophia.com"),
+			new MediaData("Timothy", "http://timothy.com"),
+			new MediaData("Katelyn", "http://katelyn.com"),
+			new MediaData("Phoebe", "http://phoebe.com"),
+			new MediaData("Megan", "http://megan.com"),
+		};
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex % slides.Count] : null;
 		public MediaData CurrentMusic => music.FirstOrDefault();
 		public MediaData CurrentVideo => videos.FirstOrDefault();
+
+		public IEnumerable<MediaData> QueuedVideos => videos;
 
 		public bool VideoIsQueued(string url) => videos.Any(video => video.URL == url);
 
@@ -156,6 +169,8 @@ namespace NeoPlayer
 
 		public NeoPlayerWindow()
 		{
+			Current = this;
+
 			InitializeComponent();
 
 			// Keep screen/computer on

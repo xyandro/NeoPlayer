@@ -5,7 +5,7 @@
 	Title="NeoPlayer Test Client" Width="450" Height="800">
 
 	<TabControl>
-		<TabItem Header="Videos">
+		<TabItem Header="Queued">
 			<Grid Background="Black">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="5*"/>
@@ -33,7 +33,7 @@
 					<Image Grid.Row="0" Grid.Column="2" Source="pack://application:,,,/clear.png"/>
 				</Grid>
 
-				<ListView Grid.Row="2" ItemsSource="{Binding Videos, ElementName=self}" BorderThickness="0" Padding="0" Margin="0">
+				<ListView Grid.Row="2" ItemsSource="{Binding Queued, ElementName=self}" BorderThickness="0" Padding="0" Margin="0">
 					<ListView.Resources>
 						<Style TargetType="GridViewColumnHeader">
 							<Setter Property="Visibility" Value="Collapsed"/>

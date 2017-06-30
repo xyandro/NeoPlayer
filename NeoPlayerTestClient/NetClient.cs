@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using NeoPlayer;
 
@@ -35,14 +37,24 @@ namespace NeoPlayerTestClient
 
 					RunSender(client);
 
-					queue.Enqueue(new byte[] { 41, 0, 0, 0, 84, 104, 105, 115, 32, 105, 115, 32, 109, 101, 32, 115, 101, 110, 100, 105, 110, 103, 32, 97, 32, 115, 116, 114, 105, 110, 103, 32, 116, 111, 32, 109, 121, 32, 115, 101, 114, 118, 101, 114, 46 });
+					RequestQueued();
 
 					var stream = client.GetStream();
 
 					while (true)
 					{
 						var buffer = await Read(stream, sizeof(int));
-						buffer = await Read(stream, BitConverter.ToInt32(buffer, 0));
+						buffer = await Read(stream, BitConverter.ToInt32(buffer, 0) - 4);
+
+						using (var ms = new MemoryStream(buffer))
+						using (var reader = new BinaryReader(ms))
+						{
+							var command = (NetServerCommand)reader.ReadInt32();
+							switch (command)
+							{
+								case NetServerCommand.Queued: SetQueued(reader); break;
+							}
+						}
 					}
 				}
 				catch { }
@@ -50,6 +62,29 @@ namespace NeoPlayerTestClient
 				await Task.Delay(1000);
 			}
 		}
+
+		static string GetString(BinaryReader reader)
+		{
+			var length = reader.ReadInt32();
+			var bytes = new byte[length];
+			reader.Read(bytes, 0, bytes.Length);
+			return Encoding.UTF8.GetString(bytes);
+		}
+
+		static void SetQueued(BinaryReader reader)
+		{
+			var count = reader.ReadInt32();
+			var mediaData = new List<MediaData>();
+			for (var ctr = 0; ctr < count; ++ctr)
+			{
+				var description = GetString(reader);
+				var url = GetString(reader);
+				mediaData.Add(new MediaData(description, url));
+			}
+			MainWindow.Current.SetQueued(mediaData);
+		}
+
+		static void RequestQueued() => queue.Enqueue(new Message(NetServerCommand.Queued).Bytes);
 
 		public static async void RunSender(TcpClient client)
 		{

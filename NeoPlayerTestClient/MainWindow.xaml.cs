@@ -1,73 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
+using NeoPlayer;
 
 namespace NeoPlayerTestClient
 {
 	partial class MainWindow
 	{
+		public static MainWindow Current { get; private set; }
+
 		public static DependencyProperty SearchTextProperty = DependencyProperty.Register(nameof(SearchText), typeof(string), typeof(MainWindow));
 		public static DependencyProperty CurrentSongProperty = DependencyProperty.Register(nameof(CurrentSong), typeof(string), typeof(MainWindow));
 		public static DependencyProperty PositionProperty = DependencyProperty.Register(nameof(Position), typeof(int), typeof(MainWindow));
 		public static DependencyProperty LengthProperty = DependencyProperty.Register(nameof(Length), typeof(int), typeof(MainWindow));
-		public static DependencyProperty VideosProperty = DependencyProperty.Register(nameof(Videos), typeof(ObservableCollection<string>), typeof(MainWindow));
+		public static DependencyProperty QueuedProperty = DependencyProperty.Register(nameof(Queued), typeof(ObservableCollection<MediaData>), typeof(MainWindow));
 
 		public string SearchText { get { return (string)GetValue(SearchTextProperty); } set { SetValue(SearchTextProperty, value); } }
 		public string CurrentSong { get { return (string)GetValue(CurrentSongProperty); } set { SetValue(CurrentSongProperty, value); } }
 		public int Position { get { return (int)GetValue(PositionProperty); } set { SetValue(PositionProperty, value); } }
 		public int Length { get { return (int)GetValue(LengthProperty); } set { SetValue(LengthProperty, value); } }
-		public ObservableCollection<MediaData> Videos { get { return (ObservableCollection<MediaData>)GetValue(VideosProperty); } set { SetValue(VideosProperty, value); } }
+		public ObservableCollection<MediaData> Queued { get { return (ObservableCollection<MediaData>)GetValue(QueuedProperty); } set { SetValue(QueuedProperty, value); } }
 
 		public MainWindow()
 		{
+			Current = this;
+
 			InitializeComponent();
 			SearchText = "My Search Text";
 			CurrentSong = "Current song";
 			Position = 125;
 			Length = 255;
-			Videos = new ObservableCollection<MediaData>
-			{
-				new MediaData("Randon", "Randon Spackman", true),
-				new MediaData("Ben", "Ben Christensen", true),
-				new MediaData("Sophie", "Sophie Christensen", true),
-				new MediaData("Timo", "Timo Christensen", false),
-				new MediaData("Kate", "Kate Spackman", false),
-				new MediaData("Phoebe", "Phoebe Christensen", true),
-				new MediaData("Megan", "Megan Spackman", false),
-				new MediaData("Randon", "Randon Spackman", true),
-				new MediaData("Ben", "Ben Christensen", false),
-				new MediaData("Sophie", "Sophie Christensen", false),
-				new MediaData("Timo", "Timo Christensen", true),
-				new MediaData("Kate", "Kate Spackman", false),
-				new MediaData("Phoebe", "Phoebe Christensen", true),
-				new MediaData("Megan", "Megan Spackman", false),
-				new MediaData("Randon", "Randon Spackman", true),
-				new MediaData("Ben", "Ben Christensen", false),
-				new MediaData("Sophie", "Sophie Christensen", false),
-				new MediaData("Timo", "Timo Christensen", true),
-				new MediaData("Kate", "Kate Spackman", false),
-				new MediaData("Phoebe", "Phoebe Christensen", true),
-				new MediaData("Megan", "Megan Spackman", false),
-				new MediaData("Randon", "Randon Spackman", false),
-				new MediaData("Ben", "Ben Christensen", false),
-				new MediaData("Sophie", "Sophie Christensen", false),
-				new MediaData("Timo", "Timo Christensen", false),
-				new MediaData("Kate", "Kate Spackman", false),
-				new MediaData("Phoebe", "Phoebe Christensen", true),
-				new MediaData("Megan", "Megan Spackman", false),
-				new MediaData("Randon", "Randon Spackman", false),
-				new MediaData("Ben", "Ben Christensen", true),
-				new MediaData("Sophie", "Sophie Christensen", false),
-				new MediaData("Timo", "Timo Christensen", false),
-				new MediaData("Kate", "Kate Spackman", true),
-				new MediaData("Phoebe", "Phoebe Christensen", true),
-				new MediaData("Megan", "Megan Spackman", false),
-			};
+			Queued = new ObservableCollection<MediaData>();
 
 			NetClient.RunSocket();
+		}
+
+		public void SetQueued(IEnumerable<MediaData> mediaData)
+		{
+			Queued = new ObservableCollection<MediaData>(mediaData);
 		}
 	}
 

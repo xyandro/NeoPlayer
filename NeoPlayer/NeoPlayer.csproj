@@ -79,6 +79,7 @@
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Interceptor.cs" />
     <Compile Include="MediaData.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="MoreLinq.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -89,6 +90,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NetServer.cs" />
+    <Compile Include="NetServerCommand.cs" />
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

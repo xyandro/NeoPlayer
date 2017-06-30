@@ -49,6 +49,15 @@
     <Compile Include="..\NeoPlayer\AsyncQueue.cs">
       <Link>AsyncQueue.cs</Link>
     </Compile>
+    <Compile Include="..\NeoPlayer\MediaData.cs">
+      <Link>MediaData.cs</Link>
+    </Compile>
+    <Compile Include="..\NeoPlayer\Message.cs">
+      <Link>Message.cs</Link>
+    </Compile>
+    <Compile Include="..\NeoPlayer\NetServerCommand.cs">
+      <Link>NetServerCommand.cs</Link>
+    </Compile>
     <Resource Include="..\NeoRemote\app\src\main\res\drawable\back5.png">
       <Link>back5.png</Link>
     </Resource>
@@ -101,7 +110,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MediaData.cs" />
     <Compile Include="NetClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
