@@ -9,13 +9,17 @@ import android.support.v4.content.LocalBroadcastManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class SocketService extends Service {
     private final SocketServiceBinder mBinder = new SocketServiceBinder();
     private LocalBroadcastManager mLocalBroadcastManager;
+    private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<byte[]>(100);
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -42,7 +46,10 @@ public class SocketService extends Service {
     private void RunReaderThread() {
         while (true) {
             try {
-                final Socket socket = new Socket("192.168.1.10", 7398);
+                final Socket socket = new Socket("192.168.1.10", 7399);
+
+                RequestQueued();
+
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -53,23 +60,45 @@ public class SocketService extends Service {
                 InputStream stream = socket.getInputStream();
 
                 while (true) {
-                    byte[] buffer = ReadSocket(stream, 4);
-                    int size = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt();
-                    buffer = ReadSocket(stream, size);
-                    mLocalBroadcastManager.sendBroadcast(new Intent("custom-event-name"));
+                    Message message = new Message(stream);
+                    switch (message.command) {
+                        case Queued:
+                            SetQueued(message);
+                            break;
+                    }
                 }
             } catch (Exception ex) {
             }
         }
     }
 
+    private void SetQueued(Message message) throws UnsupportedEncodingException {
+        int count = message.ReadInt();
+        ArrayList<MediaData> mediaData = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            String description = message.ReadString();
+            String url = message.ReadString();
+            mediaData.add(new MediaData(description, url));
+        }
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("Queue", mediaData);
+        mLocalBroadcastManager.sendBroadcast(intent);
+    }
+
     private void RunWriterThread(Socket socket) {
         try {
             OutputStream stream = socket.getOutputStream();
-            byte[] message = new byte[]{51, 0, 0, 0, 84, 104, 105, 115, 32, 105, 115, 32, 109, 121, 32, 116, 101, 115, 116, 32, 115, 116, 114, 105, 110, 103, 46, 32, 73, 116, 39, 115, 32, 112, 114, 101, 116, 116, 121, 32, 97, 119, 101, 115, 111, 109, 101, 44, 32, 114, 105, 103, 104, 116, 63};
-            stream.write(message);
+            while (true) {
+                byte[] message = outputQueue.take();
+                stream.write(message);
+            }
         } catch (Exception ex) {
         }
+    }
+
+    private void RequestQueued() {
+        Message message = new Message(Message.ServerCommand.Queued);
+        outputQueue.add(message.GetBytes());
     }
 
     public class SocketServiceBinder extends Binder {

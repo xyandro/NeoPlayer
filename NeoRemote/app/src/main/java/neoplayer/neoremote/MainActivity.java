@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.VolumeProviderCompat;
@@ -20,7 +19,8 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
     private ViewPager mPager;
@@ -28,6 +28,8 @@ public class MainActivity extends Activity {
     private VideosFragment mVideosFragment;
     private SocketService mSocketService;
     private LocalBroadcastManager mLocalBroadcastManager;
+
+    private final ArrayList<MediaData> mQueuedVideos = new ArrayList<MediaData>();
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -38,14 +40,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mVideosFragment = new VideosFragment(this);
+        mVideosFragment = new VideosFragment(this, mQueuedVideos);
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Bundle extras = intent.getExtras();
+                if (extras.containsKey("Queue")) {
+                    ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Queue");
+                    mQueuedVideos.clear();
+                    for (MediaData mediaData : mediaDatas)
+                        mQueuedVideos.add(mediaData);
+                    mVideosFragment.Refresh();
+                }
             }
         };
         final LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-        broadcastManager.registerReceiver(broadcastReceiver, new IntentFilter("custom-event-name"));
+        broadcastManager.registerReceiver(broadcastReceiver, new IntentFilter("NeoRemoteEvent"));
 
         ServiceConnection connection = new ServiceConnection() {
             @Override

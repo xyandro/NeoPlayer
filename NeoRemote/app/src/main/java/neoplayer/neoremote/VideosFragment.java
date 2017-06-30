@@ -20,45 +20,11 @@ import java.util.ArrayList;
 
 public class VideosFragment extends Fragment {
     private final VideosListAdapter mAdapter;
+    private final ArrayList<MediaData> mediaData;
 
-    public VideosFragment(Activity activity) {
-        final ArrayList<VideoData> items = new ArrayList<>();
-        items.add(new VideoData("Randon Spackman", "Randon", false));
-        items.add(new VideoData("Ben Christensen", "Ben", true));
-        items.add(new VideoData("Sophie Christensen", "Sophie", true));
-        items.add(new VideoData("Timothy Christensen", "Timothy", false));
-        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        items.add(new VideoData("Megan Spackman", "Megan", true));
-        items.add(new VideoData("Randon Spackman", "Randon", false));
-        items.add(new VideoData("Ben Christensen", "Ben", true));
-        items.add(new VideoData("Sophie Christensen", "Sophie", true));
-        items.add(new VideoData("Timothy Christensen", "Timothy", false));
-        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        items.add(new VideoData("Megan Spackman", "Megan", true));
-        items.add(new VideoData("Randon Spackman", "Randon", false));
-        items.add(new VideoData("Ben Christensen", "Ben", true));
-        items.add(new VideoData("Sophie Christensen", "Sophie", true));
-        items.add(new VideoData("Timothy Christensen", "Timothy", false));
-        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        items.add(new VideoData("Megan Spackman", "Megan", true));
-        items.add(new VideoData("Randon Spackman", "Randon", false));
-        items.add(new VideoData("Ben Christensen", "Ben", true));
-        items.add(new VideoData("Sophie Christensen", "Sophie", true));
-        items.add(new VideoData("Timothy Christensen", "Timothy", false));
-        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        items.add(new VideoData("Megan Spackman", "Megan", true));
-        items.add(new VideoData("Randon Spackman", "Randon", false));
-        items.add(new VideoData("Ben Christensen", "Ben", true));
-        items.add(new VideoData("Sophie Christensen", "Sophie", true));
-        items.add(new VideoData("Timothy Christensen", "Timothy", false));
-        items.add(new VideoData("Katelyn Spackman", "Katelyn", true));
-        items.add(new VideoData("Phoebe Christensen", "Phoebe", true));
-        items.add(new VideoData("Megan Spackman", "Megan", true));
-        mAdapter = new VideosListAdapter(activity, items);
+    public VideosFragment(Activity activity, ArrayList<MediaData> mediaData) {
+        this.mediaData = mediaData;
+        mAdapter = new VideosListAdapter(activity, mediaData);
     }
 
     @Override
@@ -92,12 +58,16 @@ public class VideosFragment extends Fragment {
         return result;
     }
 
+    public void Refresh() {
+        mAdapter.notifyDataSetChanged();
+    }
+
     private class VideosListAdapter extends BaseAdapter implements Filterable {
         private final Activity activity;
-        private final ArrayList<VideoData> mFullList;
-        private ArrayList<VideoData> mFilteredList;
+        private final ArrayList<MediaData> mFullList;
+        private ArrayList<MediaData> mFilteredList;
 
-        public VideosListAdapter(Activity activity, ArrayList<VideoData> list) {
+        public VideosListAdapter(Activity activity, ArrayList<MediaData> list) {
             super();
             this.activity = activity;
             mFullList = mFilteredList = list;
@@ -122,13 +92,14 @@ public class VideosFragment extends Fragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = activity.getLayoutInflater().inflate(R.layout.fragment_videos_listitem, parent, false);
 
-            VideoData videoData = mFilteredList.get(position);
+            MediaData mediaData = mFilteredList.get(position);
 
             ImageView imageView = view.findViewById(R.id.image);
-            imageView.setImageResource(videoData.Selected ? R.drawable.check : R.drawable.uncheck);
+            //imageView.setImageResource(mediaData.Selected ? R.drawable.check : R.drawable.uncheck);
+            imageView.setImageResource(R.drawable.check);
 
             TextView textView = view.findViewById(R.id.name);
-            textView.setText(videoData.Description);
+            textView.setText(mediaData.Description);
 
             return view;
         }
@@ -144,10 +115,10 @@ public class VideosFragment extends Fragment {
                         result.values = mFullList;
                         result.count = mFullList.size();
                     } else {
-                        final ArrayList<VideoData> items = new ArrayList<>();
-                        for (VideoData videoData : mFullList) {
-                            if (videoData.Description.toLowerCase().contains(find))
-                                items.add(videoData);
+                        final ArrayList<MediaData> items = new ArrayList<>();
+                        for (MediaData mediaData : mFullList) {
+                            if (mediaData.Description.toLowerCase().contains(find))
+                                items.add(mediaData);
                         }
                         result.values = items;
                         result.count = items.size();
@@ -158,7 +129,7 @@ public class VideosFragment extends Fragment {
 
                 @Override
                 protected void publishResults(CharSequence charSequence, FilterResults results) {
-                    mFilteredList = (ArrayList<VideoData>) results.values;
+                    mFilteredList = (ArrayList<MediaData>) results.values;
                     notifyDataSetChanged();
                 }
             };
