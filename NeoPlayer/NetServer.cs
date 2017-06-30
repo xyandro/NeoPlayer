@@ -14,6 +14,7 @@ namespace NeoPlayer
 		{
 			None,
 			GetQueue,
+			GetCool,
 		}
 
 		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
@@ -59,6 +60,7 @@ namespace NeoPlayer
 					switch (command)
 					{
 						case NetServerCommand.GetQueue: queue.Enqueue(Queued()); break;
+						case NetServerCommand.GetCool: queue.Enqueue(Cool()); break;
 					}
 				}
 			}
@@ -71,6 +73,20 @@ namespace NeoPlayer
 		{
 			var message = new Message(NetServerCommand.GetQueue);
 			var videos = NeoPlayerWindow.Current.QueuedVideos.ToList();
+			message.Add(videos.Count);
+			foreach (var video in videos)
+			{
+				message.Add(video.Description);
+				message.Add(video.URL);
+			}
+
+			return message.GetBytes();
+		}
+
+		public static byte[] Cool()
+		{
+			var message = new Message(NetServerCommand.GetCool);
+			var videos = NeoPlayerWindow.Current.CoolVideos.ToList();
 			message.Add(videos.Count);
 			foreach (var video in videos)
 			{

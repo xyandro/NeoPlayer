@@ -9,6 +9,7 @@ public class Message {
     public enum ServerCommand {
         None,
         GetQueue,
+        GetCool,
     }
 
     private ByteBuffer byteBuffer;

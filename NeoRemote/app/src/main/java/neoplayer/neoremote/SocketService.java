@@ -44,6 +44,7 @@ public class SocketService extends Service {
 
                     outputQueue.clear();
                     requestQueue();
+                    requestCool();
 
                     new Thread(new Runnable() {
                         @Override
@@ -58,6 +59,9 @@ public class SocketService extends Service {
                         switch (message.command) {
                             case GetQueue:
                                 setQueue(message);
+                                break;
+                            case GetCool:
+                                setCool(message);
                                 break;
                         }
                     }
@@ -93,6 +97,26 @@ public class SocketService extends Service {
 
         Intent intent = new Intent("NeoRemoteEvent");
         intent.putExtra("Queue", mediaData);
+        broadcastManager.sendBroadcast(intent);
+    }
+
+    private void requestCool() {
+        Log.d(TAG, "RequestCool: Requesting cool");
+        outputQueue.add(new Message(Message.ServerCommand.GetCool).getBytes());
+    }
+
+    private void setCool(Message message) {
+        int count = message.readInt();
+        ArrayList<MediaData> mediaData = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            String description = message.readString();
+            String url = message.readString();
+            mediaData.add(new MediaData(description, url));
+        }
+        Log.d(TAG, "setCool: " + mediaData.size() + " item(s)");
+
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("Cool", mediaData);
         broadcastManager.sendBroadcast(intent);
     }
 

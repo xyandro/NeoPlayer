@@ -25,8 +25,10 @@ public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private QueueFragment queueFragment;
+    private CoolFragment coolFragment;
     private SocketService socketService;
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
+    private final ArrayList<MediaData> coolVideos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +42,10 @@ public class MainActivity extends Activity {
 
     private void createUIElements() {
         queueFragment = new QueueFragment(this, queueVideos);
+        coolFragment = new CoolFragment(this, coolVideos, queueVideos);
         Fragment[] pages = new Fragment[]{
                 queueFragment,
+                coolFragment,
         };
         ((ViewPager) findViewById(R.id.pager)).setAdapter(new ScreenSlidePagerAdapter(getFragmentManager(), pages));
     }
@@ -106,12 +110,22 @@ public class MainActivity extends Activity {
 
     private void handleMessage(Intent intent) {
         Bundle extras = intent.getExtras();
+
         if (extras.containsKey("Queue")) {
             ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Queue");
             queueVideos.clear();
             for (MediaData mediaData : mediaDatas)
                 queueVideos.add(mediaData);
+            coolFragment.Refresh();
             queueFragment.Refresh();
+        }
+
+        if (extras.containsKey("Cool")) {
+            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Cool");
+            coolVideos.clear();
+            for (MediaData mediaData : mediaDatas)
+                coolVideos.add(mediaData);
+            coolFragment.Refresh();
         }
     }
 
