@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 public class Message {
     public enum ServerCommand {
         None,
+        QueueVideo,
         GetQueue,
         GetCool,
     }
@@ -18,12 +19,27 @@ public class Message {
     public Message(ServerCommand command) {
         this.command = command;
         byteBuffer = ByteBuffer.allocateDirect(1024).order(ByteOrder.LITTLE_ENDIAN);
-        writeInt(0);
-        writeInt(command.ordinal());
+        write(0);
+        write(command.ordinal());
     }
 
-    public void writeInt(int value) {
+    public void write(byte[] value) {
+        byteBuffer.put(value);
+    }
+
+    public void write(int value) {
         byteBuffer.putInt(value);
+    }
+
+    public void write(String value) {
+        byte[] bytes;
+        try {
+            bytes = value.getBytes("UTF-8");
+        } catch (Exception ex) {
+            bytes = new byte[0];
+        }
+        write(bytes.length);
+        write(bytes);
     }
 
     public byte[] getBytes() {

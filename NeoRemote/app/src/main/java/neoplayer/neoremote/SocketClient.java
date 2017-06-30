@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class SocketService extends Service {
-    private static final String TAG = SocketService.class.getSimpleName();
+public class SocketClient extends Service {
+    private static final String TAG = SocketClient.class.getSimpleName();
 
     private final SocketServiceBinder binder = new SocketServiceBinder();
     private LocalBroadcastManager broadcastManager;
@@ -139,9 +139,17 @@ public class SocketService extends Service {
         Log.d(TAG, "runWriterThread: Stopped");
     }
 
+    public void queueVideo(MediaData mediaData) {
+        Log.d(TAG, "queueVideo: Requesting " + mediaData.description + " (" + mediaData.url + ")");
+        Message message = new Message(Message.ServerCommand.QueueVideo);
+        message.write(mediaData.description);
+        message.write(mediaData.url);
+        outputQueue.add(message.getBytes());
+    }
+
     public class SocketServiceBinder extends Binder {
-        SocketService getService() {
-            return SocketService.this;
+        SocketClient getService() {
+            return SocketClient.this;
         }
     }
 

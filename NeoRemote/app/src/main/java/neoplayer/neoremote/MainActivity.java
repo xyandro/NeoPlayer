@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
 
     private QueueFragment queueFragment;
     private CoolFragment coolFragment;
-    private SocketService socketService;
+    private SocketClient socketClient;
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
 
@@ -47,7 +47,9 @@ public class MainActivity extends Activity {
                 queueFragment,
                 coolFragment,
         };
-        ((ViewPager) findViewById(R.id.pager)).setAdapter(new ScreenSlidePagerAdapter(getFragmentManager(), pages));
+        ViewPager pager = findViewById(R.id.pager);
+        pager.setAdapter(new ScreenSlidePagerAdapter(getFragmentManager(), pages));
+        pager.setCurrentItem(1);
     }
 
     private void prepareMediaSession() {
@@ -95,17 +97,17 @@ public class MainActivity extends Activity {
         ServiceConnection connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName className, IBinder service) {
-                socketService = ((SocketService.SocketServiceBinder) service).getService();
-                socketService.setBroadcastManager(broadcastManager);
+                socketClient = ((SocketClient.SocketServiceBinder) service).getService();
+                socketClient.setBroadcastManager(broadcastManager);
             }
 
             @Override
             public void onServiceDisconnected(ComponentName arg0) {
-                socketService = null;
+                socketClient = null;
             }
         };
 
-        bindService(new Intent(this, SocketService.class), connection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, SocketClient.class), connection, Context.BIND_AUTO_CREATE);
     }
 
     private void handleMessage(Intent intent) {
@@ -127,6 +129,10 @@ public class MainActivity extends Activity {
                 coolVideos.add(mediaData);
             coolFragment.Refresh();
         }
+    }
+
+    public void queueVideo(MediaData mediaData) {
+        socketClient.queueVideo(mediaData);
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {

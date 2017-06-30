@@ -1,6 +1,5 @@
 package neoplayer.neoremote;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,10 +19,10 @@ public class CoolFragment extends Fragment {
     private final ArrayList<MediaData> coolVideos;
     private final ArrayList<MediaData> queueVideos;
 
-    public CoolFragment(Activity activity, ArrayList<MediaData> coolVideos, ArrayList<MediaData> queueVideos) {
+    public CoolFragment(MainActivity mainActivity, ArrayList<MediaData> coolVideos, ArrayList<MediaData> queueVideos) {
         this.coolVideos = coolVideos;
         this.queueVideos = queueVideos;
-        adapter = new MediaListAdapter(activity, coolVideos, queueVideos);
+        adapter = new MediaListAdapter(mainActivity, coolVideos, queueVideos);
     }
 
     @Override

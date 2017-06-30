@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace NeoPlayer
 {
@@ -13,6 +10,7 @@ namespace NeoPlayer
 		public enum NetServerCommand
 		{
 			None,
+			QueueVideo,
 			GetQueue,
 			GetCool,
 		}
@@ -32,20 +30,6 @@ namespace NeoPlayer
 			}
 		}
 
-		async static Task<byte[]> Read(Stream stream, int size)
-		{
-			var buffer = new byte[size];
-			var used = 0;
-			while (used < size)
-			{
-				var block = await stream.ReadAsync(buffer, used, size - used);
-				if (block == 0)
-					throw new EndOfStreamException();
-				used += block;
-			}
-			return buffer;
-		}
-
 		async static void Reader(TcpClient client, AsyncQueue<byte[]> queue)
 		{
 			try
@@ -53,14 +37,12 @@ namespace NeoPlayer
 				var stream = client.GetStream();
 				while (true)
 				{
-					var buffer = await Read(stream, sizeof(int));
-					buffer = await Read(stream, BitConverter.ToInt32(buffer, 0) - 4);
-
-					var command = (NetServerCommand)BitConverter.ToInt32(buffer, 0);
-					switch (command)
+					var message = await Message.Read(stream);
+					switch (message.Command)
 					{
-						case NetServerCommand.GetQueue: queue.Enqueue(Queued()); break;
-						case NetServerCommand.GetCool: queue.Enqueue(Cool()); break;
+						case NetServerCommand.QueueVideo: QueueVideo(message); break;
+						case NetServerCommand.GetQueue: queue.Enqueue(GetQueue()); break;
+						case NetServerCommand.GetCool: queue.Enqueue(GetCool()); break;
 					}
 				}
 			}
@@ -69,10 +51,18 @@ namespace NeoPlayer
 			queue.SetFinished();
 		}
 
-		public static byte[] Queued()
+		static void QueueVideo(Message message)
+		{
+			var description = message.GetString();
+			var url = message.GetString();
+			var mediaData = new MediaData(description, url);
+			NeoPlayerWindow.Current.EnqueueVideo(mediaData);
+		}
+
+		public static byte[] GetQueue()
 		{
 			var message = new Message(NetServerCommand.GetQueue);
-			var videos = NeoPlayerWindow.Current.QueuedVideos.ToList();
+			var videos = NeoPlayerWindow.Current.QueueVideos.ToList();
 			message.Add(videos.Count);
 			foreach (var video in videos)
 			{
@@ -83,7 +73,7 @@ namespace NeoPlayer
 			return message.GetBytes();
 		}
 
-		public static byte[] Cool()
+		public static byte[] GetCool()
 		{
 			var message = new Message(NetServerCommand.GetCool);
 			var videos = NeoPlayerWindow.Current.CoolVideos.ToList();

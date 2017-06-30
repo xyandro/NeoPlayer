@@ -1,6 +1,5 @@
 package neoplayer.neoremote;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,9 +18,9 @@ public class QueueFragment extends Fragment {
     private final MediaListAdapter adapter;
     private final ArrayList<MediaData> queueVideos;
 
-    public QueueFragment(Activity activity, ArrayList<MediaData> queueVideos) {
+    public QueueFragment(MainActivity mainActivity, ArrayList<MediaData> queueVideos) {
         this.queueVideos = queueVideos;
-        adapter = new MediaListAdapter(activity, queueVideos, queueVideos);
+        adapter = new MediaListAdapter(mainActivity, queueVideos, queueVideos);
     }
 
     @Override

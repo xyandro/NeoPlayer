@@ -1,6 +1,5 @@
 package neoplayer.neoremote;
 
-import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -10,15 +9,15 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class MediaListAdapter extends BaseAdapter {
-    private final Activity activity;
+    private final MainActivity mainActivity;
     private final ArrayList<MediaData> list;
     private final ArrayList<MediaData> queue;
     private ArrayList<MediaData> filteredList;
     private String filter = "";
 
-    public MediaListAdapter(Activity activity, ArrayList<MediaData> list, ArrayList<MediaData> queue) {
+    public MediaListAdapter(MainActivity mainActivity, ArrayList<MediaData> list, ArrayList<MediaData> queue) {
         super();
-        this.activity = activity;
+        this.mainActivity = mainActivity;
         this.list = filteredList = list;
         this.queue = queue;
     }
@@ -40,11 +39,11 @@ public class MediaListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        MediaData mediaData = filteredList.get(position);
+        final MediaData mediaData = filteredList.get(position);
 
         boolean found = false;
         for (MediaData queueMediaData : queue) {
-            if (queueMediaData.url == mediaData.url) {
+            if (queueMediaData.url.equals(mediaData.url)) {
                 found = true;
                 break;
             }
@@ -52,9 +51,18 @@ public class MediaListAdapter extends BaseAdapter {
 
         View view = convertView;
         if (view == null)
-            view = activity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
-        ((ImageView) view.findViewById(R.id.image)).setImageResource(found ? R.drawable.check : R.drawable.uncheck);
+            view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
+        ImageView image = view.findViewById(R.id.image);
+        image.setImageResource(found ? R.drawable.check : R.drawable.uncheck);
         ((TextView) view.findViewById(R.id.name)).setText(mediaData.description);
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.queueVideo(mediaData);
+            }
+        };
+        image.setOnClickListener(clickListener);
+        view.setOnClickListener(clickListener);
 
         return view;
     }
