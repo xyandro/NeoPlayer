@@ -174,7 +174,7 @@ namespace NeoPlayer
 			Win32.SetThreadExecutionState(Win32.ES_CONTINUOUS | Win32.ES_DISPLAY_REQUIRED | Win32.ES_SYSTEM_REQUIRED);
 
 			var random = new Random();
-			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => EnqueueMusic(new MediaData(Path.GetFileNameWithoutExtension(fileName), $"file:///{fileName}")));
+			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => EnqueueMusic(new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }));
 
 			NetServer.Run(7399);
 

@@ -98,6 +98,6 @@ namespace NeoPlayer
 
 		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
 
-		public MediaData GetMediaData() => new MediaData(GetString(), GetString());
+		public MediaData GetMediaData() => new MediaData { Description = GetString(), URL = GetString() };
 	}
 }

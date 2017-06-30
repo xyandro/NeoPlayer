@@ -56,7 +56,7 @@ namespace NeoPlayer
 		public static byte[] GetCool()
 		{
 			var message = new Message(Message.MessageCommand.GetCool);
-			message.Add(Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData(Path.GetFileNameWithoutExtension(fileName), $"file:///{fileName}")).ToList());
+			message.Add(Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList());
 			return message.ToArray();
 		}
 
