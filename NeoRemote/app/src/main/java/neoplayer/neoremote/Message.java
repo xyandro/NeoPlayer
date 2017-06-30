@@ -17,15 +17,21 @@ public class Message {
     public Message(ServerCommand command) {
         this.command = command;
         byteBuffer = ByteBuffer.allocateDirect(1024).order(ByteOrder.LITTLE_ENDIAN);
-        WriteInt(8);
-        WriteInt(command.ordinal());
+        writeInt(0);
+        writeInt(command.ordinal());
     }
 
-    public void WriteInt(int value) {
+    public void writeInt(int value) {
         byteBuffer.putInt(value);
     }
 
-    public byte[] GetBytes() {
+    public byte[] getBytes() {
+        // Write size
+        int size = byteBuffer.position();
+        byteBuffer.position(0);
+        byteBuffer.putInt(size);
+        byteBuffer.position(size);
+
         byteBuffer.flip();
         byte[] arr = new byte[byteBuffer.remaining()];
         byteBuffer.get(arr);
@@ -53,12 +59,12 @@ public class Message {
         command = ServerCommand.values()[byteBuffer.getInt()];
     }
 
-    public int ReadInt() {
+    public int readInt() {
         return byteBuffer.getInt();
     }
 
-    public String ReadString() {
-        int size = ReadInt();
+    public String readString() {
+        int size = readInt();
         byte[] bytes = new byte[size];
         byteBuffer.get(bytes, 0, size);
         try {

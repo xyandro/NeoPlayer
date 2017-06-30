@@ -7,7 +7,6 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,15 +14,15 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class SocketService extends Service {
-    private final String TAG = SocketService.class.getSimpleName();
+    private static final String TAG = SocketService.class.getSimpleName();
 
-    private final SocketServiceBinder mBinder = new SocketServiceBinder();
-    private LocalBroadcastManager mBroadcastManager;
-    private ArrayBlockingQueue<byte[]> mOutputQueue = new ArrayBlockingQueue<>(100);
+    private final SocketServiceBinder binder = new SocketServiceBinder();
+    private LocalBroadcastManager broadcastManager;
+    private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return binder;
     }
 
     @Override
@@ -31,39 +30,39 @@ public class SocketService extends Service {
         super.onDestroy();
     }
 
-    private void RunReaderThread() {
-        Log.d(TAG, "RunReaderThread: Started");
+    private void runReaderThread() {
+        Log.d(TAG, "runReaderThread: Started");
         while (true) {
             try {
-                Log.d(TAG, "RunReaderThread: Connecting...");
+                Log.d(TAG, "runReaderThread: Connecting...");
 
                 final Socket socket = new Socket();
                 socket.connect(new InetSocketAddress("192.168.1.10", 7399), 1000);
 
-                Log.d(TAG, "RunReaderThread: Connected");
+                Log.d(TAG, "runReaderThread: Connected");
 
-                mOutputQueue.clear();
-                RequestQueue();
+                outputQueue.clear();
+                requestQueue();
 
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        RunWriterThread(socket);
+                        runWriterThread(socket);
                     }
                 }).start();
 
                 while (true) {
                     Message message = new Message(socket.getInputStream());
-                    Log.d(TAG, "RunReaderThread: Got message (" + message.command + ")");
+                    Log.d(TAG, "runReaderThread: Got message (" + message.command + ")");
                     switch (message.command) {
                         case GetQueue:
-                            SetQueue(message);
+                            setQueue(message);
                             break;
                     }
                 }
             } catch (Exception ex) {
-                Log.d(TAG, "RunReaderThread: Error: " + ex.getMessage());
-                mOutputQueue.clear();
+                Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
+                outputQueue.clear();
                 try {
                     Thread.sleep(1000);
                 } catch (Exception e) {
@@ -72,43 +71,43 @@ public class SocketService extends Service {
         }
     }
 
-    private void RequestQueue() {
+    private void requestQueue() {
         Log.d(TAG, "RequestQueued: Requesting current queue");
-        mOutputQueue.add(new Message(Message.ServerCommand.GetQueue).GetBytes());
+        outputQueue.add(new Message(Message.ServerCommand.GetQueue).getBytes());
     }
 
-    private void SetQueue(Message message) {
-        int count = message.ReadInt();
+    private void setQueue(Message message) {
+        int count = message.readInt();
         ArrayList<MediaData> mediaData = new ArrayList<>();
         for (int ctr = 0; ctr < count; ++ctr) {
-            String description = message.ReadString();
-            String url = message.ReadString();
+            String description = message.readString();
+            String url = message.readString();
             mediaData.add(new MediaData(description, url));
         }
-        Log.d(TAG, "SetQueue: " + mediaData.size() + " item(s)");
+        Log.d(TAG, "setQueue: " + mediaData.size() + " item(s)");
 
         Intent intent = new Intent("NeoRemoteEvent");
         intent.putExtra("Queue", mediaData);
-        mBroadcastManager.sendBroadcast(intent);
+        broadcastManager.sendBroadcast(intent);
     }
 
-    private void RunWriterThread(Socket socket) {
+    private void runWriterThread(Socket socket) {
         try {
-            Log.d(TAG, "RunWriterThread: Started");
+            Log.d(TAG, "runWriterThread: Started");
             while (socket.isConnected()) {
-                byte[] message = mOutputQueue.poll(1, TimeUnit.SECONDS);
+                byte[] message = outputQueue.poll(1, TimeUnit.SECONDS);
                 if (message == null)
                     continue;
 
-                Log.d(TAG, "RunWriterThread: Sending message...");
+                Log.d(TAG, "runWriterThread: Sending message...");
                 socket.getOutputStream().write(message);
-                Log.d(TAG, "RunWriterThread: Done");
+                Log.d(TAG, "runWriterThread: Done");
             }
-            Log.d(TAG, "RunWriterThread: Socket disconnected");
+            Log.d(TAG, "runWriterThread: Socket disconnected");
         } catch (Exception ex) {
-            Log.d(TAG, "RunWriterThread: Error: " + ex.getMessage());
+            Log.d(TAG, "runWriterThread: Error: " + ex.getMessage());
         }
-        Log.d(TAG, "RunWriterThread: Stopped");
+        Log.d(TAG, "runWriterThread: Stopped");
     }
 
     public class SocketServiceBinder extends Binder {
@@ -117,13 +116,13 @@ public class SocketService extends Service {
         }
     }
 
-    public void SetBroadcastManager(LocalBroadcastManager broadcastManager) {
+    public void setBroadcastManager(LocalBroadcastManager broadcastManager) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                RunReaderThread();
+                runReaderThread();
             }
         }).start();
-        mBroadcastManager = broadcastManager;
+        this.broadcastManager = broadcastManager;
     }
 }

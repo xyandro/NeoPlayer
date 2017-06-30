@@ -7,7 +7,7 @@ namespace NeoPlayer
 	{
 		public byte[] Bytes { get; private set; } = new byte[4];
 
-		public Message(NetServerCommand command)
+		public Message(NetServer.NetServerCommand command)
 		{
 			Add((int)command);
 		}

@@ -10,6 +10,12 @@ namespace NeoPlayer
 {
 	public static class NetServer
 	{
+		public enum NetServerCommand
+		{
+			None,
+			GetQueue,
+		}
+
 		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
 
 		async public static void Run(int port)
@@ -52,7 +58,7 @@ namespace NeoPlayer
 					var command = (NetServerCommand)BitConverter.ToInt32(buffer, 0);
 					switch (command)
 					{
-						case NetServerCommand.Queued: queue.Enqueue(Queued()); break;
+						case NetServerCommand.GetQueue: queue.Enqueue(Queued()); break;
 					}
 				}
 			}
@@ -63,7 +69,7 @@ namespace NeoPlayer
 
 		public static byte[] Queued()
 		{
-			var message = new Message(NetServerCommand.Queued);
+			var message = new Message(NetServerCommand.GetQueue);
 			var videos = NeoPlayerWindow.Current.QueuedVideos.ToList();
 			message.Add(videos.Count);
 			foreach (var video in videos)
