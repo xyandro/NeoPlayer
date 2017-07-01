@@ -152,6 +152,18 @@ public class MainActivity extends Activity {
         socketClient.requestYouTube(search);
     }
 
+    public void setPosition(int offset, boolean relative) {
+        socketClient.setPosition(offset, relative);
+    }
+
+    public void play() {
+        socketClient.play();
+    }
+
+    public void forward() {
+        socketClient.forward();
+    }
+
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         private Fragment[] pages;
 

@@ -15,6 +15,9 @@ namespace NeoPlayer
 			GetQueue,
 			GetCool,
 			GetYouTube,
+			SetPosition,
+			Play,
+			Forward,
 		}
 
 		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);
@@ -94,6 +97,8 @@ namespace NeoPlayer
 			ms.Read(result, 0, count);
 			return result;
 		}
+
+		public bool GetBool() => GetBytes(1)[0] != 0;
 
 		public int GetInt() => BitConverter.ToInt32(GetBytes(4), 0);
 

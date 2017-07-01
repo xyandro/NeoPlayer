@@ -12,6 +12,9 @@ public class Message {
         GetQueue,
         GetCool,
         GetYouTube,
+        SetPosition,
+        Play,
+        Forward,
     }
 
     private ByteBuffer byteBuffer;
@@ -26,6 +29,10 @@ public class Message {
 
     public void add(byte[] value) {
         byteBuffer.put(value);
+    }
+
+    public void add(boolean value) {
+        byteBuffer.put((byte) (value ? 1 : 0));
     }
 
     public void add(int value) {

@@ -38,6 +38,9 @@ namespace NeoPlayer
 						case Message.MessageCommand.GetQueue: queue.Enqueue(GetQueue()); break;
 						case Message.MessageCommand.GetCool: queue.Enqueue(GetCool()); break;
 						case Message.MessageCommand.GetYouTube: SearchYouTube(queue, message); break;
+						case Message.MessageCommand.SetPosition: SetPosition(message); break;
+						case Message.MessageCommand.Play: Play(); break;
+						case Message.MessageCommand.Forward: Forward(); break;
 					}
 				}
 			}
@@ -80,6 +83,12 @@ namespace NeoPlayer
 			message.Add(suggestions);
 			queue.Enqueue(message.ToArray());
 		}
+
+		static void SetPosition(Message message) => NeoPlayerWindow.Current.SetPosition((int)message.GetInt(), message.GetBool());
+
+		static void Play() => NeoPlayerWindow.Current.Play();
+
+		static void Forward() => NeoPlayerWindow.Current.Forward();
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)
 		{

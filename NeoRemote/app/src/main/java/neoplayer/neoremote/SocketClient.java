@@ -172,6 +172,26 @@ public class SocketClient extends Service {
         outputQueue.add(message.getBytes());
     }
 
+    public void setPosition(int offset, boolean relative) {
+        Log.d(TAG, "setPosition: offset = " + offset);
+        Message message = new Message(Message.ServerCommand.SetPosition);
+        message.add(offset);
+        message.add(relative);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void play() {
+        Log.d(TAG, "play");
+        Message message = new Message(Message.ServerCommand.Play);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void forward() {
+        Log.d(TAG, "forward");
+        Message message = new Message(Message.ServerCommand.Forward);
+        outputQueue.add(message.getBytes());
+    }
+
     public class SocketServiceBinder extends Binder {
         SocketClient getService() {
             return SocketClient.this;

@@ -15,11 +15,13 @@ import java.util.ArrayList;
 public class CoolFragment extends Fragment {
     private static final String TAG = CoolFragment.class.getSimpleName();
 
+    private final MainActivity mainActivity;
     private final MediaListAdapter adapter;
     private final ArrayList<MediaData> coolVideos;
     private final ArrayList<MediaData> queueVideos;
 
     public CoolFragment(MainActivity mainActivity, ArrayList<MediaData> coolVideos, ArrayList<MediaData> queueVideos) {
+        this.mainActivity = mainActivity;
         this.coolVideos = coolVideos;
         this.queueVideos = queueVideos;
         adapter = new MediaListAdapter(mainActivity, coolVideos, queueVideos);
@@ -50,6 +52,48 @@ public class CoolFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 searchText.setText("");
+            }
+        });
+
+        result.findViewById(R.id.back30).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.setPosition(-30, true);
+            }
+        });
+
+        result.findViewById(R.id.back5).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.setPosition(-5, true);
+            }
+        });
+
+        result.findViewById(R.id.play).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.play();
+            }
+        });
+
+        result.findViewById(R.id.forward5).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.setPosition(5, true);
+            }
+        });
+
+        result.findViewById(R.id.forward30).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.setPosition(30, true);
+            }
+        });
+
+        result.findViewById(R.id.forward).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.forward();
             }
         });
 

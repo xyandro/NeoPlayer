@@ -132,6 +132,7 @@
             android:layout_height="50dp">
 
             <ImageButton
+                android:id="@+id/back30"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -145,6 +146,7 @@
                 android:layout_weight="1" />
 
             <ImageButton
+                android:id="@+id/back5"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -158,6 +160,7 @@
                 android:layout_weight="1" />
 
             <ImageButton
+                android:id="@+id/play"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -171,6 +174,7 @@
                 android:layout_weight="1" />
 
             <ImageButton
+                android:id="@+id/forward5"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -184,6 +188,7 @@
                 android:layout_weight="1" />
 
             <ImageButton
+                android:id="@+id/forward30"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
@@ -197,6 +202,7 @@
                 android:layout_weight="1" />
 
             <ImageButton
+                android:id="@+id/forward"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"

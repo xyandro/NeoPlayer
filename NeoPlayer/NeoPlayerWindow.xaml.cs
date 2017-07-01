@@ -134,6 +134,7 @@ namespace NeoPlayer
 				return;
 
 			queueVideos.RemoveAt(0);
+			NetServer.SendAll(NetServer.GetQueue());
 			ActionChanged();
 		}
 
@@ -179,7 +180,7 @@ namespace NeoPlayer
 			NetServer.Run(7399);
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
-			vlc.MediaPlayerEndReached += (s, e) => Next();
+			vlc.MediaPlayerEndReached += (s, e) => Forward();
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
@@ -374,7 +375,7 @@ namespace NeoPlayer
 				CycleSlide(false);
 		}
 
-		void Pause()
+		public void Play()
 		{
 			if (CurrentAction == ActionType.Slideshow)
 				MusicAutoPlay = true;
@@ -382,7 +383,7 @@ namespace NeoPlayer
 			vlc.playlist.togglePause();
 		}
 
-		void Next()
+		public void Forward()
 		{
 			if (CurrentAction == ActionType.Videos)
 				CycleVideo();
@@ -390,7 +391,7 @@ namespace NeoPlayer
 				CycleMusic();
 		}
 
-		void SetPosition(int position, bool relative)
+		public void SetPosition(int position, bool relative)
 		{
 			vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000;
 		}
@@ -411,14 +412,14 @@ namespace NeoPlayer
 			if (e.Key == Key.Space)
 			{
 				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					Pause();
+					Play();
 				else
 					ToggleSlidesPaused();
 			}
 			if (e.Key == Key.Right)
 			{
 				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					Next();
+					Forward();
 				else
 					ChangeSlide(1);
 			}
