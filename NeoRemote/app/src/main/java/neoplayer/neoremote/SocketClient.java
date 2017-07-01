@@ -126,7 +126,7 @@ public class SocketClient extends Service {
     public void requestYouTube(String search) {
         Log.d(TAG, "RequestYouTube: Requesting YouTube " + search);
         Message message = new Message(Message.ServerCommand.GetYouTube);
-        message.write(search);
+        message.add(search);
         outputQueue.add(message.getBytes());
     }
 
@@ -167,8 +167,8 @@ public class SocketClient extends Service {
     public void queueVideo(MediaData mediaData) {
         Log.d(TAG, "queueVideo: Requesting " + mediaData.description + " (" + mediaData.url + ")");
         Message message = new Message(Message.ServerCommand.QueueVideo);
-        message.write(mediaData.description);
-        message.write(mediaData.url);
+        message.add(mediaData.description);
+        message.add(mediaData.url);
         outputQueue.add(message.getBytes());
     }
 

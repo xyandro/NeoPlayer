@@ -20,27 +20,27 @@ public class Message {
     public Message(ServerCommand command) {
         this.command = command;
         byteBuffer = ByteBuffer.allocateDirect(1024).order(ByteOrder.LITTLE_ENDIAN);
-        write(0);
-        write(command.ordinal());
+        add(0);
+        add(command.ordinal());
     }
 
-    public void write(byte[] value) {
+    public void add(byte[] value) {
         byteBuffer.put(value);
     }
 
-    public void write(int value) {
+    public void add(int value) {
         byteBuffer.putInt(value);
     }
 
-    public void write(String value) {
+    public void add(String value) {
         byte[] bytes;
         try {
             bytes = value.getBytes("UTF-8");
         } catch (Exception ex) {
             bytes = new byte[0];
         }
-        write(bytes.length);
-        write(bytes);
+        add(bytes.length);
+        add(bytes);
     }
 
     public byte[] getBytes() {
