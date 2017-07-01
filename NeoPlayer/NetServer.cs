@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace NeoPlayer
 {
@@ -36,6 +37,7 @@ namespace NeoPlayer
 						case Message.MessageCommand.QueueVideo: QueueVideo(message); break;
 						case Message.MessageCommand.GetQueue: queue.Enqueue(GetQueue()); break;
 						case Message.MessageCommand.GetCool: queue.Enqueue(GetCool()); break;
+						case Message.MessageCommand.GetYouTube: SearchYouTube(queue, message); break;
 					}
 				}
 			}
@@ -44,7 +46,13 @@ namespace NeoPlayer
 			queue.SetFinished();
 		}
 
-		static void QueueVideo(Message message) => NeoPlayerWindow.Current.EnqueueVideo(message.GetMediaData());
+		async static void QueueVideo(Message message)
+		{
+			var mediaData = message.GetMediaData();
+			mediaData.URL = await YouTube.GetURL(mediaData.URL);
+			if (!string.IsNullOrWhiteSpace(mediaData.URL))
+				NeoPlayerWindow.Current.EnqueueVideo(mediaData);
+		}
 
 		public static byte[] GetQueue()
 		{
@@ -58,6 +66,19 @@ namespace NeoPlayer
 			var message = new Message(Message.MessageCommand.GetCool);
 			message.Add(Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList());
 			return message.ToArray();
+		}
+
+		async public static void SearchYouTube(AsyncQueue<byte[]> queue, Message input)
+		{
+			var search = input.GetString();
+
+			var cts = new CancellationTokenSource();
+			cts.CancelAfter(10000);
+			var suggestions = await YouTube.GetSuggestions(search, cts.Token);
+
+			var message = new Message(Message.MessageCommand.GetYouTube);
+			message.Add(suggestions);
+			queue.Enqueue(message.ToArray());
 		}
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)

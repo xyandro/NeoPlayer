@@ -14,6 +14,7 @@ namespace NeoPlayer
 			QueueVideo,
 			GetQueue,
 			GetCool,
+			GetYouTube,
 		}
 
 		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);

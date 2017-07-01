@@ -26,9 +26,11 @@ public class MainActivity extends Activity {
 
     private QueueFragment queueFragment;
     private CoolFragment coolFragment;
+    private YouTubeFragment youTubeFragment;
     private SocketClient socketClient;
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
+    private final ArrayList<MediaData> youTubeVideos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +45,11 @@ public class MainActivity extends Activity {
     private void createUIElements() {
         queueFragment = new QueueFragment(this, queueVideos);
         coolFragment = new CoolFragment(this, coolVideos, queueVideos);
+        youTubeFragment = new YouTubeFragment(this, youTubeVideos, queueVideos);
         Fragment[] pages = new Fragment[]{
                 queueFragment,
                 coolFragment,
+                youTubeFragment,
         };
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(new ScreenSlidePagerAdapter(getFragmentManager(), pages));
@@ -118,8 +122,9 @@ public class MainActivity extends Activity {
             queueVideos.clear();
             for (MediaData mediaData : mediaDatas)
                 queueVideos.add(mediaData);
-            coolFragment.Refresh();
             queueFragment.Refresh();
+            coolFragment.Refresh();
+            youTubeFragment.Refresh();
         }
 
         if (extras.containsKey("Cool")) {
@@ -129,10 +134,22 @@ public class MainActivity extends Activity {
                 coolVideos.add(mediaData);
             coolFragment.Refresh();
         }
+
+        if (extras.containsKey("YouTube")) {
+            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("YouTube");
+            youTubeVideos.clear();
+            for (MediaData mediaData : mediaDatas)
+                youTubeVideos.add(mediaData);
+            youTubeFragment.Refresh();
+        }
     }
 
     public void queueVideo(MediaData mediaData) {
         socketClient.queueVideo(mediaData);
+    }
+
+    public void searchYouTube(String search) {
+        socketClient.requestYouTube(search);
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {

@@ -111,7 +111,6 @@
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
     <Compile Include="YouTube.cs" />
-    <Compile Include="YouTubeItem.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

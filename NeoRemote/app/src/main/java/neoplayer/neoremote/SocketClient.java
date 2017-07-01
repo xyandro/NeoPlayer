@@ -63,6 +63,9 @@ public class SocketClient extends Service {
                             case GetCool:
                                 setCool(message);
                                 break;
+                            case GetYouTube:
+                                setYouTube(message);
+                                break;
                         }
                     }
                 } catch (Exception ex) {
@@ -117,6 +120,28 @@ public class SocketClient extends Service {
 
         Intent intent = new Intent("NeoRemoteEvent");
         intent.putExtra("Cool", mediaData);
+        broadcastManager.sendBroadcast(intent);
+    }
+
+    public void requestYouTube(String search) {
+        Log.d(TAG, "RequestYouTube: Requesting YouTube " + search);
+        Message message = new Message(Message.ServerCommand.GetYouTube);
+        message.write(search);
+        outputQueue.add(message.getBytes());
+    }
+
+    private void setYouTube(Message message) {
+        int count = message.readInt();
+        ArrayList<MediaData> mediaData = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            String description = message.readString();
+            String url = message.readString();
+            mediaData.add(new MediaData(description, url));
+        }
+        Log.d(TAG, "setYouTube: " + mediaData.size() + " item(s)");
+
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("YouTube", mediaData);
         broadcastManager.sendBroadcast(intent);
     }
 

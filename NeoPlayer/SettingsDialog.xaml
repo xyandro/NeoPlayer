@@ -1,7 +1,6 @@
 ﻿<Window Name="self" x:Class="NeoPlayer.SettingsDialog"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:local="clr-namespace:NeoPlayer"
 	Title="Settings" SizeToContent="Height" Width="500" FocusManager.FocusedElement="{Binding ElementName=slidesPath}">
 
 	<Grid>
@@ -10,6 +9,7 @@
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -26,7 +26,10 @@
 		<Label Grid.Row="2" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
 		<TextBox Grid.Row="2" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<UniformGrid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
+		<Label Grid.Row="3" Grid.Column="0" Content="_YouTubeDL path:" HorizontalAlignment="Right" Target="{Binding ElementName=youTubeDLPath}"/>
+		<TextBox Grid.Row="3" Grid.Column="1" Name="youTubeDLPath" Text="{Binding YouTubeDLPath, UpdateSourceTrigger=PropertyChanged}"/>
+
+		<UniformGrid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
 			<Button IsDefault="True" Content="OK" Padding="10,0" Click="OnOKClick"/>
 			<Button IsCancel="True" Content="Cancel" Padding="10,0"/>
 		</UniformGrid>

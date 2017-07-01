@@ -11,6 +11,7 @@ public class Message {
         QueueVideo,
         GetQueue,
         GetCool,
+        GetYouTube,
     }
 
     private ByteBuffer byteBuffer;

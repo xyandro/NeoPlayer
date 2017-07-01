@@ -28,15 +28,19 @@ namespace NeoPlayer
 		static string videosPath;
 		public static string VideosPath { get { return videosPath; } set { videosPath = value; WriteXML(); } }
 
+		static string youTubeDLPath;
+		public static string YouTubeDLPath { get { return youTubeDLPath; } set { youTubeDLPath = value; WriteXML(); } }
+
 		static Settings()
 		{
-			slidesPath = musicPath = videosPath = Directory.GetCurrentDirectory();
+			slidesPath = musicPath = videosPath = youTubeDLPath = Directory.GetCurrentDirectory();
 			try
 			{
 				var xml = XElement.Load(SettingsFile);
 				slidesPath = xml.Element(nameof(SlidesPath))?.Value ?? slidesPath;
 				musicPath = xml.Element(nameof(MusicPath))?.Value ?? musicPath;
 				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
+				youTubeDLPath = xml.Element(nameof(YouTubeDLPath))?.Value ?? youTubeDLPath;
 			}
 			catch { }
 		}
@@ -46,7 +50,8 @@ namespace NeoPlayer
 			var xml = new XElement("Settings",
 				new XElement(nameof(SlidesPath), SlidesPath),
 				new XElement(nameof(MusicPath), MusicPath),
-				new XElement(nameof(VideosPath), VideosPath)
+				new XElement(nameof(VideosPath), VideosPath),
+				new XElement(nameof(YouTubeDLPath), YouTubeDLPath)
 			);
 			xml.Save(SettingsFile);
 		}
