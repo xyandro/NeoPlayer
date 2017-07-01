@@ -51,6 +51,7 @@ public class CoolFragment extends Fragment {
         result.findViewById(R.id.clear_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searchText.clearFocus();
                 searchText.setText("");
             }
         });

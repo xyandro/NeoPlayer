@@ -38,12 +38,12 @@
                 android:layout_width="5dp"
                 android:layout_height="match_parent" />
 
-            <EditText
+            <neoplayer.neoremote.NEEditText
                 android:id="@+id/search_text"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:textColor="@android:color/black" />
+                android:hint="Search" />
 
             <Space
                 android:layout_width="5dp"

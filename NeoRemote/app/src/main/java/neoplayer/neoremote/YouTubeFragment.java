@@ -37,6 +37,7 @@ public class YouTubeFragment extends Fragment {
         result.findViewById(R.id.do_search).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searchText.clearFocus();
                 mainActivity.searchYouTube(searchText.getText().toString());
             }
         });
