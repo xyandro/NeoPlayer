@@ -56,7 +56,6 @@ public class SocketClient extends Service {
 
                     while (true) {
                         Message message = new Message(socket.getInputStream());
-                        Log.d(TAG, "runReaderThread: Got message (" + message.command + ")");
                         switch (message.command) {
                             case GetQueue:
                                 setQueue(message);
@@ -133,8 +132,6 @@ public class SocketClient extends Service {
     }
 
     private void setMediaData(Message message) {
-        Log.d(TAG, "setMediaData");
-
         boolean playing = message.getBool();
         String title = message.getString();
         int position = message.getInt();
