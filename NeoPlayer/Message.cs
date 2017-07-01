@@ -19,6 +19,8 @@ namespace NeoPlayer
 			Play,
 			Forward,
 			MediaData,
+			GetVolume,
+			SetVolume,
 		}
 
 		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);

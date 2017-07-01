@@ -64,6 +64,16 @@ namespace NeoPlayer
 
 		public IEnumerable<MediaData> QueueVideos => queueVideos;
 
+		public int Volume
+		{
+			get => vlc.volume;
+			set
+			{
+				vlc.volume = Math.Max(0, Math.Min(value, 100));
+				NetServer.SendAll(NetServer.GetVolume());
+			}
+		}
+
 		void EnqueueItems(List<string> list, IEnumerable<string> items, bool enqueue)
 		{
 			var found = false;
@@ -182,6 +192,7 @@ namespace NeoPlayer
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
 			vlc.MediaPlayerEndReached += (s, e) => Forward();
 			vlc.MediaPlayerTimeChanged += (s, e) => QueueMediaDataUpdate();
+			vlc.volume = 50;
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
@@ -466,6 +477,10 @@ namespace NeoPlayer
 				else
 					ChangeSlide(1);
 			}
+			if (e.Key == Key.Down)
+				Volume -= 5;
+			if (e.Key == Key.Up)
+				Volume += 5;
 			if (e.Key == Key.Left)
 				ChangeSlide(-1);
 			if (e.Key == Key.Q)

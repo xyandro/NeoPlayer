@@ -46,6 +46,7 @@ public class SocketClient extends Service {
                     requestQueue();
                     requestCool();
                     requestMediaData();
+                    requestVolume();
 
                     new Thread(new Runnable() {
                         @Override
@@ -68,6 +69,9 @@ public class SocketClient extends Service {
                                 break;
                             case MediaData:
                                 setMediaData(message);
+                                break;
+                            case GetVolume:
+                                setVolume(message);
                                 break;
                         }
                     }
@@ -211,6 +215,29 @@ public class SocketClient extends Service {
     public void forward() {
         Log.d(TAG, "forward");
         Message message = new Message(Message.ServerCommand.Forward);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void requestVolume() {
+        Log.d(TAG, "requestVolume");
+        Message message = new Message(Message.ServerCommand.GetVolume);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void setVolume(Message message) {
+        int volume = message.getInt();
+        Log.d(TAG, "setVolume: " + volume);
+
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("Volume", volume);
+        broadcastManager.sendBroadcast(intent);
+    }
+
+    public void setVolume(int volume, boolean relative) {
+        Log.d(TAG, "setVolume: " + volume);
+        Message message = new Message(Message.ServerCommand.SetVolume);
+        message.add(volume);
+        message.add(relative);
         outputQueue.add(message.getBytes());
     }
 

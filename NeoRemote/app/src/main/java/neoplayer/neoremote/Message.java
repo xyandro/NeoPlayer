@@ -16,6 +16,8 @@ public class Message {
         Play,
         Forward,
         MediaData,
+        GetVolume,
+        SetVolume,
     }
 
     private ByteBuffer byteBuffer;

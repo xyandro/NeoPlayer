@@ -42,6 +42,8 @@ namespace NeoPlayer
 						case Message.MessageCommand.Play: Play(); break;
 						case Message.MessageCommand.Forward: Forward(); break;
 						case Message.MessageCommand.MediaData: RequestMediaData(); break;
+						case Message.MessageCommand.GetVolume: queue.Enqueue(GetVolume()); break;
+						case Message.MessageCommand.SetVolume: SetVolume(message); break;
 					}
 				}
 			}
@@ -92,6 +94,20 @@ namespace NeoPlayer
 		static void Forward() => NeoPlayerWindow.Current.Forward();
 
 		static void RequestMediaData() => NeoPlayerWindow.Current.QueueMediaDataUpdate();
+
+		public static byte[] GetVolume()
+		{
+			var message = new Message(Message.MessageCommand.GetVolume);
+			message.Add(NeoPlayerWindow.Current.Volume);
+			return message.ToArray();
+		}
+
+		static void SetVolume(Message message)
+		{
+			var volume = message.GetInt();
+			var relative = message.GetBool();
+			NeoPlayerWindow.Current.Volume = (relative ? NeoPlayerWindow.Current.Volume : 0) + volume;
+		}
 
 		public static byte[] MediaData(bool playing, string title, int position, int maxPosition)
 		{

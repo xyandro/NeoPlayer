@@ -36,6 +36,8 @@ public class MainActivity extends Activity {
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
     private final ArrayList<MediaData> youTubeVideos = new ArrayList<>();
+    private MediaSessionCompat mediaSession;
+    private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
 
     @Override
@@ -126,7 +128,7 @@ public class MainActivity extends Activity {
     }
 
     private void prepareMediaSession() {
-        MediaSessionCompat mediaSession = new MediaSessionCompat(this, "NeoRemoteMediaSession");
+        mediaSession = new MediaSessionCompat(this, "NeoRemoteMediaSession");
         mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f)
                 .build());
@@ -138,18 +140,15 @@ public class MainActivity extends Activity {
             }
         });
 
-        VolumeProviderCompat volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 100, 50) {
+        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 100, 50) {
             @Override
             public void onSetVolumeTo(int volume) {
-                setCurrentVolume(volume);
-                Log.d(TAG, "onSetVolumeTo: " + volume);
+                socketClient.setVolume(volume, false);
             }
 
             @Override
             public void onAdjustVolume(int delta) {
-                int newVolume = getCurrentVolume() + delta;
-                setCurrentVolume(newVolume);
-                Log.d(TAG, "onAdjustVolume: " + newVolume);
+                socketClient.setVolume(delta * 5, true);
             }
         };
 
@@ -230,6 +229,10 @@ public class MainActivity extends Activity {
             int maxPosition = (int) extras.get("MaxPosition");
             ((SeekBar) findViewById(R.id.seek_bar)).setMax(maxPosition);
             ((TextView) findViewById(R.id.max_time)).setText(DateUtils.formatElapsedTime(maxPosition));
+        }
+
+        if (extras.containsKey("Volume")) {
+            volumeProvider.setCurrentVolume((int) extras.get("Volume"));
         }
     }
 
