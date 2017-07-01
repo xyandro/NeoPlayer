@@ -41,6 +41,7 @@ namespace NeoPlayer
 						case Message.MessageCommand.SetPosition: SetPosition(message); break;
 						case Message.MessageCommand.Play: Play(); break;
 						case Message.MessageCommand.Forward: Forward(); break;
+						case Message.MessageCommand.MediaData: RequestMediaData(); break;
 					}
 				}
 			}
@@ -89,6 +90,18 @@ namespace NeoPlayer
 		static void Play() => NeoPlayerWindow.Current.Play();
 
 		static void Forward() => NeoPlayerWindow.Current.Forward();
+
+		static void RequestMediaData() => NeoPlayerWindow.Current.QueueMediaDataUpdate();
+
+		public static byte[] MediaData(bool playing, string title, int position, int maxPosition)
+		{
+			var message = new Message(Message.MessageCommand.MediaData);
+			message.Add(playing);
+			message.Add(title);
+			message.Add(position);
+			message.Add(maxPosition);
+			return message.ToArray();
+		}
 
 		async static void Writer(TcpClient client, AsyncQueue<byte[]> queue)
 		{

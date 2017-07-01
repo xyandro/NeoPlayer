@@ -181,6 +181,7 @@ namespace NeoPlayer
 
 			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
 			vlc.MediaPlayerEndReached += (s, e) => Forward();
+			vlc.MediaPlayerTimeChanged += (s, e) => QueueMediaDataUpdate();
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
@@ -260,6 +261,42 @@ namespace NeoPlayer
 		DoubleAnimation fadeAnimation;
 		DateTime? slideTime = null;
 
+		DispatcherTimer mediaDataUpdateTimer = null;
+		public void QueueMediaDataUpdate()
+		{
+			if (mediaDataUpdateTimer != null)
+				return;
+
+			mediaDataUpdateTimer = new DispatcherTimer();
+			mediaDataUpdateTimer.Tick += (s, e) =>
+			{
+				mediaDataUpdateTimer.Stop();
+				mediaDataUpdateTimer = null;
+
+				var playing = vlc.playlist.isPlaying;
+				var title = "";
+				if (vlc.playlist.currentItem != -1)
+				{
+					try { title = Path.GetFileNameWithoutExtension(vlc.mediaDescription.title?.Trim()); } catch { }
+					try
+					{
+						var artist = vlc.mediaDescription.artist?.Trim();
+						if (!string.IsNullOrWhiteSpace(artist))
+						{
+							if (title != "")
+								title += " - ";
+							title += artist;
+						}
+					}
+					catch { }
+				}
+				var maxPosition = Math.Max(0, (int)vlc.input.length / 1000);
+				var position = Math.Max(0, Math.Min((int)vlc.input.time / 1000, maxPosition));
+				NetServer.SendAll(NetServer.MediaData(playing, title, position, maxPosition));
+			};
+			mediaDataUpdateTimer.Start();
+		}
+
 		void CheckCycleSlide()
 		{
 			if ((slideTime == null) || (SlidesPaused))
@@ -323,6 +360,7 @@ namespace NeoPlayer
 			currentMusic = null;
 			vlc.playlist.stop();
 			vlc.playlist.items.clear();
+			QueueMediaDataUpdate();
 		}
 
 		void StartNewMusic()
@@ -333,6 +371,7 @@ namespace NeoPlayer
 			currentMusic = CurrentMusic;
 			vlc.playlist.add(currentMusic.URL);
 			vlc.playlist.playItem(0);
+			QueueMediaDataUpdate();
 		}
 
 		MediaData currentVideo = null;
@@ -344,6 +383,7 @@ namespace NeoPlayer
 			currentVideo = null;
 			vlc.playlist.stop();
 			vlc.playlist.items.clear();
+			QueueMediaDataUpdate();
 		}
 
 		void StartNewVideo()
@@ -354,6 +394,7 @@ namespace NeoPlayer
 			currentVideo = CurrentQueueVideo;
 			vlc.playlist.add(currentVideo.URL);
 			vlc.playlist.playItem(0);
+			QueueMediaDataUpdate();
 		}
 
 		void ToggleSlidesPaused()
@@ -381,6 +422,7 @@ namespace NeoPlayer
 				MusicAutoPlay = true;
 
 			vlc.playlist.togglePause();
+			QueueMediaDataUpdate();
 		}
 
 		public void Forward()
@@ -394,6 +436,7 @@ namespace NeoPlayer
 		public void SetPosition(int position, bool relative)
 		{
 			vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000;
+			QueueMediaDataUpdate();
 		}
 
 		void SetSlidesQuery(string slidesQuery, string slidesSize)

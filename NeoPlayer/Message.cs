@@ -18,6 +18,7 @@ namespace NeoPlayer
 			SetPosition,
 			Play,
 			Forward,
+			MediaData,
 		}
 
 		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);
@@ -62,6 +63,8 @@ namespace NeoPlayer
 		}
 
 		public void Add(byte[] value) => ms.Write(value, 0, value.Length);
+
+		public void Add(bool playing) => Add(new byte[] { (byte)(playing ? 1 : 0) });
 
 		public void Add(int value) => Add(BitConverter.GetBytes(value));
 

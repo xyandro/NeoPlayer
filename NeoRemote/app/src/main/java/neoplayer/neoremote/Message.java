@@ -15,6 +15,7 @@ public class Message {
         SetPosition,
         Play,
         Forward,
+        MediaData,
     }
 
     private ByteBuffer byteBuffer;
@@ -84,12 +85,16 @@ public class Message {
         command = ServerCommand.values()[byteBuffer.getInt()];
     }
 
-    public int readInt() {
+    public boolean getBool() {
+        return byteBuffer.get() != 0;
+    }
+
+    public int getInt() {
         return byteBuffer.getInt();
     }
 
-    public String readString() {
-        int size = readInt();
+    public String getString() {
+        int size = getInt();
         byte[] bytes = new byte[size];
         byteBuffer.get(bytes, 0, size);
         try {

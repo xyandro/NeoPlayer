@@ -142,6 +142,22 @@ public class MainActivity extends Activity {
                 youTubeVideos.add(mediaData);
             youTubeFragment.Refresh();
         }
+
+        if (extras.containsKey("Playing")) {
+            coolFragment.setPlaying((boolean) extras.get("Playing"));
+        }
+
+        if (extras.containsKey("Title")) {
+            coolFragment.setTitle((String) extras.get("Title"));
+        }
+
+        if (extras.containsKey("Position")) {
+            coolFragment.setPosition((int) extras.get("Position"));
+        }
+
+        if (extras.containsKey("MaxPosition")) {
+            coolFragment.setMaxPosition((int) extras.get("MaxPosition"));
+        }
     }
 
     public void queueVideo(MediaData mediaData) {

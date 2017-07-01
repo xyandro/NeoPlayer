@@ -45,6 +45,7 @@ public class SocketClient extends Service {
                     outputQueue.clear();
                     requestQueue();
                     requestCool();
+                    requestMediaData();
 
                     new Thread(new Runnable() {
                         @Override
@@ -65,6 +66,9 @@ public class SocketClient extends Service {
                                 break;
                             case GetYouTube:
                                 setYouTube(message);
+                                break;
+                            case MediaData:
+                                setMediaData(message);
                                 break;
                         }
                     }
@@ -89,11 +93,11 @@ public class SocketClient extends Service {
     }
 
     private void setQueue(Message message) {
-        int count = message.readInt();
+        int count = message.getInt();
         ArrayList<MediaData> mediaData = new ArrayList<>();
         for (int ctr = 0; ctr < count; ++ctr) {
-            String description = message.readString();
-            String url = message.readString();
+            String description = message.getString();
+            String url = message.getString();
             mediaData.add(new MediaData(description, url));
         }
         Log.d(TAG, "setQueue: " + mediaData.size() + " item(s)");
@@ -109,17 +113,38 @@ public class SocketClient extends Service {
     }
 
     private void setCool(Message message) {
-        int count = message.readInt();
+        int count = message.getInt();
         ArrayList<MediaData> mediaData = new ArrayList<>();
         for (int ctr = 0; ctr < count; ++ctr) {
-            String description = message.readString();
-            String url = message.readString();
+            String description = message.getString();
+            String url = message.getString();
             mediaData.add(new MediaData(description, url));
         }
         Log.d(TAG, "setCool: " + mediaData.size() + " item(s)");
 
         Intent intent = new Intent("NeoRemoteEvent");
         intent.putExtra("Cool", mediaData);
+        broadcastManager.sendBroadcast(intent);
+    }
+
+    private void requestMediaData() {
+        Log.d(TAG, "requestMediaData: Requesting media data");
+        outputQueue.add(new Message(Message.ServerCommand.MediaData).getBytes());
+    }
+
+    private void setMediaData(Message message) {
+        Log.d(TAG, "setMediaData");
+
+        boolean playing = message.getBool();
+        String title = message.getString();
+        int position = message.getInt();
+        int maxPosition = message.getInt();
+
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("Playing", playing);
+        intent.putExtra("Title", title);
+        intent.putExtra("Position", position);
+        intent.putExtra("MaxPosition", maxPosition);
         broadcastManager.sendBroadcast(intent);
     }
 
@@ -131,11 +156,11 @@ public class SocketClient extends Service {
     }
 
     private void setYouTube(Message message) {
-        int count = message.readInt();
+        int count = message.getInt();
         ArrayList<MediaData> mediaData = new ArrayList<>();
         for (int ctr = 0; ctr < count; ++ctr) {
-            String description = message.readString();
-            String url = message.readString();
+            String description = message.getString();
+            String url = message.getString();
             mediaData.add(new MediaData(description, url));
         }
         Log.d(TAG, "setYouTube: " + mediaData.size() + " item(s)");
