@@ -46,6 +46,7 @@ public class SocketClient extends Service {
                     requestQueue();
                     requestCool();
                     requestMediaData();
+                    requestSlidesData();
                     requestVolume();
 
                     new Thread(new Runnable() {
@@ -67,11 +68,14 @@ public class SocketClient extends Service {
                             case GetYouTube:
                                 setYouTube(message);
                                 break;
-                            case MediaData:
+                            case GetMediaData:
                                 setMediaData(message);
                                 break;
                             case GetVolume:
                                 setVolume(message);
+                                break;
+                            case GetSlidesData:
+                                setSlidesData(message);
                                 break;
                         }
                     }
@@ -132,7 +136,7 @@ public class SocketClient extends Service {
 
     private void requestMediaData() {
         Log.d(TAG, "requestMediaData: Requesting media data");
-        outputQueue.add(new Message(Message.ServerCommand.MediaData).getBytes());
+        outputQueue.add(new Message(Message.ServerCommand.GetMediaData).getBytes());
     }
 
     private void setMediaData(Message message) {
@@ -147,6 +151,33 @@ public class SocketClient extends Service {
         intent.putExtra("Position", position);
         intent.putExtra("MaxPosition", maxPosition);
         broadcastManager.sendBroadcast(intent);
+    }
+
+    private void requestSlidesData() {
+        Log.d(TAG, "requestSlidesData: Requesting slides data");
+        outputQueue.add(new Message(Message.ServerCommand.GetSlidesData).getBytes());
+    }
+
+    private void setSlidesData(Message message) {
+        String slidesQuery = message.getString();
+        String slidesSize = message.getString();
+        int slideDisplayTime = message.getInt();
+        boolean slidesPaused = message.getBool();
+
+        Intent intent = new Intent("NeoRemoteEvent");
+        intent.putExtra("SlidesQuery", slidesQuery);
+        intent.putExtra("SlidesSize", slidesSize);
+        intent.putExtra("SlideDisplayTime", slideDisplayTime);
+        intent.putExtra("SlidesPaused", slidesPaused);
+        broadcastManager.sendBroadcast(intent);
+    }
+
+    public void setSlidesData(String query, String size) {
+        Log.d(TAG, "setSlidesData: query = " + query + ", size = " + size);
+        Message message = new Message(Message.ServerCommand.SetSlidesData);
+        message.add(query);
+        message.add(size);
+        outputQueue.add(message.getBytes());
     }
 
     public void requestYouTube(String search) {
@@ -238,6 +269,26 @@ public class SocketClient extends Service {
         Message message = new Message(Message.ServerCommand.SetVolume);
         message.add(volume);
         message.add(relative);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void setSlideDisplayTime(int time) {
+        Log.d(TAG, "setSlideDisplayTime: " + time);
+        Message message = new Message(Message.ServerCommand.SetSlideDisplayTime);
+        message.add(time);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void cycleSlide(boolean forward) {
+        Log.d(TAG, "cycleSlide: " + forward);
+        Message message = new Message(Message.ServerCommand.CycleSlide);
+        message.add(forward);
+        outputQueue.add(message.getBytes());
+    }
+
+    public void pauseSlides() {
+        Log.d(TAG, "pauseSlides");
+        Message message = new Message(Message.ServerCommand.PauseSlides);
         outputQueue.add(message.getBytes());
     }
 

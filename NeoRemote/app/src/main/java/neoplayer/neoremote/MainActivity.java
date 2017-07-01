@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
 
     private QueueFragment queueFragment;
     private CoolFragment coolFragment;
+    private SlidesFragment slidesFragment;
     private YouTubeFragment youTubeFragment;
     private SocketClient socketClient;
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
@@ -54,10 +55,12 @@ public class MainActivity extends Activity {
     private void createUIElements() {
         queueFragment = new QueueFragment(this, queueVideos);
         coolFragment = new CoolFragment(this, coolVideos, queueVideos);
+        slidesFragment = new SlidesFragment(this);
         youTubeFragment = new YouTubeFragment(this, youTubeVideos, queueVideos);
         Fragment[] pages = new Fragment[]{
                 queueFragment,
                 coolFragment,
+                slidesFragment,
                 youTubeFragment,
         };
         ViewPager pager = findViewById(R.id.pager);
@@ -234,6 +237,22 @@ public class MainActivity extends Activity {
         if (extras.containsKey("Volume")) {
             volumeProvider.setCurrentVolume((int) extras.get("Volume"));
         }
+
+        if (extras.containsKey("SlidesQuery")) {
+            slidesFragment.setSlidesQuery((String) extras.get("SlidesQuery"));
+        }
+
+        if (extras.containsKey("SlidesSize")) {
+            slidesFragment.setSlidesSize((String) extras.get("SlidesSize"));
+        }
+
+        if (extras.containsKey("SlideDisplayTime")) {
+            slidesFragment.setSlideDisplayTime((int) extras.get("SlideDisplayTime"));
+        }
+
+        if (extras.containsKey("SlidesPaused")) {
+            slidesFragment.setSlidesPaused((boolean) extras.get("SlidesPaused"));
+        }
     }
 
     public void queueVideo(MediaData mediaData) {
@@ -242,6 +261,22 @@ public class MainActivity extends Activity {
 
     public void searchYouTube(String search) {
         socketClient.requestYouTube(search);
+    }
+
+    public void setSlidesData(String query, String size) {
+        socketClient.setSlidesData(query, size);
+    }
+
+    public void setSlideDisplayTime(int time) {
+        socketClient.setSlideDisplayTime(time);
+    }
+
+    public void cycleSlide(boolean forward) {
+        socketClient.cycleSlide(forward);
+    }
+
+    public void pauseSlides() {
+        socketClient.pauseSlides();
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {

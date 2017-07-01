@@ -29,7 +29,7 @@ namespace NeoPlayer
 		string slidesQuery = Settings.Debug ? "test" : "landscape";
 		public string SlidesQuery
 		{
-			get { return slidesQuery; }
+			get => slidesQuery;
 			set
 			{
 				slidesQuery = value;
@@ -41,15 +41,43 @@ namespace NeoPlayer
 				slidesQuery = GetTumblrInfo(slidesQuery);
 				if (!slidesQuery.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
 					slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
+				NetServer.SendAll(NetServer.GetSlidesData());
 				ActionChanged();
 			}
 		}
 
 		string slidesSize = "2mp";
-		public string SlidesSize { get { return slidesSize; } set { slidesSize = value; ActionChanged(); } }
+		public string SlidesSize
+		{
+			get => slidesSize;
+			set
+			{
+				slidesSize = value;
+				ActionChanged();
+				NetServer.SendAll(NetServer.GetSlidesData());
+			}
+		}
 
-		public int SlideDisplayTime { get; set; } = 60;
-		public bool SlidesPaused { get; set; }
+		int slideDisplayTime = 60;
+		public int SlideDisplayTime
+		{
+			get => slideDisplayTime;
+			set
+			{
+				slideDisplayTime = value;
+				NetServer.SendAll(NetServer.GetSlidesData());
+			}
+		}
+		bool slidesPaused;
+		public bool SlidesPaused
+		{
+			get => slidesPaused;
+			set
+			{
+				slidesPaused = value;
+				NetServer.SendAll(NetServer.GetSlidesData());
+			}
+		}
 		public bool musicAutoPlay { get; set; } = false;
 		public bool MusicAutoPlay { get { return musicAutoPlay; } set { musicAutoPlay = value; ActionChanged(); } }
 
@@ -113,13 +141,13 @@ namespace NeoPlayer
 			ActionChanged();
 		}
 
-		public void CycleSlide(bool fromStart = true)
+		public void CycleSlide(bool forward = true)
 		{
 			if (!slides.Any())
 				return;
 
 			currentSlideIndex = Math.Max(0, Math.Min(currentSlideIndex, slides.Count - 1));
-			currentSlideIndex += (fromStart ? 1 : -1);
+			currentSlideIndex += (forward ? 1 : -1);
 			while (currentSlideIndex < 0)
 				currentSlideIndex += slides.Count;
 			while (currentSlideIndex >= slides.Count)

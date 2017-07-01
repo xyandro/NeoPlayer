@@ -41,9 +41,14 @@ namespace NeoPlayer
 						case Message.MessageCommand.SetPosition: SetPosition(message); break;
 						case Message.MessageCommand.Play: Play(); break;
 						case Message.MessageCommand.Forward: Forward(); break;
-						case Message.MessageCommand.MediaData: RequestMediaData(); break;
+						case Message.MessageCommand.GetMediaData: RequestMediaData(); break;
 						case Message.MessageCommand.GetVolume: queue.Enqueue(GetVolume()); break;
 						case Message.MessageCommand.SetVolume: SetVolume(message); break;
+						case Message.MessageCommand.GetSlidesData: queue.Enqueue(GetSlidesData()); break;
+						case Message.MessageCommand.SetSlidesData: SetSlidesData(message); break;
+						case Message.MessageCommand.PauseSlides: PauseSlides(); break;
+						case Message.MessageCommand.SetSlideDisplayTime: SetSlideDisplayTime(message); break;
+						case Message.MessageCommand.CycleSlide: CycleSlide(message); break;
 					}
 				}
 			}
@@ -109,9 +114,31 @@ namespace NeoPlayer
 			NeoPlayerWindow.Current.Volume = (relative ? NeoPlayerWindow.Current.Volume : 0) + volume;
 		}
 
+		public static byte[] GetSlidesData()
+		{
+			var message = new Message(Message.MessageCommand.GetSlidesData);
+			message.Add(NeoPlayerWindow.Current.SlidesQuery);
+			message.Add(NeoPlayerWindow.Current.SlidesSize);
+			message.Add(NeoPlayerWindow.Current.SlideDisplayTime);
+			message.Add(NeoPlayerWindow.Current.SlidesPaused);
+			return message.ToArray();
+		}
+
+		static void SetSlidesData(Message message)
+		{
+			NeoPlayerWindow.Current.SlidesQuery = message.GetString();
+			NeoPlayerWindow.Current.SlidesSize = message.GetString();
+		}
+
+		static void PauseSlides() => NeoPlayerWindow.Current.SlidesPaused = !NeoPlayerWindow.Current.SlidesPaused;
+
+		static void SetSlideDisplayTime(Message message) => NeoPlayerWindow.Current.SlideDisplayTime = message.GetInt();
+
+		static void CycleSlide(Message message) => NeoPlayerWindow.Current.CycleSlide(message.GetBool());
+
 		public static byte[] MediaData(bool playing, string title, int position, int maxPosition)
 		{
-			var message = new Message(Message.MessageCommand.MediaData);
+			var message = new Message(Message.MessageCommand.GetMediaData);
 			message.Add(playing);
 			message.Add(title);
 			message.Add(position);

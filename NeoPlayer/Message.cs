@@ -18,9 +18,14 @@ namespace NeoPlayer
 			SetPosition,
 			Play,
 			Forward,
-			MediaData,
+			GetMediaData,
 			GetVolume,
 			SetVolume,
+			GetSlidesData,
+			PauseSlides,
+			SetSlidesData,
+			SetSlideDisplayTime,
+			CycleSlide,
 		}
 
 		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);

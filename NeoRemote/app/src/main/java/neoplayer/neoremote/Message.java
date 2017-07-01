@@ -15,9 +15,14 @@ public class Message {
         SetPosition,
         Play,
         Forward,
-        MediaData,
+        GetMediaData,
         GetVolume,
         SetVolume,
+        GetSlidesData,
+        PauseSlides,
+        SetSlidesData,
+        SetSlideDisplayTime,
+        CycleSlide,
     }
 
     private ByteBuffer byteBuffer;
