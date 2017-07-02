@@ -29,6 +29,7 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -464,33 +465,26 @@ public class MainActivity extends Activity {
             youTubeAdapter.notifyDataSetChanged();
         }
 
-        if (extras.containsKey("Playing")) {
-            navbarPlay.setImageResource((boolean) extras.get("Playing") ? R.drawable.pause : R.drawable.play);
-        }
+        if (extras.containsKey("Playing"))
+            navbarPlay.setImageResource(extras.getBoolean("Playing") ? R.drawable.pause : R.drawable.play);
 
-        if (extras.containsKey("Title")) {
-            navbarTitle.setText((String) extras.get("Title"));
-        }
+        if (extras.containsKey("Title"))
+            navbarTitle.setText(extras.getString("Title"));
 
-        if (extras.containsKey("Position")) {
-            if (!userTrackingSeekBar)
-                navbarSeekBar.setProgress((int) extras.get("Position"));
-
-        }
+        if ((extras.containsKey("Position")) && (!userTrackingSeekBar))
+            navbarSeekBar.setProgress(extras.getInt("Position"));
 
         if (extras.containsKey("MaxPosition")) {
-            int maxPosition = (int) extras.get("MaxPosition");
+            int maxPosition = extras.getInt("MaxPosition");
             navbarSeekBar.setMax(maxPosition);
             navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
         }
 
-        if (extras.containsKey("Volume")) {
-            volumeProvider.setCurrentVolume((int) extras.get("Volume"));
-        }
+        if (extras.containsKey("Volume"))
+            volumeProvider.setCurrentVolume(extras.getInt("Volume"));
 
-        if (extras.containsKey("SlidesQuery")) {
-            slidesQuery.setText((String) extras.get("SlidesQuery"));
-        }
+        if (extras.containsKey("SlidesQuery"))
+            slidesQuery.setText(extras.getString("SlidesQuery"));
 
         if (extras.containsKey("SlidesSize")) {
             int index = 0;
@@ -501,13 +495,14 @@ public class MainActivity extends Activity {
             }
         }
 
-        if (extras.containsKey("SlideDisplayTime")) {
-            slidesDisplayTime.setProgress(displayTimeToSeekBar((int) extras.get("SlideDisplayTime")));
-        }
+        if (extras.containsKey("SlideDisplayTime"))
+            slidesDisplayTime.setProgress(displayTimeToSeekBar(extras.getInt("SlideDisplayTime")));
 
-        if (extras.containsKey("SlidesPaused")) {
-            slidesPlay.setImageResource((boolean) extras.get("SlidesPaused") ? R.drawable.play : R.drawable.pause);
-        }
+        if (extras.containsKey("SlidesPaused"))
+            slidesPlay.setImageResource(extras.getBoolean("SlidesPaused") ? R.drawable.play : R.drawable.pause);
+
+        if (extras.containsKey("Toast"))
+            Toast.makeText(this, extras.getString("Toast"), Toast.LENGTH_SHORT).show();
     }
 
     public void queueVideo(MediaData mediaData) {

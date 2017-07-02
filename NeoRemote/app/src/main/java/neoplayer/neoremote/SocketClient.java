@@ -34,6 +34,7 @@ public class SocketClient extends Service {
     }
 
     private void runReaderThread() {
+        boolean toasted = false;
         Log.d(TAG, "runReaderThread: Started");
         while (true) {
             try {
@@ -44,6 +45,12 @@ public class SocketClient extends Service {
 
                 try {
                     Log.d(TAG, "runReaderThread: Connected");
+                    if (toasted) {
+                        Intent intent = new Intent("NeoRemoteEvent");
+                        intent.putExtra("Toast", "Reconnected to NeoPlayer");
+                        broadcastManager.sendBroadcast(intent);
+                        toasted = false;
+                    }
 
                     outputQueue.clear();
                     requestQueue();
@@ -89,6 +96,14 @@ public class SocketClient extends Service {
             } catch (Exception ex) {
                 Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
                 outputQueue.clear();
+
+                if (!toasted) {
+                    Intent intent = new Intent("NeoRemoteEvent");
+                    intent.putExtra("Toast", "Can't connect to NeoPlayer");
+                    broadcastManager.sendBroadcast(intent);
+                    toasted = true;
+                }
+
                 try {
                     Thread.sleep(1000);
                 } catch (Exception e) {
