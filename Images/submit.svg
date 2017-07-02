@@ -17,8 +17,5 @@
 			</feMerge>
 		</filter>
 	</defs>
-	<g stroke-width="2">
-		<circle cx="32" cy="32" r="30" fill="url(#circleGradient)" stroke="#bbbbbb" />
-		<path d="M33,44 A3,3,0,0,0,39,50 L53,36 A6,6,0,0,0,53,28 L53,28 L39,14 A3,3,0,0,0,33,20 L41,28 L11,28 A3,3,0,0,0,11,36 L41,36 Z" fill="url(#xGradient)" stroke="#000000" filter="url(#dropshadow)" />
-	</g>
+	<path d="M33,44 A3,3,0,0,0,39,50 L53,36 A6,6,0,0,0,53,28 L53,28 L39,14 A3,3,0,0,0,33,20 L41,28 L11,28 A3,3,0,0,0,11,36 L41,36 Z" fill="url(#xGradient)" stroke="#000000" filter="url(#dropshadow)" stroke-width="2" />
 </svg>
