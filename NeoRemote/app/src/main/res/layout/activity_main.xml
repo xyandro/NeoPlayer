@@ -19,7 +19,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="@drawable/yellow"
+                android:background="@drawable/background_yellow"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical">
@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:background="@drawable/teal">
+                android:background="@drawable/background_teal">
 
                 <ListView
                     android:id="@+id/queue_videos_list"
@@ -98,7 +98,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="@drawable/yellow"
+                android:background="@drawable/background_yellow"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical">
@@ -159,7 +159,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:background="@drawable/teal">
+                android:background="@drawable/background_teal">
 
                 <ListView
                     android:id="@+id/cool_videos_list"
@@ -177,7 +177,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="@drawable/yellow"
+                android:background="@drawable/background_yellow"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical">
@@ -220,7 +220,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:background="@drawable/teal"
+                android:background="@drawable/background_teal"
                 android:orientation="vertical">
 
                 <TextView
@@ -265,7 +265,7 @@
                         android:layout_marginLeft="5dp"
                         android:layout_marginRight="5dp"
                         android:layout_weight="1"
-                        android:popupBackground="@drawable/yellow"
+                        android:popupBackground="@drawable/background_yellow"
                         android:spinnerMode="dropdown" />
 
                 </LinearLayout>
@@ -279,7 +279,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:background="@drawable/pink"
+                android:background="@drawable/background_pink"
                 android:orientation="vertical">
 
                 <TextView
@@ -379,7 +379,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="@drawable/yellow"
+                android:background="@drawable/background_yellow"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical">
@@ -440,7 +440,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:background="@drawable/teal">
+                android:background="@drawable/background_teal">
 
                 <ListView
                     android:id="@+id/youtube_videos_list"
@@ -457,7 +457,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="@drawable/yellow"
+        android:background="@drawable/background_yellow"
         android:orientation="vertical">
 
         <TextView
@@ -471,8 +471,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:background="@drawable/yellow">
+            android:layout_height="30dp">
 
             <Space
                 android:layout_width="5dp"
