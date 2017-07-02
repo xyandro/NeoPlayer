@@ -8,19 +8,30 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class SocketClient extends Service {
     private static final String TAG = SocketClient.class.getSimpleName();
+    private static final int NeoPlayerToken = 0xfeedbeef;
+    private static final int NeoPlayerRestartToken = 0x0badf00d;
+    private static final int NeoPlayerPort = 7399;
+    private static final int NeoPlayerRestartPort = 7398;
 
     private final SocketServiceBinder binder = new SocketServiceBinder();
     private LocalBroadcastManager broadcastManager;
     private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
+    private static InetAddress neoPlayerAddress = null;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -32,82 +43,117 @@ public class SocketClient extends Service {
         super.onDestroy();
     }
 
+    public static void findNeoPlayer() throws Exception {
+        Log.d(TAG, "findNeoPlayer: Scanning for NeoPlayer...");
+        DatagramSocket socket = new DatagramSocket();
+        socket.setBroadcast(true);
+        socket.setSoTimeout(1000);
+        byte[] message = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerToken).array();
+
+        for (Enumeration<NetworkInterface> niEnum = NetworkInterface.getNetworkInterfaces(); niEnum.hasMoreElements(); ) {
+            NetworkInterface ni = niEnum.nextElement();
+            if (ni.isLoopback())
+                continue;
+
+            for (InterfaceAddress interfaceAddress : ni.getInterfaceAddresses()) {
+                if (interfaceAddress.getBroadcast() == null)
+                    continue;
+
+                DatagramPacket packet = new DatagramPacket(message, message.length, interfaceAddress.getBroadcast(), NeoPlayerPort);
+                socket.send(packet);
+            }
+        }
+
+        DatagramPacket packet = new DatagramPacket(message, message.length);
+        while (true) {
+            socket.receive(packet);
+
+            if (packet.getData().length != 4)
+                continue;
+
+            if (ByteBuffer.wrap(packet.getData()).order(ByteOrder.LITTLE_ENDIAN).getInt() != NeoPlayerToken)
+                continue;
+
+            neoPlayerAddress = packet.getAddress();
+            Log.d(TAG, "findNeoPlayer: NeoPlayer replied from " + neoPlayerAddress);
+            return;
+        }
+    }
+
     private void runReaderThread() {
         boolean toasted = false;
         Log.d(TAG, "runReaderThread: Started");
-        while (true) {
+        while (true) try {
+            findNeoPlayer();
+
+            final Socket socket = new Socket();
+            socket.connect(new InetSocketAddress(neoPlayerAddress, NeoPlayerPort), 1000);
+
             try {
-                Log.d(TAG, "runReaderThread: Connecting...");
+                Log.d(TAG, "runReaderThread: Connected");
+                if (toasted) {
+                    Intent intent = new Intent("NeoRemoteEvent");
+                    intent.putExtra("Toast", "Connected to NeoPlayer");
+                    broadcastManager.sendBroadcast(intent);
+                    toasted = false;
+                }
 
-                final Socket socket = new Socket();
-                socket.connect(new InetSocketAddress("192.168.1.10", 7399), 1000);
+                outputQueue.clear();
+                requestQueue();
+                requestCool();
+                requestMediaData();
+                requestSlidesData();
+                requestVolume();
 
-                try {
-                    Log.d(TAG, "runReaderThread: Connected");
-                    if (toasted) {
-                        Intent intent = new Intent("NeoRemoteEvent");
-                        intent.putExtra("Toast", "Connected to NeoPlayer");
-                        broadcastManager.sendBroadcast(intent);
-                        toasted = false;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        runWriterThread(socket);
                     }
+                }).start();
 
-                    outputQueue.clear();
-                    requestQueue();
-                    requestCool();
-                    requestMediaData();
-                    requestSlidesData();
-                    requestVolume();
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            runWriterThread(socket);
-                        }
-                    }).start();
-
-                    while (true) {
-                        Message message = new Message(socket.getInputStream());
-                        switch (message.command) {
-                            case GetQueue:
-                                setQueue(message);
-                                break;
-                            case GetCool:
-                                setCool(message);
-                                break;
-                            case GetYouTube:
-                                setYouTube(message);
-                                break;
-                            case GetMediaData:
-                                setMediaData(message);
-                                break;
-                            case GetVolume:
-                                setVolume(message);
-                                break;
-                            case GetSlidesData:
-                                setSlidesData(message);
-                                break;
-                        }
+                while (true) {
+                    Message message = new Message(socket.getInputStream());
+                    switch (message.command) {
+                        case GetQueue:
+                            setQueue(message);
+                            break;
+                        case GetCool:
+                            setCool(message);
+                            break;
+                        case GetYouTube:
+                            setYouTube(message);
+                            break;
+                        case GetMediaData:
+                            setMediaData(message);
+                            break;
+                        case GetVolume:
+                            setVolume(message);
+                            break;
+                        case GetSlidesData:
+                            setSlidesData(message);
+                            break;
                     }
-                } catch (Exception ex) {
-                    socket.close();
-                    throw ex;
                 }
             } catch (Exception ex) {
-                Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
-                outputQueue.clear();
-                outputQueue.add(new byte[0]); // Let writer thread know there's a problem
+                socket.close();
+                throw ex;
+            }
+        } catch (Exception ex) {
+            Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
+            outputQueue.clear();
+            outputQueue.add(new byte[0]); // Let writer thread know there's a problem
 
-                if (!toasted) {
-                    Intent intent = new Intent("NeoRemoteEvent");
-                    intent.putExtra("Toast", "Can't connect to NeoPlayer");
-                    broadcastManager.sendBroadcast(intent);
-                    toasted = true;
-                }
+            if (!toasted) {
+                Intent intent = new Intent("NeoRemoteEvent");
+                intent.putExtra("Toast", "Can't connect to NeoPlayer");
+                broadcastManager.sendBroadcast(intent);
+                toasted = true;
+            }
 
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
             }
         }
     }
@@ -329,7 +375,8 @@ public class SocketClient extends Service {
             @Override
             protected Void doInBackground(Void... voids) {
                 try {
-                    new Socket("192.168.1.10", 7398).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(0x0badf00d).array());
+                    if (neoPlayerAddress != null)
+                        new Socket(neoPlayerAddress, NeoPlayerRestartPort).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerRestartToken).array());
                 } catch (Exception e) {
                 }
                 return null;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,7 +12,28 @@ namespace NeoPlayer
 	{
 		static List<AsyncQueue<byte[]>> outputQueues = new List<AsyncQueue<byte[]>>();
 
-		async public static void Run(int port)
+		public static void Run(int port)
+		{
+			RunUdpListener(port);
+			RunTcpListener(port);
+		}
+
+		async static void RunUdpListener(int port)
+		{
+			var client = new UdpClient();
+			client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+			client.ExclusiveAddressUse = false;
+			client.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+
+			while (true)
+			{
+				var data = await client.ReceiveAsync();
+				if ((data.Buffer.Length == 4) && (BitConverter.ToUInt32(data.Buffer, 0) == 0xfeedbeef))
+					await client.SendAsync(data.Buffer, data.Buffer.Length, data.RemoteEndPoint);
+			}
+		}
+
+		async static void RunTcpListener(int port)
 		{
 			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
