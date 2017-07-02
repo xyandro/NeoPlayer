@@ -516,6 +516,12 @@ namespace NeoPlayer
 			base.OnKeyDown(e);
 		}
 
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			Environment.Exit(0);
+		}
+
 		static class Win32
 		{
 			// Import SetThreadExecutionState Win32 API and necessary flags

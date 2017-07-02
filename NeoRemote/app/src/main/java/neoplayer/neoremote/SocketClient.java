@@ -2,6 +2,7 @@ package neoplayer.neoremote;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -9,6 +10,8 @@ import android.util.Log;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -306,5 +309,18 @@ public class SocketClient extends Service {
             }
         }).start();
         this.broadcastManager = broadcastManager;
+    }
+
+    public static void sendRestart() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    new Socket("192.168.1.10", 7398).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(0x0badf00d).array());
+                } catch (Exception e) {
+                }
+                return null;
+            }
+        }.execute();
     }
 }

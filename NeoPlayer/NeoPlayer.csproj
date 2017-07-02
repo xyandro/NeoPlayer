@@ -99,6 +99,7 @@
     <Compile Include="QueryDialog.xaml.cs">
       <DependentUpon>QueryDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Restarter.cs" />
     <Compile Include="Settings.cs" />
     <Page Include="SettingsDialog.xaml">
       <SubType>Designer</SubType>

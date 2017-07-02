@@ -1,6 +1,8 @@
 package neoplayer.neoremote;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -49,6 +51,27 @@ public class QueueFragment extends Fragment {
             public void onClick(View view) {
                 searchText.clearFocus();
                 searchText.setText("");
+            }
+        });
+
+        result.findViewById(R.id.clear_search).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                new AlertDialog.Builder(getContext())
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Restart NeoPlayer?")
+                        .setMessage("Are you sure you want to restart NeoPlayer?")
+                        .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SocketClient.sendRestart();
+                            }
+
+                        })
+                        .setPositiveButton("No", null)
+                        .show();
+
+                return false;
             }
         });
 
