@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -46,8 +45,37 @@ public class MainActivity extends Activity {
     private boolean userTrackingSeekBar = false;
     private final MediaListAdapter queueAdapter;
     private final MediaListAdapter coolAdapter;
-    private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<String, String>();
+    private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private final MediaListAdapter youTubeAdapter;
+
+    private ViewPager pager;
+    private NEEditText queueSearchText;
+    private ImageButton queueClearSearch;
+    private ListView queueVideosList;
+    private NEEditText coolSearchText;
+    private ImageButton coolClearSearch;
+    private ListView coolVideosList;
+    private NEEditText slidesQuery;
+    private Spinner slidesSize;
+    private ImageButton slidesSubmit;
+    private SeekBar slidesDisplayTime;
+    private TextView slidesDisplayTimeText;
+    private ImageButton slidesBack;
+    private ImageButton slidesPlay;
+    private ImageButton slidesForward;
+    private NEEditText youtubeSearchText;
+    private ImageButton youtubeSubmit;
+    private ListView youtubeVideosList;
+    private TextView navbarTitle;
+    private TextView navbarCurrentTime;
+    private SeekBar navbarSeekBar;
+    private TextView navbarMaxTime;
+    private ImageButton navbarBack30;
+    private ImageButton navbarBack5;
+    private ImageButton navbarPlay;
+    private ImageButton navbarForward5;
+    private ImageButton navbarForward30;
+    private ImageButton navbarForward;
 
     static {
         validSizes.put("Any size", "");
@@ -83,160 +111,7 @@ public class MainActivity extends Activity {
 
         prepareSocketService();
         prepareMediaSession();
-        setupPager();
-        hookButtons();
-
-        final EditText queueSearchText = findViewById(R.id.queue_search_text);
-        queueSearchText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                queueAdapter.setFilter(charSequence.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
-        ((ListView) findViewById(R.id.queue_videos_list)).setAdapter(queueAdapter);
-        findViewById(R.id.queue_clear_search).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                queueSearchText.clearFocus();
-                queueSearchText.setText("");
-            }
-        });
-
-        findViewById(R.id.queue_clear_search).setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle("Restart NeoPlayer?")
-                        .setMessage("Are you sure you want to restart NeoPlayer?")
-                        .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                SocketClient.sendRestart();
-                            }
-
-                        })
-                        .setPositiveButton("No", null)
-                        .show();
-
-                return false;
-            }
-        });
-
-        final EditText coolSearchText = findViewById(R.id.cool_search_text);
-        coolSearchText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                coolAdapter.setFilter(charSequence.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
-        ((ListView) findViewById(R.id.cool_videos_list)).setAdapter(coolAdapter);
-        findViewById(R.id.cool_clear_search).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                coolSearchText.clearFocus();
-                coolSearchText.setText("");
-            }
-        });
-
-        ((NEEditText) findViewById(R.id.slides_query)).addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence.toString().endsWith("\n\n"))
-                    findViewById(R.id.slides_submit).performClick();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-        final Spinner slidesSize = findViewById(R.id.slides_size);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinner_item, new ArrayList<String>(validSizes.keySet()));
-        slidesSize.setAdapter(adapter);
-
-        findViewById(R.id.slides_submit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findViewById(R.id.slides_query).clearFocus();
-                String query = ((EditText) findViewById(R.id.slides_query)).getText().toString();
-                String size = validSizes.get(slidesSize.getSelectedItem());
-                socketClient.setSlidesData(query, size);
-            }
-        });
-
-        ((SeekBar) findViewById(R.id.slides_display_time)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
-                int displayTime = seekBarToDisplayTime(value);
-                value = displayTimeToSeekBar(displayTime);
-                seekBar.setProgress(value);
-                ((TextView) findViewById(R.id.slides_display_time_text)).setText(DateUtils.formatElapsedTime(displayTime));
-                if (fromUser)
-                    socketClient.setSlideDisplayTime(displayTime);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-
-        findViewById(R.id.slides_back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                socketClient.cycleSlide(false);
-            }
-        });
-
-        findViewById(R.id.slides_play).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                socketClient.pauseSlides();
-            }
-        });
-
-        findViewById(R.id.slides_forward).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                socketClient.cycleSlide(true);
-            }
-        });
-
-        final EditText youtubeSearchText = findViewById(R.id.youtube_search_text);
-
-        ((ListView) findViewById(R.id.youtube_videos_list)).setAdapter(youTubeAdapter);
-        findViewById(R.id.youtube_submit).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                youtubeSearchText.clearFocus();
-                socketClient.requestYouTube(youtubeSearchText.getText().toString());
-            }
-        });
+        setupControls();
     }
 
     private int seekBarToDisplayTime(int value) {
@@ -263,17 +138,191 @@ public class MainActivity extends Activity {
         return (value + 29) / 60 + 9;
     }
 
-    private void setupPager() {
-        ViewPager pager = findViewById(R.id.pager);
+    private void setupControls() {
+        pager = findViewById(R.id.pager);
+        queueSearchText = findViewById(R.id.queue_search_text);
+        queueClearSearch = findViewById(R.id.queue_clear_search);
+        queueVideosList = findViewById(R.id.queue_videos_list);
+        coolSearchText = findViewById(R.id.cool_search_text);
+        coolClearSearch = findViewById(R.id.cool_clear_search);
+        coolVideosList = findViewById(R.id.cool_videos_list);
+        slidesQuery = findViewById(R.id.slides_query);
+        slidesSize = findViewById(R.id.slides_size);
+        slidesSubmit = findViewById(R.id.slides_submit);
+        slidesDisplayTime = findViewById(R.id.slides_display_time);
+        slidesDisplayTimeText = findViewById(R.id.slides_display_time_text);
+        slidesBack = findViewById(R.id.slides_back);
+        slidesPlay = findViewById(R.id.slides_play);
+        slidesForward = findViewById(R.id.slides_forward);
+        youtubeSearchText = findViewById(R.id.youtube_search_text);
+        youtubeSubmit = findViewById(R.id.youtube_submit);
+        youtubeVideosList = findViewById(R.id.youtube_videos_list);
+        navbarTitle = findViewById(R.id.navbar_title);
+        navbarCurrentTime = findViewById(R.id.navbar_current_time);
+        navbarSeekBar = findViewById(R.id.navbar_seek_bar);
+        navbarMaxTime = findViewById(R.id.navbar_max_time);
+        navbarBack30 = findViewById(R.id.navbar_back30);
+        navbarBack5 = findViewById(R.id.navbar_back5);
+        navbarPlay = findViewById(R.id.navbar_play);
+        navbarForward5 = findViewById(R.id.navbar_forward5);
+        navbarForward30 = findViewById(R.id.navbar_forward30);
+        navbarForward = findViewById(R.id.navbar_forward);
+
         new ScreenSlidePagerAdapter(pager);
         pager.setCurrentItem(1);
-    }
 
-    private void hookButtons() {
-        ((SeekBar) findViewById(R.id.navbar_seek_bar)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        queueSearchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                queueAdapter.setFilter(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        queueVideosList.setAdapter(queueAdapter);
+        queueClearSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                queueSearchText.clearFocus();
+                queueSearchText.setText("");
+            }
+        });
+
+        queueClearSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Restart NeoPlayer?")
+                        .setMessage("Are you sure you want to restart NeoPlayer?")
+                        .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SocketClient.sendRestart();
+                            }
+
+                        })
+                        .setPositiveButton("No", null)
+                        .show();
+
+                return false;
+            }
+        });
+
+        coolSearchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                coolAdapter.setFilter(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        coolVideosList.setAdapter(coolAdapter);
+        coolClearSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                coolSearchText.clearFocus();
+                coolSearchText.setText("");
+            }
+        });
+
+        slidesQuery.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.toString().endsWith("\n\n"))
+                    slidesSubmit.performClick();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, new ArrayList<>(validSizes.keySet()));
+        slidesSize.setAdapter(adapter);
+
+        slidesSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                slidesQuery.clearFocus();
+                String query = slidesQuery.getText().toString();
+                String size = validSizes.get(slidesSize.getSelectedItem());
+                socketClient.setSlidesData(query, size);
+            }
+        });
+
+        slidesDisplayTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
-                ((TextView) findViewById(R.id.navbar_current_time)).setText(DateUtils.formatElapsedTime(value));
+                int displayTime = seekBarToDisplayTime(value);
+                value = displayTimeToSeekBar(displayTime);
+                seekBar.setProgress(value);
+                slidesDisplayTimeText.setText(DateUtils.formatElapsedTime(displayTime));
+                if (fromUser)
+                    socketClient.setSlideDisplayTime(displayTime);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+        slidesBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                socketClient.cycleSlide(false);
+            }
+        });
+
+        slidesPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                socketClient.pauseSlides();
+            }
+        });
+
+        slidesForward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                socketClient.cycleSlide(true);
+            }
+        });
+
+        youtubeVideosList.setAdapter(youTubeAdapter);
+        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                youtubeSearchText.clearFocus();
+                socketClient.requestYouTube(youtubeSearchText.getText().toString());
+            }
+        });
+
+        navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                navbarCurrentTime.setText(DateUtils.formatElapsedTime(value));
             }
 
             @Override
@@ -288,42 +337,42 @@ public class MainActivity extends Activity {
             }
         });
 
-        findViewById(R.id.navbar_back30).setOnClickListener(new View.OnClickListener() {
+        navbarBack30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.setPosition(-30, true);
             }
         });
 
-        findViewById(R.id.navbar_back5).setOnClickListener(new View.OnClickListener() {
+        navbarBack5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.setPosition(-5, true);
             }
         });
 
-        findViewById(R.id.navbar_play).setOnClickListener(new View.OnClickListener() {
+        navbarPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.play();
             }
         });
 
-        findViewById(R.id.navbar_forward5).setOnClickListener(new View.OnClickListener() {
+        navbarForward5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.setPosition(5, true);
             }
         });
 
-        findViewById(R.id.navbar_forward30).setOnClickListener(new View.OnClickListener() {
+        navbarForward30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.setPosition(30, true);
             }
         });
 
-        findViewById(R.id.navbar_forward).setOnClickListener(new View.OnClickListener() {
+        navbarForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 socketClient.forward();
@@ -416,23 +465,23 @@ public class MainActivity extends Activity {
         }
 
         if (extras.containsKey("Playing")) {
-            ((ImageButton) findViewById(R.id.navbar_play)).setImageResource((boolean) extras.get("Playing") ? R.drawable.pause : R.drawable.play);
+            navbarPlay.setImageResource((boolean) extras.get("Playing") ? R.drawable.pause : R.drawable.play);
         }
 
         if (extras.containsKey("Title")) {
-            ((TextView) findViewById(R.id.navbar_title)).setText((String) extras.get("Title"));
+            navbarTitle.setText((String) extras.get("Title"));
         }
 
         if (extras.containsKey("Position")) {
             if (!userTrackingSeekBar)
-                ((SeekBar) findViewById(R.id.navbar_seek_bar)).setProgress((int) extras.get("Position"));
+                navbarSeekBar.setProgress((int) extras.get("Position"));
 
         }
 
         if (extras.containsKey("MaxPosition")) {
             int maxPosition = (int) extras.get("MaxPosition");
-            ((SeekBar) findViewById(R.id.navbar_seek_bar)).setMax(maxPosition);
-            ((TextView) findViewById(R.id.navbar_max_time)).setText(DateUtils.formatElapsedTime(maxPosition));
+            navbarSeekBar.setMax(maxPosition);
+            navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
         }
 
         if (extras.containsKey("Volume")) {
@@ -440,24 +489,24 @@ public class MainActivity extends Activity {
         }
 
         if (extras.containsKey("SlidesQuery")) {
-            ((EditText) findViewById(R.id.slides_query)).setText((String) extras.get("SlidesQuery"));
+            slidesQuery.setText((String) extras.get("SlidesQuery"));
         }
 
         if (extras.containsKey("SlidesSize")) {
             int index = 0;
             for (String entry : validSizes.keySet()) {
-                if (validSizes.get(entry).equals((String) extras.get("SlidesSize")))
-                    ((Spinner) findViewById(R.id.slides_size)).setSelection(index);
+                if (validSizes.get(entry).equals(extras.get("SlidesSize")))
+                    slidesSize.setSelection(index);
                 ++index;
             }
         }
 
         if (extras.containsKey("SlideDisplayTime")) {
-            ((SeekBar) findViewById(R.id.slides_display_time)).setProgress(displayTimeToSeekBar((int) extras.get("SlideDisplayTime")));
+            slidesDisplayTime.setProgress(displayTimeToSeekBar((int) extras.get("SlideDisplayTime")));
         }
 
         if (extras.containsKey("SlidesPaused")) {
-            ((ImageButton) findViewById(R.id.slides_play)).setImageResource((boolean) extras.get("SlidesPaused") ? R.drawable.play : R.drawable.pause);
+            slidesPlay.setImageResource((boolean) extras.get("SlidesPaused") ? R.drawable.play : R.drawable.pause);
         }
     }
 
@@ -486,7 +535,7 @@ public class MainActivity extends Activity {
 
         @Override
         public boolean isViewFromObject(View arg0, Object arg1) {
-            return arg0 == ((View) arg1);
+            return arg0 == arg1;
         }
     }
 }

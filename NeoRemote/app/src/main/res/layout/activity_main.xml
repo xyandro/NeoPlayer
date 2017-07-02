@@ -11,7 +11,6 @@
         android:layout_weight="1">
 
         <LinearLayout
-            android:id="@+id/queue_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@layout/slide_border"
@@ -91,7 +90,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/cool_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@layout/slide_border"
@@ -171,7 +169,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/slides_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@layout/slide_border"
@@ -364,7 +361,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/youtube_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@layout/slide_border"
