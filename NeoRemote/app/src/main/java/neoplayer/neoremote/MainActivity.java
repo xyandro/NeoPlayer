@@ -241,22 +241,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        slidesQuery.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence.toString().endsWith("\n\n"))
-                    slidesSubmit.performClick();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, new ArrayList<>(validSizes.keySet()));
         slidesSize.setAdapter(adapter);
 

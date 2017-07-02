@@ -1,0 +1,24 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+	<defs>
+		<radialGradient id="circleGradient" cx="50%" cy="50%" r="50%" fx="65%" fy="65%">
+			<stop offset="0%" stop-color="#ffffff" />
+			<stop offset="100%" stop-color="#eeeeee" />
+		</radialGradient>
+		<radialGradient id="xGradient" cx="50%" cy="50%" r="50%">
+			<stop offset="0%" stop-color="#888888" />
+			<stop offset="100%" stop-color="#444444" />
+		</radialGradient>
+		<filter id="dropshadow" x="-20%" y="-20%" width="140%" height="140%">
+			<feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+			<feOffset dx="2" dy="2" />
+			<feMerge>
+				<feMergeNode />
+				<feMergeNode in="SourceGraphic" />
+			</feMerge>
+		</filter>
+	</defs>
+	<g stroke-width="2">
+		<circle cx="32" cy="32" r="30" fill="url(#circleGradient)" stroke="#bbbbbb" />
+		<path d="M33,44 A3,3,0,0,0,39,50 L53,36 A6,6,0,0,0,53,28 L53,28 L39,14 A3,3,0,0,0,33,20 L41,28 L11,28 A3,3,0,0,0,11,36 L41,36 Z" fill="url(#xGradient)" stroke="#000000" filter="url(#dropshadow)" />
+	</g>
+</svg>
