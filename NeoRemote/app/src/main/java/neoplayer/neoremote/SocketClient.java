@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public class SocketClient extends Service {
     private static final String TAG = SocketClient.class.getSimpleName();
@@ -47,7 +46,7 @@ public class SocketClient extends Service {
                     Log.d(TAG, "runReaderThread: Connected");
                     if (toasted) {
                         Intent intent = new Intent("NeoRemoteEvent");
-                        intent.putExtra("Toast", "Reconnected to NeoPlayer");
+                        intent.putExtra("Toast", "Connected to NeoPlayer");
                         broadcastManager.sendBroadcast(intent);
                         toasted = false;
                     }
@@ -96,6 +95,7 @@ public class SocketClient extends Service {
             } catch (Exception ex) {
                 Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
                 outputQueue.clear();
+                outputQueue.add(new byte[0]); // Let writer thread know there's a problem
 
                 if (!toasted) {
                     Intent intent = new Intent("NeoRemoteEvent");
@@ -224,13 +224,11 @@ public class SocketClient extends Service {
         try {
             Log.d(TAG, "runWriterThread: Started");
             while (!socket.isClosed()) {
-                byte[] message = outputQueue.poll(1, TimeUnit.SECONDS);
-                if (message == null)
+                byte[] message = outputQueue.take();
+                if (message.length == 0)
                     continue;
 
-                Log.d(TAG, "runWriterThread: Sending message...");
                 socket.getOutputStream().write(message);
-                Log.d(TAG, "runWriterThread: Done");
             }
             Log.d(TAG, "runWriterThread: Socket disconnected");
         } catch (Exception ex) {
