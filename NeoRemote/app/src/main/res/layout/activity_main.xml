@@ -196,6 +196,15 @@
                     android:layout_height="40dp"
                     android:orientation="horizontal">
 
+                    <ImageButton
+                        android:id="@+id/slides_clear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:background="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/clear" />
+
                     <Space
                         android:layout_width="0dp"
                         android:layout_height="match_parent"

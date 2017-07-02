@@ -48,6 +48,8 @@ public class MainActivity extends Activity {
     private final MediaListAdapter coolAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private final MediaListAdapter youTubeAdapter;
+    private String currentSlidesQuery;
+    private int currentSlidesSize;
 
     private ViewPager pager;
     private NEEditText queueSearchText;
@@ -58,6 +60,7 @@ public class MainActivity extends Activity {
     private ListView coolVideosList;
     private NEEditText slidesQuery;
     private Spinner slidesSize;
+    private ImageButton slidesClear;
     private ImageButton slidesSubmit;
     private SeekBar slidesDisplayTime;
     private TextView slidesDisplayTimeText;
@@ -149,6 +152,7 @@ public class MainActivity extends Activity {
         coolVideosList = findViewById(R.id.cool_videos_list);
         slidesQuery = findViewById(R.id.slides_query);
         slidesSize = findViewById(R.id.slides_size);
+        slidesClear = findViewById(R.id.slides_clear);
         slidesSubmit = findViewById(R.id.slides_submit);
         slidesDisplayTime = findViewById(R.id.slides_display_time);
         slidesDisplayTimeText = findViewById(R.id.slides_display_time_text);
@@ -243,6 +247,15 @@ public class MainActivity extends Activity {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, new ArrayList<>(validSizes.keySet()));
         slidesSize.setAdapter(adapter);
+
+        slidesClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                slidesQuery.setText(currentSlidesQuery);
+                slidesSize.setSelection(currentSlidesSize);
+                slidesQuery.clearFocus();
+            }
+        });
 
         slidesSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -467,14 +480,18 @@ public class MainActivity extends Activity {
         if (extras.containsKey("Volume"))
             volumeProvider.setCurrentVolume(extras.getInt("Volume"));
 
-        if (extras.containsKey("SlidesQuery"))
-            slidesQuery.setText(extras.getString("SlidesQuery"));
+        if (extras.containsKey("SlidesQuery")) {
+            currentSlidesQuery = extras.getString("SlidesQuery");
+            slidesQuery.setText(currentSlidesQuery);
+        }
 
         if (extras.containsKey("SlidesSize")) {
             int index = 0;
             for (String entry : validSizes.keySet()) {
-                if (validSizes.get(entry).equals(extras.get("SlidesSize")))
+                if (validSizes.get(entry).equals(extras.get("SlidesSize"))) {
+                    currentSlidesSize = index;
                     slidesSize.setSelection(index);
+                }
                 ++index;
             }
         }
