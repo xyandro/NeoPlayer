@@ -391,15 +391,15 @@ public class MainActivity extends Activity {
             }
         });
 
-        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 100, 50) {
+        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 25, 13) {
             @Override
             public void onSetVolumeTo(int volume) {
-                socketClient.setVolume(volume, false);
+                socketClient.setVolume(volume * 4, false);
             }
 
             @Override
             public void onAdjustVolume(int delta) {
-                socketClient.setVolume(delta * 5, true);
+                socketClient.setVolume(delta * 4, true);
             }
         };
 
@@ -478,7 +478,7 @@ public class MainActivity extends Activity {
         }
 
         if (extras.containsKey("Volume"))
-            volumeProvider.setCurrentVolume(extras.getInt("Volume"));
+            volumeProvider.setCurrentVolume(extras.getInt("Volume") / 4);
 
         if (extras.containsKey("SlidesQuery")) {
             currentSlidesQuery = extras.getString("SlidesQuery");
