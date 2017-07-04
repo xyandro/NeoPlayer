@@ -94,10 +94,10 @@ namespace NeoPlayer
 
 		public int Volume
 		{
-			get => vlc.volume;
+			get => (int)(media.Volume * 100);
 			set
 			{
-				vlc.volume = Math.Max(0, Math.Min(value, 100));
+				media.Volume = Math.Max(0, Math.Min(value / 100.0, 1));
 				NetServer.SendAll(NetServer.GetVolume());
 			}
 		}
@@ -217,10 +217,8 @@ namespace NeoPlayer
 
 			NetServer.Run(7399);
 
-			vlc.AutoPlay = vlc.Toolbar = vlc.Branding = false;
-			vlc.MediaPlayerEndReached += (s, e) => Forward();
-			vlc.MediaPlayerTimeChanged += (s, e) => QueueMediaDataUpdate();
-			vlc.volume = 50;
+			media.MediaEnded += (s, e) => Forward();
+			media.Volume = .5;
 			System.Windows.Forms.Cursor.Hide();
 			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
@@ -293,7 +291,7 @@ namespace NeoPlayer
 		void SetControlsVisibility()
 		{
 			slide1.Visibility = slide2.Visibility = CurrentAction == ActionType.Slideshow ? Visibility.Visible : Visibility.Hidden;
-			vlcHost.Visibility = CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
+			media.Visibility = CurrentAction == ActionType.Videos ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		string currentSlide = null;
@@ -312,25 +310,25 @@ namespace NeoPlayer
 				mediaDataUpdateTimer.Stop();
 				mediaDataUpdateTimer = null;
 
-				var playing = vlc.playlist.isPlaying;
-				var title = "";
-				if (vlc.playlist.currentItem != -1)
-				{
-					try { title = Path.GetFileNameWithoutExtension(vlc.mediaDescription.title?.Trim()); } catch { }
-					try
-					{
-						var artist = vlc.mediaDescription.artist?.Trim();
-						if (!string.IsNullOrWhiteSpace(artist))
-						{
-							if (title != "")
-								title += " - ";
-							title += artist;
-						}
-					}
-					catch { }
-				}
-				var maxPosition = Math.Max(0, (int)vlc.input.length / 1000);
-				var position = Math.Max(0, Math.Min((int)vlc.input.time / 1000, maxPosition));
+				var playing = false;// media..playlist.isPlaying;
+				var title = "Dunno";
+				//if (vlc.playlist.currentItem != -1)
+				//{
+				//	try { title = Path.GetFileNameWithoutExtension(vlc.mediaDescription.title?.Trim()); } catch { }
+				//	try
+				//	{
+				//		var artist = vlc.mediaDescription.artist?.Trim();
+				//		if (!string.IsNullOrWhiteSpace(artist))
+				//		{
+				//			if (title != "")
+				//				title += " - ";
+				//			title += artist;
+				//		}
+				//	}
+				//	catch { }
+				//}
+				var maxPosition = media.NaturalDuration.HasTimeSpan ? (int)media.NaturalDuration.TimeSpan.TotalSeconds : 0;
+				var position = (int)media.Position.TotalSeconds;
 				NetServer.SendAll(NetServer.MediaData(playing, title, position, maxPosition));
 			};
 			mediaDataUpdateTimer.Start();
@@ -338,6 +336,7 @@ namespace NeoPlayer
 
 		void CheckCycleSlide()
 		{
+			QueueMediaDataUpdate();
 			if ((slideTime == null) || (SlidesPaused))
 				return;
 			if ((DateTime.Now - slideTime.Value).TotalSeconds >= SlideDisplayTime)
@@ -397,8 +396,8 @@ namespace NeoPlayer
 				return;
 
 			currentMusic = null;
-			vlc.playlist.stop();
-			vlc.playlist.items.clear();
+			media.Stop();
+			media.Source = null;
 			QueueMediaDataUpdate();
 		}
 
@@ -408,8 +407,8 @@ namespace NeoPlayer
 				return;
 
 			currentMusic = CurrentMusic;
-			vlc.playlist.add(currentMusic.URL);
-			vlc.playlist.playItem(0);
+			media.Source = new Uri(currentMusic.URL);
+			media.Play();
 			QueueMediaDataUpdate();
 		}
 
@@ -420,8 +419,8 @@ namespace NeoPlayer
 				return;
 
 			currentVideo = null;
-			vlc.playlist.stop();
-			vlc.playlist.items.clear();
+			media.Stop();
+			media.Source = null;
 			QueueMediaDataUpdate();
 		}
 
@@ -431,8 +430,8 @@ namespace NeoPlayer
 				return;
 
 			currentVideo = CurrentQueueVideo;
-			vlc.playlist.add(currentVideo.URL);
-			vlc.playlist.playItem(0);
+			media.Source = new Uri(currentVideo.URL);
+			media.Play();
 			QueueMediaDataUpdate();
 		}
 
@@ -460,7 +459,7 @@ namespace NeoPlayer
 			if (CurrentAction == ActionType.Slideshow)
 				MusicAutoPlay = true;
 
-			vlc.playlist.togglePause();
+			//vlc.playlist.togglePause();
 			QueueMediaDataUpdate();
 		}
 
@@ -474,7 +473,7 @@ namespace NeoPlayer
 
 		public void SetPosition(int position, bool relative)
 		{
-			vlc.input.time = (relative ? vlc.input.time : 0) + position * 1000;
+			media.Position = TimeSpan.FromSeconds((relative ? media.Position.TotalSeconds : 0) + position);
 			QueueMediaDataUpdate();
 		}
 

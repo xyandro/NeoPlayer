@@ -1,7 +1,6 @@
 ﻿<Window x:Class="NeoPlayer.NeoPlayerWindow"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:vlc="clr-namespace:AxAXVLC;assembly=AxInterop.AXVLC"
 	Title="NeoPlayer" Width="800" Height="600" Background="Black" WindowStyle="None">
 
 	<Grid>
@@ -9,9 +8,7 @@
 		<Grid Name="fadeSlide" Background="Black" Opacity="0">
 			<Image Name="slide2"/>
 		</Grid>
-		<WindowsFormsHost Name="vlcHost">
-			<vlc:AxVLCPlugin2 x:Name="vlc"/>
-		</WindowsFormsHost>
+		<MediaElement Name="media" LoadedBehavior="Manual"/>
 	</Grid>
 
 </Window>
