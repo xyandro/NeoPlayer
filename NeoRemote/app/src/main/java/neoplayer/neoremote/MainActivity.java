@@ -210,7 +210,7 @@ public class MainActivity extends Activity {
                         .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                SocketClient.sendRestart();
+                                socketClient.sendRestart();
                             }
 
                         })
@@ -433,8 +433,24 @@ public class MainActivity extends Activity {
         bindService(new Intent(this, SocketClient.class), connection, Context.BIND_AUTO_CREATE);
     }
 
+    private GetAddressDialog getAddressDialog;
+
     private void handleMessage(Intent intent) {
         Bundle extras = intent.getExtras();
+
+        if (extras.containsKey("FindNeoPlayer")) {
+            if (getAddressDialog == null) {
+                getAddressDialog = new GetAddressDialog(socketClient, extras.getString("FindNeoPlayer"));
+                getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
+            }
+        }
+
+        if (extras.containsKey("GotNeoPlayer")) {
+            if (getAddressDialog != null) {
+                getAddressDialog.dismiss();
+                getAddressDialog = null;
+            }
+        }
 
         if (extras.containsKey("Queue")) {
             ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Queue");
