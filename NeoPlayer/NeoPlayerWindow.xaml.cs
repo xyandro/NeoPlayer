@@ -220,7 +220,6 @@ namespace NeoPlayer
 			media.MediaEnded += (s, e) => Forward();
 			media.Volume = .5;
 			System.Windows.Forms.Cursor.Hide();
-			Loaded += (s, e) => WindowState = WindowState.Maximized;
 
 			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.25) };
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
