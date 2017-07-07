@@ -21,5 +21,18 @@ namespace NeoPlayer
 				++index;
 			}
 		}
+
+		public static IEnumerable<TInput> DistinctBy<TInput, TField>(this IEnumerable<TInput> items, Func<TInput, TField> selector)
+		{
+			var seen = new HashSet<TField>();
+			foreach (var item in items)
+			{
+				var value = selector(item);
+				if (seen.Contains(value))
+					continue;
+				seen.Add(value);
+				yield return item;
+			}
+		}
 	}
 }

@@ -4,50 +4,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 
 public class Message {
-    public enum ServerCommand {
-        None,
-        QueueVideo,
-        GetQueue,
-        GetCool,
-        GetYouTube,
-        SetPosition,
-        Play,
-        Forward,
-        GetMediaData,
-        GetVolume,
-        SetVolume,
-        GetSlidesData,
-        PauseSlides,
-        SetSlidesData,
-        SetSlideDisplayTime,
-        CycleSlide,
-    }
-
     private ByteBuffer byteBuffer;
-    public final ServerCommand command;
 
-    public Message(ServerCommand command) {
-        this.command = command;
+    public Message() {
         byteBuffer = ByteBuffer.allocateDirect(1024).order(ByteOrder.LITTLE_ENDIAN);
         add(0);
-        add(command.ordinal());
     }
 
-    public void add(byte[] value) {
+    public Message add(byte[] value) {
         byteBuffer.put(value);
+		return this;
     }
 
-    public void add(boolean value) {
+    public Message add(boolean value) {
         byteBuffer.put((byte) (value ? 1 : 0));
+		return this;
     }
 
-    public void add(int value) {
+    public Message add(int value) {
         byteBuffer.putInt(value);
+		return this;
     }
 
-    public void add(String value) {
+    public Message add(String value) {
         byte[] bytes;
         try {
             bytes = value.getBytes("UTF-8");
@@ -56,9 +38,16 @@ public class Message {
         }
         add(bytes.length);
         add(bytes);
+		return this;
     }
 
-    public byte[] getBytes() {
+    public Message add(MediaData mediaData) {
+        add(mediaData.description);
+        add(mediaData.url);
+		return this;
+    }
+
+    public byte[] toArray() {
         // Write size
         int size = byteBuffer.position();
         byteBuffer.position(0);
@@ -81,7 +70,7 @@ public class Message {
             if (block == -1)
                 throw new IOException();
             used += block;
-            if ((first) && (used == size) && (size == 4)) {
+            if ((first) && (used == size)) {
                 first = false;
                 size = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt() - 4;
                 buffer = new byte[size];
@@ -89,7 +78,6 @@ public class Message {
             }
         }
         byteBuffer = byteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
-        command = ServerCommand.values()[byteBuffer.getInt()];
     }
 
     public boolean getBool() {
@@ -109,5 +97,20 @@ public class Message {
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    public MediaData getMediaData() {
+        String description = getString();
+        String url = getString();
+        return new MediaData(description, url);
+    }
+
+    public ArrayList<MediaData> getMediaDatas() {
+        int count = getInt();
+        ArrayList<MediaData> mediaDatas = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            mediaDatas.add(getMediaData());
+        }
+        return mediaDatas;
     }
 }

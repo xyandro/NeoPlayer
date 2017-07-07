@@ -9,12 +9,12 @@ import android.view.View;
 import android.widget.EditText;
 
 public class GetAddressDialog extends DialogFragment {
-    private final SocketClient socketClient;
+    private final MainActivity mainActivity;
     private final String address;
     EditText addressText;
 
-    public GetAddressDialog(SocketClient socketClient, String address) {
-        this.socketClient = socketClient;
+    public GetAddressDialog(MainActivity mainActivity, String address) {
+        this.mainActivity = mainActivity;
         this.address = address;
     }
 
@@ -39,13 +39,13 @@ public class GetAddressDialog extends DialogFragment {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.setAddress(addressText.getText().toString());
+                mainActivity.setAddress(addressText.getText().toString());
             }
         });
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newAddress = socketClient.findNeoPlayer();
+                String newAddress = mainActivity.findNeoPlayer();
                 if (newAddress != null)
                     addressText.setText(newAddress);
             }

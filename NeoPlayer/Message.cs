@@ -8,27 +8,6 @@ namespace NeoPlayer
 {
 	public class Message
 	{
-		public enum MessageCommand
-		{
-			None,
-			QueueVideo,
-			GetQueue,
-			GetCool,
-			GetYouTube,
-			SetPosition,
-			Play,
-			Forward,
-			GetMediaData,
-			GetVolume,
-			SetVolume,
-			GetSlidesData,
-			PauseSlides,
-			SetSlidesData,
-			SetSlideDisplayTime,
-			CycleSlide,
-		}
-
-		public MessageCommand Command => (MessageCommand)BitConverter.ToInt32(ms.GetBuffer(), 4);
 		readonly MemoryStream ms = new MemoryStream();
 
 		public async static Task<Message> Read(Stream stream)
@@ -38,12 +17,14 @@ namespace NeoPlayer
 			return message;
 		}
 
-		Message()
+		public Message()
 		{
+			Add(0);
 		}
 
 		async Task ReadStream(Stream stream)
 		{
+			ms.SetLength(0);
 			var first = true;
 			var size = 4;
 			var buffer = new byte[1024];
@@ -60,13 +41,7 @@ namespace NeoPlayer
 					size = BitConverter.ToInt32(ms.GetBuffer(), 0);
 				}
 			}
-			ms.Position = 8;
-		}
-
-		public Message(MessageCommand command)
-		{
-			Add(0);
-			Add((int)command);
+			ms.Position = 4;
 		}
 
 		public void Add(byte[] value) => ms.Write(value, 0, value.Length);
@@ -106,6 +81,24 @@ namespace NeoPlayer
 			var result = new byte[count];
 			ms.Read(result, 0, count);
 			return result;
+		}
+
+		internal void Add(object value)
+		{
+			if (value is byte[])
+				Add(value as byte[]);
+			else if (value is bool)
+				Add((bool)value);
+			else if (value is int)
+				Add((int)value);
+			else if (value is string)
+				Add(value as string);
+			else if (value is MediaData)
+				Add(value as MediaData);
+			else if (value is List<MediaData>)
+				Add(value as List<MediaData>);
+			else
+				throw new Exception($"Unknown type: {value?.GetType().Name ?? "<NULL>"}");
 		}
 
 		public bool GetBool() => GetBytes(1)[0] != 0;

@@ -2,16 +2,11 @@ package neoplayer.neoremote;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -29,15 +24,26 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private SocketClient socketClient;
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
     private final ArrayList<MediaData> youTubeVideos = new ArrayList<>();
@@ -46,10 +52,17 @@ public class MainActivity extends Activity {
     private boolean userTrackingSeekBar = false;
     private final MediaListAdapter queueAdapter;
     private final MediaListAdapter coolAdapter;
-    private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private final MediaListAdapter youTubeAdapter;
+    private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
     private int currentSlidesSize;
+    private static final int NeoPlayerToken = 0xfeedbeef;
+    private static final int NeoPlayerRestartToken = 0x0badf00d;
+    private static final int NeoPlayerPort = 7399;
+    private static final int NeoPlayerRestartPort = 7398;
+    private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
+    private InetAddress neoPlayerAddress = null;
+    private static final String addressFileName = "NeoPlayer.txt";
 
     private ViewPager pager;
     private NEEditText queueSearchText;
@@ -113,7 +126,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        prepareSocketService();
         prepareMediaSession();
         setupControls();
     }
@@ -210,7 +222,7 @@ public class MainActivity extends Activity {
                         .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                socketClient.sendRestart();
+                                sendRestart();
                             }
 
                         })
@@ -263,7 +275,7 @@ public class MainActivity extends Activity {
                 slidesQuery.clearFocus();
                 String query = slidesQuery.getText().toString();
                 String size = validSizes.get(slidesSize.getSelectedItem());
-                socketClient.setSlidesData(query, size);
+                outputQueue.add(new Message().add("SetSlidesQuery").add(query).add(size).toArray());
             }
         });
 
@@ -275,7 +287,7 @@ public class MainActivity extends Activity {
                 seekBar.setProgress(value);
                 slidesDisplayTimeText.setText(DateUtils.formatElapsedTime(displayTime));
                 if (fromUser)
-                    socketClient.setSlideDisplayTime(displayTime);
+                    outputQueue.add(new Message().add("SetSlideDisplayTime").add(displayTime).toArray());
             }
 
             @Override
@@ -290,32 +302,32 @@ public class MainActivity extends Activity {
         slidesBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.cycleSlide(false);
+                outputQueue.add(new Message().add("CycleSlide").add(false).toArray());
             }
         });
 
         slidesPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.pauseSlides();
+                outputQueue.add(new Message().add("ToggleSlidesPlaying").toArray());
             }
         });
 
         slidesForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.cycleSlide(true);
+                outputQueue.add(new Message().add("CycleSlide").add(true).toArray());
             }
         });
 
         youtubeVideosList.setAdapter(youTubeAdapter);
-        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                youtubeSearchText.clearFocus();
-                socketClient.requestYouTube(youtubeSearchText.getText().toString());
-            }
-        });
+//        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                youtubeSearchText.clearFocus();
+//                socketClient.requestYouTube(youtubeSearchText.getText().toString());
+//            }
+//        });
 
         navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -330,7 +342,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                socketClient.setPosition(seekBar.getProgress(), false);
+                outputQueue.add(new Message().add("SetPosition").add(seekBar.getProgress()).add(false).toArray());
                 userTrackingSeekBar = false;
             }
         });
@@ -338,44 +350,58 @@ public class MainActivity extends Activity {
         navbarBack30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.setPosition(-30, true);
+                outputQueue.add(new Message().add("SetPosition").add(-30).add(true).toArray());
             }
         });
 
         navbarBack5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.setPosition(-5, true);
+                outputQueue.add(new Message().add("SetPosition").add(-5).add(true).toArray());
             }
         });
 
         navbarPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.play();
+                outputQueue.add(new Message().add("ToggleMediaPlaying").toArray());
             }
         });
 
         navbarForward5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.setPosition(5, true);
+                outputQueue.add(new Message().add("SetPosition").add(5).add(true).toArray());
             }
         });
 
         navbarForward30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.setPosition(30, true);
+                outputQueue.add(new Message().add("SetPosition").add(30).add(true).toArray());
             }
         });
 
         navbarForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                socketClient.forward();
+                outputQueue.add(new Message().add("MediaForward").toArray());
             }
         });
+    }
+
+    private void sendRestart() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    if (neoPlayerAddress != null)
+                        new Socket(neoPlayerAddress, NeoPlayerRestartPort).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerRestartToken).array());
+                } catch (Exception e) {
+                }
+                return null;
+            }
+        }.execute();
     }
 
     private void prepareMediaSession() {
@@ -394,12 +420,12 @@ public class MainActivity extends Activity {
         volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 25, 13) {
             @Override
             public void onSetVolumeTo(int volume) {
-                socketClient.setVolume(volume * 4, false);
+                outputQueue.add(new Message().add("SetVolume").add(volume * 4).add(false).toArray());
             }
 
             @Override
             public void onAdjustVolume(int delta) {
-                socketClient.setVolume(delta * 4, true);
+                outputQueue.add(new Message().add("SetVolume").add(delta * 4).add(true).toArray());
             }
         };
 
@@ -407,123 +433,260 @@ public class MainActivity extends Activity {
         mediaSession.setActive(true);
     }
 
-    private void prepareSocketService() {
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                handleMessage(intent);
-            }
-        };
-        final LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-        broadcastManager.registerReceiver(broadcastReceiver, new IntentFilter("NeoRemoteEvent"));
-
-        ServiceConnection connection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName className, IBinder service) {
-                socketClient = ((SocketClient.SocketServiceBinder) service).getService();
-                socketClient.setBroadcastManager(broadcastManager);
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName arg0) {
-                socketClient = null;
-            }
-        };
-
-        bindService(new Intent(this, SocketClient.class), connection, Context.BIND_AUTO_CREATE);
-    }
-
     private GetAddressDialog getAddressDialog;
 
-    private void handleMessage(Intent intent) {
-        Bundle extras = intent.getExtras();
-
-        if (extras.containsKey("FindNeoPlayer")) {
-            if (getAddressDialog == null) {
-                getAddressDialog = new GetAddressDialog(socketClient, extras.getString("FindNeoPlayer"));
-                getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
+    @Override
+    protected void onStart() {
+        super.onStart();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                runReaderThread();
             }
-        }
+        }).start();
+    }
 
-        if (extras.containsKey("GotNeoPlayer")) {
-            if (getAddressDialog != null) {
-                getAddressDialog.dismiss();
-                getAddressDialog = null;
+    private void getNeoPlayerAddress() {
+        try {
+            InputStream in = openFileInput(addressFileName);
+            try {
+                byte[] buffer = new byte[4];
+                in.read(buffer, 0, 4);
+                int size = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt();
+                buffer = new byte[size];
+                in.read(buffer, 0, size);
+                String address = new String(buffer, "UTF-8");
+                neoPlayerAddress = InetAddress.getByName(address);
+            } finally {
+                in.close();
             }
+        } catch (Exception ex) {
         }
+    }
 
-        if (extras.containsKey("Queue")) {
-            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Queue");
-            queueVideos.clear();
-            for (MediaData mediaData : mediaDatas)
-                queueVideos.add(mediaData);
-            queueAdapter.notifyDataSetChanged();
-            coolAdapter.notifyDataSetChanged();
-            youTubeAdapter.notifyDataSetChanged();
-        }
+    private void runReaderThread() {
+        getNeoPlayerAddress();
 
-        if (extras.containsKey("Cool")) {
-            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("Cool");
-            coolVideos.clear();
-            for (MediaData mediaData : mediaDatas)
-                coolVideos.add(mediaData);
-            coolAdapter.notifyDataSetChanged();
-        }
+        Log.d(TAG, "runReaderThread: Started");
+        while (true) try {
+            final Socket socket = new Socket();
+            socket.connect(new InetSocketAddress(neoPlayerAddress, NeoPlayerPort), 1000);
 
-        if (extras.containsKey("YouTube")) {
-            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("YouTube");
-            youTubeVideos.clear();
-            for (MediaData mediaData : mediaDatas)
-                youTubeVideos.add(mediaData);
-            youTubeAdapter.notifyDataSetChanged();
-        }
+            try {
+                Log.d(TAG, "runReaderThread: Connected");
 
-        if (extras.containsKey("Playing"))
-            navbarPlay.setImageResource(extras.getBoolean("Playing") ? R.drawable.pause : R.drawable.play);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (getAddressDialog != null) {
+                            getAddressDialog.dismiss();
+                            getAddressDialog = null;
+                        }
+                    }
+                });
 
-        if (extras.containsKey("Title"))
-            navbarTitle.setText(extras.getString("Title"));
+                outputQueue.clear();
 
-        if ((extras.containsKey("Position")) && (!userTrackingSeekBar))
-            navbarSeekBar.setProgress(extras.getInt("Position"));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        runWriterThread(socket);
+                    }
+                }).start();
 
-        if (extras.containsKey("MaxPosition")) {
-            int maxPosition = extras.getInt("MaxPosition");
-            navbarSeekBar.setMax(maxPosition);
-            navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
-        }
-
-        if (extras.containsKey("Volume"))
-            volumeProvider.setCurrentVolume(extras.getInt("Volume") / 4);
-
-        if (extras.containsKey("SlidesQuery")) {
-            currentSlidesQuery = extras.getString("SlidesQuery");
-            slidesQuery.setText(currentSlidesQuery);
-        }
-
-        if (extras.containsKey("SlidesSize")) {
-            int index = 0;
-            for (String entry : validSizes.keySet()) {
-                if (validSizes.get(entry).equals(extras.get("SlidesSize"))) {
-                    currentSlidesSize = index;
-                    slidesSize.setSelection(index);
+                while (true) {
+                    final Message message = new Message(socket.getInputStream());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            int count = message.getInt();
+                            while (count > 0) {
+                                --count;
+                                String field = message.getString();
+                                switch (field) {
+                                    case "Queue":
+                                        queueVideos.clear();
+                                        for (MediaData mediaData : message.getMediaDatas())
+                                            queueVideos.add(mediaData);
+                                        queueAdapter.notifyDataSetChanged();
+                                        coolAdapter.notifyDataSetChanged();
+                                        youTubeAdapter.notifyDataSetChanged();
+                                        break;
+                                    case "Cool":
+                                        coolVideos.clear();
+                                        for (MediaData mediaData : message.getMediaDatas())
+                                            coolVideos.add(mediaData);
+                                        coolAdapter.notifyDataSetChanged();
+                                        break;
+                                    case "MediaVolume":
+                                        volumeProvider.setCurrentVolume(message.getInt() / 4);
+                                        break;
+                                    case "MediaTitle":
+                                        navbarTitle.setText(message.getString());
+                                        break;
+                                    case "MediaPosition":
+                                        int position = message.getInt();
+                                        if (!userTrackingSeekBar)
+                                            navbarSeekBar.setProgress(position);
+                                        break;
+                                    case "MediaMaxPosition":
+                                        int maxPosition = message.getInt();
+                                        navbarSeekBar.setMax(maxPosition);
+                                        navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
+                                        break;
+                                    case "MediaPlaying":
+                                        navbarPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                                        break;
+                                    case "SlidesQuery":
+                                        currentSlidesQuery = message.getString();
+                                        slidesQuery.setText(currentSlidesQuery);
+                                        break;
+                                    case "SlidesSize":
+                                        int index = 0;
+                                        String slidesSizeStr = message.getString();
+                                        for (String entry : validSizes.keySet()) {
+                                            if (validSizes.get(entry).equals(slidesSizeStr)) {
+                                                currentSlidesSize = index;
+                                                slidesSize.setSelection(index);
+                                            }
+                                            ++index;
+                                        }
+                                        break;
+                                    case "SlideDisplayTime":
+                                        slidesDisplayTime.setProgress(displayTimeToSeekBar(message.getInt()));
+                                        break;
+                                    case "SlidesPlaying":
+                                        slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                                        break;
+//        if (extras.containsKey("YouTube")) {
+//            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("YouTube");
+//            youTubeVideos.clear();
+//            for (MediaData mediaData : mediaDatas)
+//                youTubeVideos.add(mediaData);
+//            youTubeAdapter.notifyDataSetChanged();
+//        }
+                                }
+                            }
+                        }
+                    });
                 }
-                ++index;
+            } finally {
+                socket.close();
+            }
+        } catch (Exception ex) {
+            Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
+            outputQueue.clear();
+            outputQueue.add(new byte[0]); // Let writer thread know there's a problem
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (getAddressDialog == null) {
+                        getAddressDialog = new GetAddressDialog(MainActivity.this, neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress());
+                        getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
+                    }
+                }
+            });
+
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
             }
         }
+    }
 
-        if (extras.containsKey("SlideDisplayTime"))
-            slidesDisplayTime.setProgress(displayTimeToSeekBar(extras.getInt("SlideDisplayTime")));
+    private void runWriterThread(Socket socket) {
+        try {
+            Log.d(TAG, "runWriterThread: Started");
+            while (!socket.isClosed()) {
+                byte[] message = outputQueue.take();
+                if (message.length == 0)
+                    continue;
 
-        if (extras.containsKey("SlidesPaused"))
-            slidesPlay.setImageResource(extras.getBoolean("SlidesPaused") ? R.drawable.play : R.drawable.pause);
+                socket.getOutputStream().write(message);
+            }
+            Log.d(TAG, "runWriterThread: Socket disconnected");
+        } catch (Exception ex) {
+            Log.d(TAG, "runWriterThread: Error: " + ex.getMessage());
+        }
+        Log.d(TAG, "runWriterThread: Stopped");
+    }
 
-        if (extras.containsKey("Toast"))
-            Toast.makeText(this, extras.getString("Toast"), Toast.LENGTH_SHORT).show();
+    public void setAddress(final String address) {
+        try {
+            neoPlayerAddress = new AsyncTask<Void, Void, InetAddress>() {
+                @Override
+                protected InetAddress doInBackground(Void... voids) {
+                    try {
+                        return InetAddress.getByName(address);
+                    } catch (Exception ex) {
+                        return null;
+                    }
+                }
+            }.execute().get();
+            if (neoPlayerAddress == null)
+                return;
+
+            byte[] buffer = address.getBytes("UTF-8");
+            byte[] bufferSize = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(buffer.length).array();
+            OutputStream out = openFileOutput(addressFileName, Context.MODE_PRIVATE);
+            out.write(bufferSize);
+            out.write(buffer);
+            out.close();
+        } catch (Exception ex) {
+        }
+    }
+
+    public static String findNeoPlayer() {
+        try {
+            return new AsyncTask<Void, Void, String>() {
+                @Override
+                protected String doInBackground(Void... voids) {
+                    try {
+                        Log.d(TAG, "findNeoPlayer: Scanning for NeoPlayer...");
+                        DatagramSocket socket = new DatagramSocket();
+                        socket.setBroadcast(true);
+                        socket.setSoTimeout(1000);
+                        byte[] message = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerToken).array();
+
+                        for (Enumeration<NetworkInterface> niEnum = NetworkInterface.getNetworkInterfaces(); niEnum.hasMoreElements(); ) {
+                            NetworkInterface ni = niEnum.nextElement();
+                            if (ni.isLoopback())
+                                continue;
+
+                            for (InterfaceAddress interfaceAddress : ni.getInterfaceAddresses()) {
+                                if (interfaceAddress.getBroadcast() == null)
+                                    continue;
+
+                                DatagramPacket packet = new DatagramPacket(message, message.length, interfaceAddress.getBroadcast(), NeoPlayerPort);
+                                socket.send(packet);
+                            }
+                        }
+
+                        DatagramPacket packet = new DatagramPacket(message, message.length);
+                        while (true) {
+                            socket.receive(packet);
+
+                            if (packet.getData().length != 4)
+                                continue;
+
+                            if (ByteBuffer.wrap(packet.getData()).order(ByteOrder.LITTLE_ENDIAN).getInt() != NeoPlayerToken)
+                                continue;
+
+                            return packet.getAddress().getHostAddress();
+                        }
+                    } catch (Exception ex) {
+                        return null;
+                    }
+                }
+            }.execute().get();
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public void queueVideo(MediaData mediaData) {
-        socketClient.queueVideo(mediaData);
+        outputQueue.add(new Message().add("QueueVideo").add(mediaData).toArray());
     }
 
     class ScreenSlidePagerAdapter extends PagerAdapter {

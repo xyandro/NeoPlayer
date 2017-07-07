@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,17 +17,23 @@ namespace NeoPlayer
 {
 	partial class NeoPlayerWindow
 	{
-		public static NeoPlayerWindow Current { get; private set; }
-
-		readonly SingleRunner mediaDataUpdate, updateState;
+		readonly SingleRunner updateState;
 		readonly DispatcherTimer changeSlideTimer = null;
+		readonly NetServer netServer;
+		readonly Status status;
 
 		public NeoPlayerWindow()
 		{
-			mediaDataUpdate = new SingleRunner(MediaDataUpdate);
-			updateState = new SingleRunner(UpdateState);
+			netServer = new NetServer();
+			netServer.OnMessage += OnMessage;
+			netServer.OnConnect += OnConnect;
+			netServer.Run(7399);
 
-			Current = this;
+			status = new Status(netServer);
+			updateState = new SingleRunner(UpdateState);
+			slides.CollectionChanged += (s, e) => updateState.Signal();
+			music.CollectionChanged += (s, e) => updateState.Signal();
+			videos.CollectionChanged += (s, e) => { status.Queue = videos.ToList(); updateState.Signal(); };
 
 			InitializeComponent();
 
@@ -36,17 +43,82 @@ namespace NeoPlayer
 			var random = new Random();
 			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => AddMusic(new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }));
 
-			NetServer.Run(7399);
+			SlidesQuery = Settings.Debug ? "test" : "landscape";
+			SlidesSize = "2mp";
+			SlideDisplayTime = 60;
+			SlidesPlaying = true;
+			VideoState = MediaState.None;
+			MusicState = MediaState.None;
+			Volume = 50;
 
-			mediaPlayer.MediaEnded += (s, e) => Forward();
-			mediaPlayer.Volume = .5;
+			mediaPlayer.MediaEnded += (s, e) => MediaForward();
 			System.Windows.Forms.Cursor.Hide();
 
 			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.25) };
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
 			changeSlideTimer.Start();
 
-			updateState.Signal();
+			status.Queue = new List<MediaData>();
+			status.Cool = Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
+		}
+
+		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
+
+		void OnMessage(Message message)
+		{
+			var command = message.GetString();
+			switch (command)
+			{
+				case "QueueVideo": QueueVideo(message.GetMediaData()); break;
+				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
+				case "ToggleMediaPlaying": ToggleMediaPlaying(); break;
+				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
+				case "MediaForward": MediaForward(); break;
+				case "ToggleSlidesPlaying": ToggleSlidesPlaying(); break;
+				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
+				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
+				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
+				default: throw new Exception("Invalid command");
+			}
+
+			//switch (message.Command)
+			//{
+			//	case Message.MessageCommand.QueueVideo: QueueVideo(message); break;
+			//	case Message.MessageCommand.GetYouTube: break;
+			//	case Message.MessageCommand.SetPosition: SetPosition(message.GetInt(), message.GetBool()); break;
+			//	case Message.MessageCommand.ToggleMediaPlay: ToggleMediaPlay(); break;
+			//	case Message.MessageCommand.MediaForward: MediaForward(); break;
+			//	case Message.MessageCommand.SetVolume: SetVolume(message.GetInt(), message.GetBool()); break;
+			//	case Message.MessageCommand.ToggleSlidesPlay: ToggleSlidesPlay(); break;
+			//	case Message.MessageCommand.SetSlidesQuery: SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
+			//	case Message.MessageCommand.SetSlideDisplayTime: SlideDisplayTime = message.GetInt(); break;
+			//	case Message.MessageCommand.CycleSlide: CycleSlide(message.GetBool() ? 1 : -1); break;
+			//}
+		}
+
+		void SetSlidesData(string slidesQuery, string slidesSize)
+		{
+			SlidesQuery = slidesQuery;
+			SlidesSize = slidesSize;
+		}
+
+		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
+
+		async void QueueVideo(MediaData videoData)
+		{
+			videoData.URL = await YouTube.GetURL(videoData.URL);
+			if (string.IsNullOrWhiteSpace(videoData.URL))
+				return;
+
+			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
+			if (match == -1)
+				videos.Add(videoData);
+			else
+			{
+				videos.RemoveAt(match);
+				if (match == 0)
+					VideoState = MediaState.None;
+			}
 		}
 
 		enum MediaState
@@ -56,64 +128,75 @@ namespace NeoPlayer
 			Play,
 		}
 
-		string slidesQuery = Settings.Debug ? "test" : "landscape";
+		string slidesQueryField;
 		public string SlidesQuery
 		{
-			get => slidesQuery;
+			get => slidesQueryField;
 			set
 			{
-				slidesQuery = value;
-				slidesQuery = Regex.Replace(slidesQuery, @"[\r,]", "\n");
-				slidesQuery = Regex.Replace(slidesQuery, @"[^\S\n]+", " ");
-				slidesQuery = Regex.Replace(slidesQuery, @"(^ | $)", "", RegexOptions.Multiline);
-				slidesQuery = Regex.Replace(slidesQuery, @"\n+", "\n");
-				slidesQuery = Regex.Replace(slidesQuery, @"(^\n|\n$)", "");
-				slidesQuery = GetTumblrInfo(slidesQuery);
-				if (!slidesQuery.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
-					slidesQuery = slidesQuery?.ToLowerInvariant() ?? "";
-				NetServer.SendAll(NetServer.GetSlidesData());
+				slidesQueryField = value;
+				slidesQueryField = Regex.Replace(slidesQueryField, @"[\r,]", "\n");
+				slidesQueryField = Regex.Replace(slidesQueryField, @"[^\S\n]+", " ");
+				slidesQueryField = Regex.Replace(slidesQueryField, @"(^ | $)", "", RegexOptions.Multiline);
+				slidesQueryField = Regex.Replace(slidesQueryField, @"\n+", "\n");
+				slidesQueryField = Regex.Replace(slidesQueryField, @"(^\n|\n$)", "");
+				slidesQueryField = GetTumblrInfo(slidesQueryField);
+				if (!slidesQueryField.StartsWith("tumblr:", StringComparison.OrdinalIgnoreCase))
+					slidesQueryField = slidesQueryField?.ToLowerInvariant() ?? "";
+				status.SlidesQuery = slidesQueryField;
 				updateState.Signal();
 			}
 		}
 
-		string slidesSize = "2mp";
+		string slidesSizeField;
 		public string SlidesSize
 		{
-			get => slidesSize;
+			get => slidesSizeField;
 			set
 			{
-				slidesSize = value;
+				slidesSizeField = status.SlidesSize = value;
 				updateState.Signal();
-				NetServer.SendAll(NetServer.GetSlidesData());
 			}
 		}
 
-		int slideDisplayTime = 60;
+		int slideDisplayTimeField;
 		public int SlideDisplayTime
 		{
-			get => slideDisplayTime;
-			set
-			{
-				slideDisplayTime = value;
-				NetServer.SendAll(NetServer.GetSlidesData());
-			}
-		}
-		bool slidesPaused;
-		public bool SlidesPaused
-		{
-			get => slidesPaused;
-			set
-			{
-				slidesPaused = value;
-				NetServer.SendAll(NetServer.GetSlidesData());
-			}
+			get => slideDisplayTimeField;
+			set => slideDisplayTimeField = status.SlideDisplayTime = value;
 		}
 
-		readonly List<string> slides = new List<string>();
-		readonly List<MediaData> music = new List<MediaData>();
-		readonly List<MediaData> videos = new List<MediaData>();
-		MediaState videoState = MediaState.None;
-		MediaState musicState = MediaState.None;
+		bool slidesPlayingField;
+		public bool SlidesPlaying
+		{
+			get => slidesPlayingField;
+			set => slidesPlayingField = status.SlidesPlaying = value;
+		}
+
+		readonly ObservableCollection<string> slides = new ObservableCollection<string>();
+		readonly ObservableCollection<MediaData> music = new ObservableCollection<MediaData>();
+		readonly ObservableCollection<MediaData> videos = new ObservableCollection<MediaData>();
+
+		MediaState videoStateField;
+		MediaState VideoState
+		{
+			get => videoStateField;
+			set
+			{
+				videoStateField = value;
+				status.MediaPlaying = (VideoState == MediaState.Play) || (MusicState == MediaState.Play);
+			}
+		}
+		MediaState musicStateField;
+		MediaState MusicState
+		{
+			get => musicStateField;
+			set
+			{
+				musicStateField = value;
+				status.MediaPlaying = (VideoState == MediaState.Play) || (MusicState == MediaState.Play);
+			}
+		}
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex] : null;
@@ -128,7 +211,7 @@ namespace NeoPlayer
 			set
 			{
 				mediaPlayer.Volume = Math.Max(0, Math.Min(value / 100.0, 1));
-				NetServer.SendAll(NetServer.GetVolume());
+				status.MediaVolume = value;
 			}
 		}
 
@@ -141,21 +224,6 @@ namespace NeoPlayer
 		public void AddMusic(MediaData musicData)
 		{
 			music.Add(musicData);
-			updateState.Signal();
-		}
-
-		public void ToggleVideo(MediaData videoData)
-		{
-			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
-			if (match == -1)
-				videos.Add(videoData);
-			else
-			{
-				videos.RemoveAt(match);
-				if (match == 0)
-					videoState = MediaState.None;
-			}
-			NetServer.SendAll(NetServer.GetQueue());
 			updateState.Signal();
 		}
 
@@ -232,27 +300,28 @@ namespace NeoPlayer
 
 		DateTime? slideTime = null;
 		string previousSlide;
-		MediaData previousMusic, previousVideo, currentMedia;
+		MediaData previousMusic, previousVideo;
 		void UpdateState()
 		{
 			SetupSlideDownloader();
 
 			ValidateState();
 
-			if ((previousSlide != null) && (videoState != MediaState.None))
+			if ((previousSlide != null) && (VideoState != MediaState.None))
 			{
 				previousSlide = null;
 				slideTime = null;
 			}
 
-			if (((musicState == MediaState.None) && (previousMusic != null)) || ((videoState == MediaState.None) && (previousVideo != null)))
+			if (((MusicState == MediaState.None) && (previousMusic != null)) || ((VideoState == MediaState.None) && (previousVideo != null)))
 			{
 				mediaPlayer.Stop();
 				mediaPlayer.Source = null;
-				previousMusic = previousVideo = currentMedia = null;
+				previousMusic = previousVideo = null;
+				status.MediaTitle = "";
 			}
 
-			if (videoState != MediaState.None)
+			if (VideoState != MediaState.None)
 			{
 				if (media.Opacity != 1)
 				{
@@ -266,11 +335,12 @@ namespace NeoPlayer
 
 				if (previousVideo != CurrentVideo)
 				{
-					previousVideo = currentMedia = CurrentVideo;
+					previousVideo = CurrentVideo;
+					status.MediaTitle = previousVideo.Description;
 					mediaPlayer.Source = new Uri(previousVideo.URL);
 				}
 
-				switch (videoState)
+				switch (VideoState)
 				{
 					case MediaState.Play: mediaPlayer.Play(); break;
 					case MediaState.Pause: mediaPlayer.Pause(); break;
@@ -298,16 +368,16 @@ namespace NeoPlayer
 				FadeInUIElement(slide);
 			}
 
-			currentMedia = CurrentVideo ?? CurrentMusic;
-			if (musicState != MediaState.None)
+			status.MediaTitle = CurrentVideo?.Description ?? CurrentMusic?.Description ?? "";
+			if (MusicState != MediaState.None)
 			{
 				if (previousMusic != CurrentMusic)
 				{
 					previousMusic = CurrentMusic;
 					mediaPlayer.Source = new Uri(previousMusic.URL);
 				}
-				currentMedia = previousMusic;
-				switch (musicState)
+				status.MediaTitle = previousMusic.Description;
+				switch (MusicState)
 				{
 					case MediaState.Play: mediaPlayer.Play(); break;
 					case MediaState.Pause: mediaPlayer.Pause(); break;
@@ -318,9 +388,9 @@ namespace NeoPlayer
 		void ValidateState()
 		{
 			if (videos.Count == 0)
-				videoState = MediaState.None;
+				VideoState = MediaState.None;
 			if (music.Count == 0)
-				musicState = MediaState.None;
+				MusicState = MediaState.None;
 			if (slides.Count == 0)
 				currentSlideIndex = 0;
 			else
@@ -331,8 +401,8 @@ namespace NeoPlayer
 					currentSlideIndex -= slides.Count;
 			}
 
-			if (videoState != MediaState.None)
-				musicState = MediaState.None;
+			if (VideoState != MediaState.None)
+				MusicState = MediaState.None;
 		}
 
 		string currentSlidesQuery;
@@ -359,48 +429,32 @@ namespace NeoPlayer
 				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => AddSlide(fileName), tokenSource.Token);
 		}
 
-		public void MediaDataUpdate()
-		{
-			var playing = (videoState == MediaState.Play) || (musicState == MediaState.Play);
-			var title = currentMedia?.Description ?? "";
-			var maxPosition = mediaPlayer.NaturalDuration.HasTimeSpan ? (int)mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds : 0;
-			var position = (int)mediaPlayer.Position.TotalSeconds;
-			NetServer.SendAll(NetServer.MediaData(playing, title, position, maxPosition));
-		}
-
 		void CheckCycleSlide()
 		{
-			MediaDataUpdate();
-			if ((slideTime == null) || (SlidesPaused))
+			status.MediaPosition = (int)mediaPlayer.Position.TotalSeconds;
+			status.MediaMaxPosition = mediaPlayer.NaturalDuration.HasTimeSpan ? (int)mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds : 0;
+
+			if ((slideTime == null) || (!SlidesPlaying))
 				return;
 			if ((DateTime.Now - slideTime.Value).TotalSeconds >= SlideDisplayTime)
 				CycleSlide();
 		}
 
-		void ToggleSlidesPaused()
-		{
-			SlidesPaused = !SlidesPaused;
-		}
+		void ToggleSlidesPlaying() => SlidesPlaying = !SlidesPlaying;
 
-		void SetSlideDisplayTime(int displayTime)
+		public void ToggleMediaPlaying()
 		{
-			SlideDisplayTime = displayTime;
-		}
-
-		public void Play()
-		{
-			if ((musicState == MediaState.None) && (videos.Any()))
-				videoState = videoState == MediaState.Play ? MediaState.Pause : MediaState.Play;
+			if ((MusicState == MediaState.None) && (videos.Any()))
+				VideoState = VideoState == MediaState.Play ? MediaState.Pause : MediaState.Play;
 			else
-				musicState = musicState == MediaState.Play ? MediaState.Pause : MediaState.Play;
+				MusicState = MusicState == MediaState.Play ? MediaState.Pause : MediaState.Play;
 
 			updateState.Signal();
 		}
 
-		public void Forward()
+		public void MediaForward()
 		{
-			updateState.Signal();
-			if ((musicState != MediaState.None) || (!videos.Any()))
+			if ((MusicState != MediaState.None) || (!videos.Any()))
 			{
 				if (music.Any())
 				{
@@ -408,15 +462,14 @@ namespace NeoPlayer
 					music.RemoveAt(0);
 				}
 				if (videos.Any())
-					musicState = MediaState.None;
+					MusicState = MediaState.None;
 			}
 			else
 			{
 				if (videos.Any())
 				{
 					videos.RemoveAt(0);
-					videoState = MediaState.None;
-					NetServer.SendAll(NetServer.GetQueue());
+					VideoState = MediaState.None;
 				}
 
 			}
@@ -426,13 +479,7 @@ namespace NeoPlayer
 		public void SetPosition(int position, bool relative)
 		{
 			mediaPlayer.Position = TimeSpan.FromSeconds((relative ? mediaPlayer.Position.TotalSeconds : 0) + position);
-			MediaDataUpdate();
-		}
-
-		void SetSlidesQuery(string slidesQuery, string slidesSize)
-		{
-			SlidesQuery = slidesQuery;
-			SlidesSize = slidesSize;
+			status.MediaPosition = (int)mediaPlayer.Position.TotalSeconds;
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
@@ -445,14 +492,14 @@ namespace NeoPlayer
 			if (e.Key == Key.Space)
 			{
 				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					Play();
+					ToggleMediaPlaying();
 				else
-					ToggleSlidesPaused();
+					ToggleSlidesPlaying();
 			}
 			if (e.Key == Key.Right)
 			{
 				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					Forward();
+					MediaForward();
 				else
 					CycleSlide(1);
 			}

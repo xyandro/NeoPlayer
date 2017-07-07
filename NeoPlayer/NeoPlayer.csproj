@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="SingleRunner.cs" />
     <Compile Include="SlideDownloader.cs" />
+    <Compile Include="Status.cs" />
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
     <Compile Include="YouTube.cs" />
