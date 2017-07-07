@@ -71,6 +71,9 @@
     <Compile Include="MediaData.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MoreLinq.cs" />
+    <None Include="Movies.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

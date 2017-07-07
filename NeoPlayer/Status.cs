@@ -18,6 +18,7 @@ namespace NeoPlayer
 
 		public List<MediaData> Queue { set { UpdateValue(value); } }
 		public List<MediaData> Cool { set { UpdateValue(value); } }
+		public List<MediaData> Movies { set { UpdateValue(value); } }
 		public int MediaVolume { set { UpdateValue(value); } }
 		public string MediaTitle { set { UpdateValue(value); } }
 		public int MediaPosition { set { UpdateValue(value); } }

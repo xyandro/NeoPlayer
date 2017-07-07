@@ -60,6 +60,7 @@ namespace NeoPlayer
 
 			status.Queue = new List<MediaData>();
 			status.Cool = Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
+			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
