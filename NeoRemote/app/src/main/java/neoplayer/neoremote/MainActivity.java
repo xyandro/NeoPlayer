@@ -321,13 +321,13 @@ public class MainActivity extends Activity {
         });
 
         youtubeVideosList.setAdapter(youTubeAdapter);
-//        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                youtubeSearchText.clearFocus();
-//                socketClient.requestYouTube(youtubeSearchText.getText().toString());
-//            }
-//        });
+        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                youtubeSearchText.clearFocus();
+                outputQueue.add(new Message().add("GetYouTube").add(youtubeSearchText.getText().toString()).toArray());
+            }
+        });
 
         navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -518,6 +518,12 @@ public class MainActivity extends Activity {
                                             coolVideos.add(mediaData);
                                         coolAdapter.notifyDataSetChanged();
                                         break;
+                                    case "YouTube":
+                                        youTubeVideos.clear();
+                                        for (MediaData mediaData : message.getMediaDatas())
+                                            youTubeVideos.add(mediaData);
+                                        youTubeAdapter.notifyDataSetChanged();
+                                        break;
                                     case "MediaVolume":
                                         volumeProvider.setCurrentVolume(message.getInt() / 4);
                                         break;
@@ -558,13 +564,6 @@ public class MainActivity extends Activity {
                                     case "SlidesPlaying":
                                         slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
                                         break;
-//        if (extras.containsKey("YouTube")) {
-//            ArrayList<MediaData> mediaDatas = (ArrayList<MediaData>) extras.get("YouTube");
-//            youTubeVideos.clear();
-//            for (MediaData mediaData : mediaDatas)
-//                youTubeVideos.add(mediaData);
-//            youTubeAdapter.notifyDataSetChanged();
-//        }
                                 }
                             }
                         }

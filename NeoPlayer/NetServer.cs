@@ -7,7 +7,7 @@ namespace NeoPlayer
 {
 	public class NetServer
 	{
-		public delegate void OnMessageDelegate(Message message);
+		public delegate void OnMessageDelegate(Message message, AsyncQueue<byte[]> queue);
 		public delegate void OnConnectDelegate(AsyncQueue<byte[]> queue);
 		public event OnMessageDelegate OnMessage;
 		public event OnConnectDelegate OnConnect;
@@ -57,26 +57,13 @@ namespace NeoPlayer
 				while (true)
 				{
 					var message = await Message.Read(stream);
-					OnMessage?.Invoke(message);
+					OnMessage?.Invoke(message, queue);
 				}
 			}
 			catch { }
 			finally { client.Close(); }
 			queue.SetFinished();
 		}
-
-		//async public void SearchYouTube(AsyncQueue<byte[]> queue, Message input)
-		//{
-		//	var search = input.GetString();
-
-		//	var cts = new CancellationTokenSource();
-		//	cts.CancelAfter(10000);
-		//	var suggestions = await YouTube.GetSuggestions(search, cts.Token);
-
-		//	var message = new Message(Message.MessageCommand.GetYouTube);
-		//	message.Add(suggestions);
-		//	queue.Enqueue(message.ToArray());
-		//}
 
 		async void Writer(TcpClient client, AsyncQueue<byte[]> queue)
 		{

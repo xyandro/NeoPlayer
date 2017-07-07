@@ -27,7 +27,9 @@ namespace NeoPlayer
 
 			var doc = new HtmlDocument();
 			doc.LoadHtml(html);
-			var videoNodes = doc.DocumentNode.SelectNodes("//ol[@class='item-section']//li//h3//a").ToList();
+			var videoNodes = doc.DocumentNode.SelectNodes("//ol[@class='item-section']//li//h3//a")?.ToList();
+			if (videoNodes == null)
+				return new List<MediaData>();
 
 			return videoNodes.Select(videoNode => new MediaData
 			{

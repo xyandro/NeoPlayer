@@ -64,7 +64,7 @@ namespace NeoPlayer
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
-		void OnMessage(Message message)
+		void OnMessage(Message message, AsyncQueue<byte[]> queue)
 		{
 			var command = message.GetString();
 			switch (command)
@@ -78,22 +78,22 @@ namespace NeoPlayer
 				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
+				case "GetYouTube": GetYouTube(message.GetString(), queue); break;
 				default: throw new Exception("Invalid command");
 			}
+		}
 
-			//switch (message.Command)
-			//{
-			//	case Message.MessageCommand.QueueVideo: QueueVideo(message); break;
-			//	case Message.MessageCommand.GetYouTube: break;
-			//	case Message.MessageCommand.SetPosition: SetPosition(message.GetInt(), message.GetBool()); break;
-			//	case Message.MessageCommand.ToggleMediaPlay: ToggleMediaPlay(); break;
-			//	case Message.MessageCommand.MediaForward: MediaForward(); break;
-			//	case Message.MessageCommand.SetVolume: SetVolume(message.GetInt(), message.GetBool()); break;
-			//	case Message.MessageCommand.ToggleSlidesPlay: ToggleSlidesPlay(); break;
-			//	case Message.MessageCommand.SetSlidesQuery: SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
-			//	case Message.MessageCommand.SetSlideDisplayTime: SlideDisplayTime = message.GetInt(); break;
-			//	case Message.MessageCommand.CycleSlide: CycleSlide(message.GetBool() ? 1 : -1); break;
-			//}
+		async public void GetYouTube(string search, AsyncQueue<byte[]> queue)
+		{
+			var cts = new CancellationTokenSource();
+			cts.CancelAfter(10000);
+			var suggestions = await YouTube.GetSuggestions(search, cts.Token);
+
+			var message = new Message();
+			message.Add(1);
+			message.Add("YouTube");
+			message.Add(suggestions);
+			queue.Enqueue(message.ToArray());
 		}
 
 		void SetSlidesData(string slidesQuery, string slidesSize)
