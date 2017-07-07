@@ -20,7 +20,7 @@ namespace NeoPlayer
 			return match.Groups[1].Value;
 		}
 
-		async public static Task<List<MediaData>> GetSuggestions(string searchTerm, CancellationToken token)
+		async public static Task<List<MediaData>> GetSuggestionsAsync(string searchTerm, CancellationToken token)
 		{
 			var url = $"https://www.youtube.com/results?sp=EgIQAQ%253D%253D&q={HttpUtility.UrlEncode(searchTerm)}";
 			var html = await URLDownloader.GetURLString(url, token);
@@ -34,11 +34,11 @@ namespace NeoPlayer
 			return videoNodes.Select(videoNode => new MediaData
 			{
 				Description = HttpUtility.HtmlDecode(videoNode.InnerText.Trim()),
-				URL = $"youtube:///{GetID(url, videoNode.Attributes["href"]?.Value)}",
+				URL = $"http://localhost:5000/fetch?url={HttpUtility.UrlEncode($"youtube:///{GetID(url, videoNode.Attributes["href"]?.Value)}")}",
 			}).ToList();
 		}
 
-		public async static Task<string> GetURL(string url)
+		public async static Task<string> GetURLAsync(string url)
 		{
 			if (!url.StartsWith("youtube:///"))
 				return url;

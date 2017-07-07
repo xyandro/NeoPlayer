@@ -28,6 +28,7 @@ namespace NeoPlayer
 			netServer.OnMessage += OnMessage;
 			netServer.OnConnect += OnConnect;
 			netServer.Run(7399);
+			WebServer.Run(5000);
 
 			status = new Status(netServer);
 			updateState = new SingleRunner(UpdateState);
@@ -88,7 +89,7 @@ namespace NeoPlayer
 		{
 			var cts = new CancellationTokenSource();
 			cts.CancelAfter(10000);
-			var suggestions = await YouTube.GetSuggestions(search, cts.Token);
+			var suggestions = await YouTube.GetSuggestionsAsync(search, cts.Token);
 
 			var message = new Message();
 			message.Add(1);
@@ -105,12 +106,8 @@ namespace NeoPlayer
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
-		async void QueueVideo(MediaData videoData)
+		void QueueVideo(MediaData videoData)
 		{
-			videoData.URL = await YouTube.GetURL(videoData.URL);
-			if (string.IsNullOrWhiteSpace(videoData.URL))
-				return;
-
 			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
 			if (match == -1)
 				videos.Add(videoData);
