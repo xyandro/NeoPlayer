@@ -100,6 +100,7 @@
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SingleRunner.cs" />
     <Compile Include="SlideDownloader.cs" />
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />

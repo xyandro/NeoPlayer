@@ -84,7 +84,7 @@ namespace NeoPlayer
 			var mediaData = message.GetMediaData();
 			mediaData.URL = await YouTube.GetURL(mediaData.URL);
 			if (!string.IsNullOrWhiteSpace(mediaData.URL))
-				NeoPlayerWindow.Current.EnqueueVideo(mediaData);
+				NeoPlayerWindow.Current.ToggleVideo(mediaData);
 		}
 
 		public static byte[] GetQueue()
@@ -120,7 +120,7 @@ namespace NeoPlayer
 
 		static void Forward() => NeoPlayerWindow.Current.Forward();
 
-		static void RequestMediaData() => NeoPlayerWindow.Current.QueueMediaDataUpdate();
+		static void RequestMediaData() => NeoPlayerWindow.Current.MediaDataUpdate();
 
 		public static byte[] GetVolume()
 		{
@@ -156,7 +156,7 @@ namespace NeoPlayer
 
 		static void SetSlideDisplayTime(Message message) => NeoPlayerWindow.Current.SlideDisplayTime = message.GetInt();
 
-		static void CycleSlide(Message message) => NeoPlayerWindow.Current.CycleSlide(message.GetBool());
+		static void CycleSlide(Message message) => NeoPlayerWindow.Current.CycleSlide(message.GetBool() ? 1 : -1);
 
 		public static byte[] MediaData(bool playing, string title, int position, int maxPosition)
 		{

@@ -3,12 +3,14 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="NeoPlayer" Width="800" Height="600" Background="Black" WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized">
 
-	<Grid>
-		<Image Name="slide1"/>
-		<Grid Name="fadeSlide" Background="Black" Opacity="0">
-			<Image Name="slide2"/>
+	<Grid Name="visual">
+		<Image Name="previous"/>
+		<Grid Name="slide" Background="Black" Opacity="0">
+			<Image Name="slideImage"/>
 		</Grid>
-		<MediaElement Name="media" LoadedBehavior="Manual"/>
+		<Grid Name="media" Background="Black" Opacity="0">
+			<MediaElement Name="mediaPlayer" LoadedBehavior="Manual"/>
+		</Grid>
 	</Grid>
 
 </Window>
