@@ -64,6 +64,8 @@ public class MainActivity extends Activity {
     private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
     private InetAddress neoPlayerAddress = null;
     private static final String addressFileName = "NeoPlayer.txt";
+    private Thread readerThread;
+    private Socket socket = null;
 
     private ViewPager pager;
     private NEEditText queueSearchText;
@@ -133,6 +135,14 @@ public class MainActivity extends Activity {
 
         prepareMediaSession();
         setupControls();
+
+        readerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                runReaderThread();
+            }
+        });
+        readerThread.start();
     }
 
     private int seekBarToDisplayTime(int value) {
@@ -467,21 +477,6 @@ public class MainActivity extends Activity {
 
     private GetAddressDialog getAddressDialog;
 
-    Thread readerThread;
-    Socket socket = null;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        readerThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                runReaderThread();
-            }
-        });
-        readerThread.start();
-    }
-
     boolean activityActive = false;
 
     @Override
@@ -497,9 +492,8 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
+    protected void onDestroy() {
+        super.onDestroy();
         Thread readerThread = this.readerThread;
         this.readerThread = null;
         Socket socket = this.socket;
@@ -513,6 +507,8 @@ public class MainActivity extends Activity {
             readerThread.join();
         } catch (InterruptedException e) {
         }
+        mediaSession.release();
+        finish();
     }
 
     private void getNeoPlayerAddress() {
