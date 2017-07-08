@@ -60,8 +60,8 @@ public class MainActivity extends Activity {
     private int currentSlidesSize;
     private static final int NeoPlayerToken = 0xfeedbeef;
     private static final int NeoPlayerRestartToken = 0x0badf00d;
-    private static final int NeoPlayerPort = 7399;
-    private static final int NeoPlayerRestartPort = 7398;
+    private static final int NeoPlayerPort = 7398;
+    private static final int NeoPlayerRestartPort = 7397;
     private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
     private InetAddress neoPlayerAddress = null;
     private static final String addressFileName = "NeoPlayer.txt";

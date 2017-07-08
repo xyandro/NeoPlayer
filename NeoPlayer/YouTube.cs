@@ -34,7 +34,7 @@ namespace NeoPlayer
 			return videoNodes.Select(videoNode => new MediaData
 			{
 				Description = HttpUtility.HtmlDecode(videoNode.InnerText.Trim()),
-				URL = $"http://localhost:5000/fetch?url={HttpUtility.UrlEncode($"youtube:///{GetID(url, videoNode.Attributes["href"]?.Value)}")}",
+				URL = $"http://localhost:7399/fetch?url={HttpUtility.UrlEncode($"youtube:///{GetID(url, videoNode.Attributes["href"]?.Value)}")}",
 			}).ToList();
 		}
 

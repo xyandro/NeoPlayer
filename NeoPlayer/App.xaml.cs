@@ -10,7 +10,7 @@ namespace NeoPlayer
 			Restarter.CheckRestart(e.Args);
 
 			new NeoPlayerWindow().Show();
-			Restarter.Start(7398);
+			Restarter.Start(7397);
 		}
 
 		public App()
