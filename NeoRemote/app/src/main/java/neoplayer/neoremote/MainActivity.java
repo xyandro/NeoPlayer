@@ -23,6 +23,7 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
@@ -466,15 +467,52 @@ public class MainActivity extends Activity {
 
     private GetAddressDialog getAddressDialog;
 
+    Thread readerThread;
+    Socket socket = null;
+
     @Override
     protected void onStart() {
         super.onStart();
-        new Thread(new Runnable() {
+        readerThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 runReaderThread();
             }
-        }).start();
+        });
+        readerThread.start();
+    }
+
+    boolean activityActive = false;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activityActive = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        activityActive = false;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        Thread readerThread = this.readerThread;
+        this.readerThread = null;
+        Socket socket = this.socket;
+        if (socket != null)
+            try {
+                socket.close();
+            } catch (IOException e) {
+            }
+
+        try {
+            readerThread.join();
+        } catch (InterruptedException e) {
+        }
     }
 
     private void getNeoPlayerAddress() {
@@ -498,9 +536,14 @@ public class MainActivity extends Activity {
     private void runReaderThread() {
         getNeoPlayerAddress();
 
+        boolean first = true;
         Log.d(TAG, "runReaderThread: Started");
-        while (true) try {
-            final Socket socket = new Socket();
+        while (readerThread != null) try {
+            if (!first)
+                Thread.sleep(1000);
+            first = false;
+
+            socket = new Socket();
             socket.connect(new InetSocketAddress(neoPlayerAddress, NeoPlayerPort), 1000);
 
             try {
@@ -518,118 +561,50 @@ public class MainActivity extends Activity {
 
                 outputQueue.clear();
 
-                new Thread(new Runnable() {
+                final Thread writerThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         runWriterThread(socket);
                     }
-                }).start();
+                });
+                writerThread.start();
 
-                while (true) {
-                    final Message message = new Message(socket.getInputStream());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            int count = message.getInt();
-                            while (count > 0) {
-                                --count;
-                                String field = message.getString();
-                                switch (field) {
-                                    case "Queue":
-                                        queueVideos.clear();
-                                        for (MediaData mediaData : message.getMediaDatas())
-                                            queueVideos.add(mediaData);
-                                        queueAdapter.notifyDataSetChanged();
-                                        coolAdapter.notifyDataSetChanged();
-                                        youTubeAdapter.notifyDataSetChanged();
-                                        moviesAdapter.notifyDataSetChanged();
-                                        break;
-                                    case "Cool":
-                                        coolVideos.clear();
-                                        for (MediaData mediaData : message.getMediaDatas())
-                                            coolVideos.add(mediaData);
-                                        coolAdapter.notifyDataSetChanged();
-                                        break;
-                                    case "YouTube":
-                                        youTubeVideos.clear();
-                                        for (MediaData mediaData : message.getMediaDatas())
-                                            youTubeVideos.add(mediaData);
-                                        youTubeAdapter.notifyDataSetChanged();
-                                        break;
-                                    case "Movies":
-                                        moviesVideos.clear();
-                                        for (MediaData mediaData : message.getMediaDatas())
-                                            moviesVideos.add(mediaData);
-                                        moviesAdapter.notifyDataSetChanged();
-                                        break;
-                                    case "MediaVolume":
-                                        volumeProvider.setCurrentVolume(message.getInt() / 4);
-                                        break;
-                                    case "MediaTitle":
-                                        navbarTitle.setText(message.getString());
-                                        break;
-                                    case "MediaPosition":
-                                        int position = message.getInt();
-                                        if (!userTrackingSeekBar)
-                                            navbarSeekBar.setProgress(position);
-                                        break;
-                                    case "MediaMaxPosition":
-                                        int maxPosition = message.getInt();
-                                        navbarSeekBar.setMax(maxPosition);
-                                        navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
-                                        break;
-                                    case "MediaPlaying":
-                                        navbarPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
-                                        break;
-                                    case "SlidesQuery":
-                                        currentSlidesQuery = message.getString();
-                                        slidesQuery.setText(currentSlidesQuery);
-                                        break;
-                                    case "SlidesSize":
-                                        int index = 0;
-                                        String slidesSizeStr = message.getString();
-                                        for (String entry : validSizes.keySet()) {
-                                            if (validSizes.get(entry).equals(slidesSizeStr)) {
-                                                currentSlidesSize = index;
-                                                slidesSize.setSelection(index);
-                                            }
-                                            ++index;
-                                        }
-                                        break;
-                                    case "SlideDisplayTime":
-                                        slidesDisplayTime.setProgress(displayTimeToSeekBar(message.getInt()));
-                                        break;
-                                    case "SlidesPlaying":
-                                        slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
-                                        break;
-                                }
+                try {
+                    while (true) {
+                        final Message message = new Message(socket.getInputStream());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                handleMessage(message);
                             }
-                        }
-                    });
+                        });
+                    }
+                } finally {
+                    socket.close();
+                    outputQueue.add(new byte[0]); // Signal writer thread to stop
+                    try {
+                        writerThread.join();
+                    } catch (Exception e) {
+                    }
                 }
             } finally {
                 socket.close();
             }
         } catch (Exception ex) {
             Log.d(TAG, "runReaderThread: Error: " + ex.getMessage());
-            outputQueue.clear();
-            outputQueue.add(new byte[0]); // Let writer thread know there's a problem
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (getAddressDialog == null) {
-                        getAddressDialog = new GetAddressDialog(MainActivity.this, neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress());
-                        getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
-                    }
+                    if (activityActive)
+                        if (getAddressDialog == null) {
+                            getAddressDialog = new GetAddressDialog(MainActivity.this, neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress());
+                            getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
+                        }
                 }
             });
-
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
-            }
         }
+        Log.d(TAG, "runReaderThread: Stopped");
     }
 
     private void runWriterThread(Socket socket) {
@@ -724,5 +699,82 @@ public class MainActivity extends Activity {
 
     public void queueVideo(MediaData mediaData) {
         outputQueue.add(new Message().add("QueueVideo").add(mediaData).toArray());
+    }
+
+    private void handleMessage(Message message) {
+        int count = message.getInt();
+        while (count > 0) {
+            --count;
+            String field = message.getString();
+            switch (field) {
+                case "Queue":
+                    queueVideos.clear();
+                    for (MediaData mediaData : message.getMediaDatas())
+                        queueVideos.add(mediaData);
+                    queueAdapter.notifyDataSetChanged();
+                    coolAdapter.notifyDataSetChanged();
+                    youTubeAdapter.notifyDataSetChanged();
+                    moviesAdapter.notifyDataSetChanged();
+                    break;
+                case "Cool":
+                    coolVideos.clear();
+                    for (MediaData mediaData : message.getMediaDatas())
+                        coolVideos.add(mediaData);
+                    coolAdapter.notifyDataSetChanged();
+                    break;
+                case "YouTube":
+                    youTubeVideos.clear();
+                    for (MediaData mediaData : message.getMediaDatas())
+                        youTubeVideos.add(mediaData);
+                    youTubeAdapter.notifyDataSetChanged();
+                    break;
+                case "Movies":
+                    moviesVideos.clear();
+                    for (MediaData mediaData : message.getMediaDatas())
+                        moviesVideos.add(mediaData);
+                    moviesAdapter.notifyDataSetChanged();
+                    break;
+                case "MediaVolume":
+                    volumeProvider.setCurrentVolume(message.getInt() / 4);
+                    break;
+                case "MediaTitle":
+                    navbarTitle.setText(message.getString());
+                    break;
+                case "MediaPosition":
+                    int position = message.getInt();
+                    if (!userTrackingSeekBar)
+                        navbarSeekBar.setProgress(position);
+                    break;
+                case "MediaMaxPosition":
+                    int maxPosition = message.getInt();
+                    navbarSeekBar.setMax(maxPosition);
+                    navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
+                    break;
+                case "MediaPlaying":
+                    navbarPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                    break;
+                case "SlidesQuery":
+                    currentSlidesQuery = message.getString();
+                    slidesQuery.setText(currentSlidesQuery);
+                    break;
+                case "SlidesSize":
+                    int index = 0;
+                    String slidesSizeStr = message.getString();
+                    for (String entry : validSizes.keySet()) {
+                        if (validSizes.get(entry).equals(slidesSizeStr)) {
+                            currentSlidesSize = index;
+                            slidesSize.setSelection(index);
+                        }
+                        ++index;
+                    }
+                    break;
+                case "SlideDisplayTime":
+                    slidesDisplayTime.setProgress(displayTimeToSeekBar(message.getInt()));
+                    break;
+                case "SlidesPlaying":
+                    slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                    break;
+            }
+        }
     }
 }
