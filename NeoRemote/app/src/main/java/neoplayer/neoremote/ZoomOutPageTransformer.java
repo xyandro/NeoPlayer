@@ -4,8 +4,8 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 
 public class ZoomOutPageTransformer implements ViewPager.PageTransformer {
-    private static final float MIN_SCALE = 0.85f;
-    private static final float MIN_ALPHA = 0.5f;
+    private static final float MIN_SCALE = 0.5f;
+    private static final float MIN_ALPHA = 0.75f;
 
     public void transformPage(View view, float position) {
         int pageWidth = view.getWidth();
@@ -25,6 +25,7 @@ public class ZoomOutPageTransformer implements ViewPager.PageTransformer {
 
             view.setScaleX(scaleFactor);
             view.setScaleY(scaleFactor);
+            view.setRotation(180 * position);
 
             view.setAlpha(MIN_ALPHA + (scaleFactor - MIN_SCALE) / (1 - MIN_SCALE) * (1 - MIN_ALPHA));
         }
