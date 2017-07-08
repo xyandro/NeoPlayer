@@ -735,6 +735,7 @@ public class MainActivity extends Activity {
             pageCount = pager.getChildCount();
             pager.setOffscreenPageLimit(pageCount);
             pager.setAdapter(this);
+            pager.setPageTransformer(true, new ZoomOutPageTransformer());
         }
 
         @Override
