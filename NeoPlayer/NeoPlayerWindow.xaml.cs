@@ -28,7 +28,7 @@ namespace NeoPlayer
 			netServer.OnMessage += OnMessage;
 			netServer.OnConnect += OnConnect;
 			netServer.Run(7398);
-			WebServer.Run(7399);
+			WebServer.RunAsync(7399);
 
 			status = new Status(netServer);
 			updateState = new SingleRunner(UpdateState);

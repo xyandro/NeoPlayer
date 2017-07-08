@@ -13,14 +13,14 @@ namespace NeoPlayer
 {
 	class WebServer
 	{
-		public async static void Run(int port)
+		public async static void RunAsync(int port)
 		{
-			var listener = new TcpListener(IPAddress.Loopback, port);
+			var listener = new TcpListener(IPAddress.Any, port);
 			listener.Start();
 			while (true)
 			{
 				var client = await listener.AcceptTcpClientAsync();
-				RunClient(client);
+				RunClientAsync(client);
 			}
 		}
 
@@ -42,7 +42,7 @@ namespace NeoPlayer
 			return null;
 		}
 
-		async static Task HandleFetch(WebRequest webRequest, Stream localStream)
+		async static Task HandleFetchAsync(WebRequest webRequest, Stream localStream)
 		{
 			TcpClient remote = null;
 			Stream remoteStream = null;
@@ -122,25 +122,57 @@ namespace NeoPlayer
 			}
 		}
 
-		async static void RunClient(TcpClient local)
+		async static Task SendStreamAsync(Stream networkStream, Stream fileStream, string contentType)
 		{
-			var localStream = local.GetStream() as Stream;
+			var headers = new List<string>
+			{
+				"HTTP/1.1 200 OK",
+				$"Date: {DateTime.UtcNow:r}",
+				$"Content-Type: {contentType}",
+				$"Content-Length: {fileStream.Length}",
+				"Connection: close",
+				"",
+			};
+			var buffer = Encoding.ASCII.GetBytes(string.Join("", headers.Select(header => $"{header}\r\n")));
+			await networkStream.WriteAsync(buffer, 0, buffer.Length);
+			await fileStream.CopyToAsync(networkStream);
+		}
+
+		async static Task SendIndexAsync(Stream stream)
+		{
+			var page = @"<html><head><title>NeoPlayer</title></head><body><a style='font-size: 3vh' href=""NeoRemote.apk"">Download NeoRemote</a></body></html>";
+			using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(page)))
+				await SendStreamAsync(stream, ms, "text/html");
+		}
+
+		async static Task SendAPKAsync(Stream stream)
+		{
+			using (var apkStream = typeof(WebServer).Assembly.GetManifestResourceStream("NeoPlayer.NeoRemote.apk"))
+				await SendStreamAsync(stream, apkStream, "application/octet-stream");
+		}
+
+		async static void RunClientAsync(TcpClient client)
+		{
+			var stream = client.GetStream() as Stream;
 			try
 			{
-				while (local.Connected)
+				while (client.Connected)
 				{
 					var webRequest = new WebRequest();
-					await webRequest.FetchHeadersAsync(localStream);
+					await webRequest.FetchHeadersAsync(stream);
 
 					string localPath = webRequest.RequestUri.LocalPath;
 					switch (localPath)
 					{
-						case "/fetch": await HandleFetch(webRequest, localStream); break;
+						case "/": await SendIndexAsync(stream); break;
+						case "/fetch": await HandleFetchAsync(webRequest, stream); break;
+						case "/NeoRemote.apk": await SendAPKAsync(stream); break;
+						default: throw new Exception("Invalid query");
 					}
 				}
 			}
 			catch { }
-			local.Close();
+			client.Close();
 		}
 	}
 }

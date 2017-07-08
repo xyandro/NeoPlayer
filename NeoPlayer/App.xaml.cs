@@ -9,8 +9,8 @@ namespace NeoPlayer
 			base.OnStartup(e);
 			Restarter.CheckRestart(e.Args);
 
-			new NeoPlayerWindow().Show();
 			Restarter.Start(7397);
+			new NeoPlayerWindow().Show();
 		}
 
 		public App()

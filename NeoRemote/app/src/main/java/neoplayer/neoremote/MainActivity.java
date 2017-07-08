@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
         validSizes.put("70 MP", "70mp");
     }
 
-    MainActivity() {
+    public MainActivity() {
         queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
         coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos);
         youTubeAdapter = new MediaListAdapter(this, youTubeVideos, queueVideos);
