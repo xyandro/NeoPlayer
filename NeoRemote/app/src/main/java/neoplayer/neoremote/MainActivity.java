@@ -10,14 +10,12 @@ import android.os.Bundle;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -726,31 +724,5 @@ public class MainActivity extends Activity {
 
     public void queueVideo(MediaData mediaData) {
         outputQueue.add(new Message().add("QueueVideo").add(mediaData).toArray());
-    }
-
-    class ScreenSlidePagerAdapter extends PagerAdapter {
-        final int pageCount;
-
-        public ScreenSlidePagerAdapter(ViewPager pager) {
-            pageCount = pager.getChildCount();
-            pager.setOffscreenPageLimit(pageCount);
-            pager.setAdapter(this);
-            pager.setPageTransformer(true, new ZoomOutPageTransformer());
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup collection, int position) {
-            return collection.getChildAt(position);
-        }
-
-        @Override
-        public int getCount() {
-            return pageCount;
-        }
-
-        @Override
-        public boolean isViewFromObject(View arg0, Object arg1) {
-            return arg0 == arg1;
-        }
     }
 }
