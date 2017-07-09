@@ -81,12 +81,12 @@ namespace NeoPlayer
 				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
-				case "GetYouTube": GetYouTube(message.GetString(), queue); break;
+				case "SearchYouTube": SearchYouTube(message.GetString(), queue); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
 
-		async public void GetYouTube(string search, AsyncQueue<byte[]> queue)
+		async public void SearchYouTube(string search, AsyncQueue<byte[]> queue)
 		{
 			var cts = new CancellationTokenSource();
 			cts.CancelAfter(10000);

@@ -367,7 +367,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 youtubeSearchText.clearFocus();
-                outputQueue.add(new Message().add("GetYouTube").add(youtubeSearchText.getText().toString()).toArray());
+                outputQueue.add(new Message().add("SearchYouTube").add(youtubeSearchText.getText().toString()).toArray());
             }
         });
 
@@ -723,6 +723,7 @@ public class MainActivity extends Activity {
                     for (MediaData mediaData : message.getMediaDatas())
                         youTubeVideos.add(mediaData);
                     youTubeAdapter.notifyDataSetChanged();
+                    youtubeVideosList.smoothScrollToPosition(0);
                     break;
                 case "Movies":
                     moviesVideos.clear();
