@@ -13,7 +13,6 @@ namespace NeoPlayer
 	{
 		public byte[] Data { get; set; }
 		public int ContentLeft { get; set; }
-		public bool Close { get; set; }
 
 		List<string> headersField;
 		public List<string> Headers
@@ -23,7 +22,6 @@ namespace NeoPlayer
 			{
 				headersField = value;
 				ContentLeft = Headers.Where(header => header.StartsWith("Content-Length: ")).Select(header => header.Substring("Content-Length: ".Length)).Select(header => int.Parse(header)).FirstOrDefault();
-				Close = Headers.Any(header => header == "Connection: close");
 			}
 		}
 

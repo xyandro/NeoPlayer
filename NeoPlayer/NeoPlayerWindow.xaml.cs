@@ -108,6 +108,8 @@ namespace NeoPlayer
 
 		void QueueVideo(MediaData videoData)
 		{
+			YouTube.PrepURL(videoData.URL);
+
 			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
 			if (match == -1)
 				videos.Add(videoData);

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +14,20 @@ namespace NeoPlayer
 {
 	static class YouTube
 	{
+		class WorkItem
+		{
+			public string URL { get; set; }
+			public Uri URI { get; set; }
+			public Exception Exception { get; set; }
+			public List<TaskCompletionSource<Uri>> Tasks { get; } = new List<TaskCompletionSource<Uri>>();
+		}
+		readonly static List<WorkItem> workItems = new List<WorkItem>();
+
 		static string GetID(string baseUrl, string url)
 		{
 			var match = Regex.Match(url, @"[&?]v=([^&]*)(?:&|$)");
 			if (!match.Success)
-				throw new Exception("Unable to get stream URL");
+				return null;
 			return match.Groups[1].Value;
 		}
 
@@ -31,43 +42,88 @@ namespace NeoPlayer
 			if (videoNodes == null)
 				return new List<MediaData>();
 
-			return videoNodes.Select(videoNode => new MediaData
-			{
-				Description = HttpUtility.HtmlDecode(videoNode.InnerText.Trim()),
-				URL = $"http://localhost:7399/fetch?url={HttpUtility.UrlEncode($"youtube:///{GetID(url, videoNode.Attributes["href"]?.Value)}")}",
-			}).ToList();
+			return videoNodes
+				.Select(videoNode => new { desc = videoNode.InnerText.Trim(), id = GetID(url, videoNode.Attributes["href"]?.Value) })
+				.Where(obj => obj.id != null)
+				.Select(obj => new MediaData
+				{
+					Description = HttpUtility.HtmlDecode(obj.desc),
+					URL = $"http://localhost:7399/fetch?url={HttpUtility.UrlEncode($"youtube://{obj.id}")}",
+				})
+				.ToList();
 		}
 
-		public async static Task<string> GetURLAsync(string url)
+		public async static void PrepURL(string url)
 		{
-			if (!url.StartsWith("youtube:///"))
-				return url;
+			const string urlPrefix = "http://localhost:7399/fetch?url=youtube%3a%2f%2f";
+			if (!url.StartsWith(urlPrefix))
+				return;
 
-			var id = url.Substring("youtube:///".Length);
-			return await AsyncHelper.ThreadPoolRunAsync(() =>
+			url = HttpUtility.ParseQueryString(new Uri(url).Query)["url"];
+			if (workItems.Any(item => item.URL == url))
+				return;
+
+			var workItem = new WorkItem { URL = url };
+			workItems.Add(workItem);
+
+			try
 			{
-				var process = new Process
+				url = $"https://www.youtube.com/watch?v={url.Substring("youtube://".Length)}";
+				url = await AsyncHelper.ThreadPoolRunAsync(() =>
 				{
-					StartInfo = new ProcessStartInfo
+					var process = new Process
 					{
-						FileName = Settings.YouTubeDLPath,
-						Arguments = $"-g https://www.youtube.com/watch?v={id}",
-						UseShellExecute = false,
-						RedirectStandardOutput = true,
-						CreateNoWindow = true,
+						StartInfo = new ProcessStartInfo
+						{
+							FileName = Settings.YouTubeDLPath,
+							Arguments = $"-g {url}",
+							UseShellExecute = false,
+							RedirectStandardOutput = true,
+							CreateNoWindow = true,
+						}
+					};
+					process.Start();
+					var result = "";
+					while (!process.StandardOutput.EndOfStream)
+					{
+						var line = process.StandardOutput.ReadLine();
+						if (!string.IsNullOrWhiteSpace(line))
+							result = line;
 					}
-				};
-				process.Start();
-				var result = "";
-				while (!process.StandardOutput.EndOfStream)
-				{
-					var line = process.StandardOutput.ReadLine();
-					if (!string.IsNullOrWhiteSpace(line))
-						result = line;
-				}
-				process.WaitForExit();
-				return result;
-			});
+					process.WaitForExit();
+					return result;
+				});
+
+				var httpClient = new HttpClient();
+				httpClient.DefaultRequestHeaders.Range = new RangeHeaderValue(0, 100);
+				var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+				response.EnsureSuccessStatusCode();
+
+				workItem.URI = response.RequestMessage.RequestUri;
+				workItem.Tasks.ForEach(task => task.TrySetResult(workItem.URI));
+			}
+			catch (Exception ex)
+			{
+				workItem.Exception = ex;
+				workItem.Tasks.ForEach(task => task.TrySetException(ex));
+			}
+			workItem.Tasks.Clear();
+		}
+
+		public async static Task<Uri> GetURLAsync(string url)
+		{
+			var workItem = workItems.FirstOrDefault(item => item.URL == url);
+			if (workItem == null)
+				return new Uri(url);
+
+			if (workItem.URI != null)
+				return workItem.URI;
+			if (workItem.Exception != null)
+				throw workItem.Exception;
+
+			var tcs = new TaskCompletionSource<Uri>();
+			workItem.Tasks.Add(tcs);
+			return await tcs.Task;
 		}
 	}
 }

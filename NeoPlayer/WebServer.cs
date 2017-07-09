@@ -44,81 +44,48 @@ namespace NeoPlayer
 
 		async static Task HandleFetchAsync(WebRequest webRequest, Stream localStream)
 		{
-			TcpClient remote = null;
-			Stream remoteStream = null;
-			string remoteHost = null;
-			int remotePort = 0;
-			bool newRemote = true;
+			var url = webRequest.GetParameter("url");
+			var uri = await YouTube.GetURLAsync(url);
 
-			try
+			using (var remote = new TcpClient())
 			{
-				var url = webRequest.GetParameter("url");
-				url = await YouTube.GetURLAsync(url);
-				while (true)
+				await remote.ConnectAsync(uri.Host, uri.Port);
+
+				var remoteStream = remote.GetStream() as Stream;
+				if (uri.Scheme == "https")
 				{
-					var uri = new Uri(url);
-					if ((newRemote) || (remote == null) || (uri.Host != remoteHost) || (uri.Port != remotePort))
-					{
-						newRemote = false;
-						remote?.Close();
+					remoteStream = new SslStream(remoteStream);
+					(remoteStream as SslStream).AuthenticateAsClient(uri.Host);
+				}
 
-						remoteHost = uri.Host;
-						remotePort = uri.Port;
-						remote = new TcpClient();
-						await remote.ConnectAsync(uri.Host, uri.Port);
+				webRequest.RequestUri = uri;
+				var buffer = Encoding.ASCII.GetBytes(webRequest.HeadersStr);
+				await remoteStream.WriteAsync(buffer, 0, buffer.Length);
 
-						remoteStream = remote.GetStream() as Stream;
-						if (uri.Scheme == "https")
-						{
-							remoteStream = new SslStream(remoteStream);
-							(remoteStream as SslStream).AuthenticateAsClient(uri.Host);
-						}
-					}
+				var reply = new WebRequest();
+				await reply.FetchHeadersAsync(remoteStream);
 
-					webRequest.RequestUri = uri;
-					var buffer = Encoding.ASCII.GetBytes(webRequest.HeadersStr);
-					await remoteStream.WriteAsync(buffer, 0, buffer.Length);
-
-					var reply = new WebRequest();
-					await reply.FetchHeadersAsync(remoteStream);
-					if (reply.Close)
-						newRemote = true;
-
-					if (reply.Headers.Any(header => header.EndsWith(" 302 Found")))
-					{
-						url = reply.Headers.Where(header => header.StartsWith("Location: ")).Select(header => header.Substring("Location: ".Length)).Single();
-						continue;
-					}
-
-					var queue = new AsyncQueue<byte[]>();
-					queue.Enqueue(Encoding.ASCII.GetBytes(reply.HeadersStr));
-					((Action)(async () =>
-					{
-						try
-						{
-							while (await queue.HasItemsAsync())
-							{
-								var data = queue.Dequeue();
-								await localStream.WriteAsync(data, 0, data.Length);
-							}
-						}
-						catch { }
-					}))();
-
+				var queue = new AsyncQueue<byte[]>();
+				queue.Enqueue(Encoding.ASCII.GetBytes(reply.HeadersStr));
+				((Action)(async () =>
+				{
 					try
 					{
-						while (reply.ContentLeft > 0)
-							queue.Enqueue(await reply.ReadAsync(remoteStream));
+						while (await queue.HasItemsAsync())
+						{
+							var data = queue.Dequeue();
+							await localStream.WriteAsync(data, 0, data.Length);
+						}
 					}
-					finally { queue.SetFinished(); }
+					catch { }
+				}))();
 
-					break;
+				try
+				{
+					while (reply.ContentLeft > 0)
+						queue.Enqueue(await reply.ReadAsync(remoteStream));
 				}
-			}
-			finally
-			{
-				remote?.Close();
-				remote = null;
+				finally { queue.SetFinished(); }
 			}
 		}
 
