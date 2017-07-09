@@ -53,6 +53,7 @@ namespace NeoPlayer
 			Volume = 50;
 
 			mediaPlayer.MediaEnded += (s, e) => MediaForward();
+			mediaPlayer.MediaFailed += (s, e) => MediaForward();
 			System.Windows.Forms.Cursor.Hide();
 
 			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.25) };

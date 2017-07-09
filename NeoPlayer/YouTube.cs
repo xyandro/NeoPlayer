@@ -71,14 +71,18 @@ namespace NeoPlayer
 				url = $"https://www.youtube.com/watch?v={url.Substring("youtube://".Length)}";
 				url = await AsyncHelper.ThreadPoolRunAsync(() =>
 				{
+					var auth = "";
+
+					tryagain:
 					var process = new Process
 					{
 						StartInfo = new ProcessStartInfo
 						{
 							FileName = Settings.YouTubeDLPath,
-							Arguments = $"-g {url}",
+							Arguments = $"-g {auth} {url}",
 							UseShellExecute = false,
 							RedirectStandardOutput = true,
+							RedirectStandardError = true,
 							CreateNoWindow = true,
 						}
 					};
@@ -90,9 +94,20 @@ namespace NeoPlayer
 						if (!string.IsNullOrWhiteSpace(line))
 							result = line;
 					}
+					var error = process.StandardError.ReadToEnd();
 					process.WaitForExit();
+
+					if ((!string.IsNullOrWhiteSpace(error)) && (auth == ""))
+					{
+						auth = Cryptor.Decrypt("EAAAABmwMiKoDUeKbZV2BxXYkyU+2w+qqAgxIHab8Q1RiPHrFzBKe2MnNISvvyuMKQFry31r/G2XhODOQpVwll3icTk=");
+						goto tryagain;
+					}
+
 					return result;
 				});
+
+				if (string.IsNullOrWhiteSpace(url))
+					throw new Exception("Unable to get YouTube URL");
 
 				var httpClient = new HttpClient();
 				httpClient.DefaultRequestHeaders.Range = new RangeHeaderValue(0, 100);
