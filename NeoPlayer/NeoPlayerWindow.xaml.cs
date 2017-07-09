@@ -323,6 +323,14 @@ namespace NeoPlayer
 
 			if (VideoState != MediaState.None)
 			{
+				if (previousVideo != CurrentVideo)
+				{
+					previousVideo = CurrentVideo;
+					status.MediaTitle = previousVideo.Description;
+					mediaPlayer.Source = new Uri(previousVideo.URL);
+					mediaPlayer.Pause();
+				}
+
 				if (media.Opacity != 1)
 				{
 					if (fadeAnimation == null)
@@ -331,13 +339,6 @@ namespace NeoPlayer
 						FadeInUIElement(media);
 					}
 					return;
-				}
-
-				if (previousVideo != CurrentVideo)
-				{
-					previousVideo = CurrentVideo;
-					status.MediaTitle = previousVideo.Description;
-					mediaPlayer.Source = new Uri(previousVideo.URL);
 				}
 
 				switch (VideoState)

@@ -48,14 +48,14 @@ namespace NeoPlayer
 				.Select(obj => new MediaData
 				{
 					Description = HttpUtility.HtmlDecode(obj.desc),
-					URL = $"http://localhost:7399/fetch?url={HttpUtility.UrlEncode($"youtube://{obj.id}")}",
+					URL = $"http://127.0.0.1:7399/fetch?url={HttpUtility.UrlEncode($"youtube://{obj.id}")}",
 				})
 				.ToList();
 		}
 
 		public async static void PrepURL(string url)
 		{
-			const string urlPrefix = "http://localhost:7399/fetch?url=youtube%3a%2f%2f";
+			const string urlPrefix = "http://127.0.0.1:7399/fetch?url=youtube%3a%2f%2f";
 			if (!url.StartsWith(urlPrefix))
 				return;
 
