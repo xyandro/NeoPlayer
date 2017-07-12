@@ -4,11 +4,11 @@
 	Title="NeoPlayer" Width="800" Height="600" Background="Black" WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized">
 
 	<Grid Name="visual">
-		<Image Name="previous"/>
-		<Grid Name="slide" Background="Black" Opacity="0">
+		<Image Name="previous" Cursor="None"/>
+		<Grid Name="slide" Background="Black" Opacity="0" Cursor="None">
 			<Image Name="slideImage"/>
 		</Grid>
-		<Grid Name="media" Background="Black" Opacity="0">
+		<Grid Name="media" Background="Black" Opacity="0" Cursor="None">
 			<MediaElement Name="mediaPlayer" LoadedBehavior="Manual"/>
 		</Grid>
 	</Grid>
