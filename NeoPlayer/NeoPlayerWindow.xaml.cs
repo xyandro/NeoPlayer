@@ -381,7 +381,13 @@ namespace NeoPlayer
 					slideBitmap.UriSource = new Uri(previousSlide);
 					slideBitmap.CacheOption = BitmapCacheOption.OnLoad;
 					slideBitmap.EndInit();
-					slideImage.Source = slideBitmap;
+
+					// Set DPI to 96 (incorrect setting causes picture not to display properly)
+					var stride = slideBitmap.PixelWidth * slideBitmap.Format.BitsPerPixel; 
+					var pixelData = new byte[stride * slideBitmap.PixelHeight];
+					slideBitmap.CopyPixels(pixelData, stride, 0);
+
+					slideImage.Source = BitmapSource.Create(slideBitmap.PixelWidth, slideBitmap.PixelHeight, 72, 72, slideBitmap.Format, slideBitmap.Palette, pixelData, stride);
 					slideTime = DateTime.Now;
 				}
 				FadeInUIElement(slide);
