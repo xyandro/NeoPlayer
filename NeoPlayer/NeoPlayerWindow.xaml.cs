@@ -12,11 +12,14 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace NeoPlayer
 {
 	partial class NeoPlayerWindow
 	{
+		static readonly string SavedQueriesFile = Path.Combine(Path.GetDirectoryName(typeof(NeoPlayerWindow).Assembly.Location), "Saved.xml");
+
 		readonly SingleRunner updateState;
 		readonly DispatcherTimer changeSlideTimer = null;
 		readonly NetServer netServer;
@@ -135,6 +138,8 @@ namespace NeoPlayer
 			set
 			{
 				slidesQueryField = value;
+				if (slidesQueryField.StartsWith("saved:"))
+					slidesQueryField = GetSavedQuery(slidesQueryField.Substring("saved:".Length).Trim().ToLowerInvariant());
 				slidesQueryField = Regex.Replace(slidesQueryField, @"[\r,]", "\n");
 				slidesQueryField = Regex.Replace(slidesQueryField, @"[^\S\n]+", " ");
 				slidesQueryField = Regex.Replace(slidesQueryField, @"(^ | $)", "", RegexOptions.Multiline);
@@ -146,6 +151,19 @@ namespace NeoPlayer
 				status.SlidesQuery = slidesQueryField;
 				updateState.Signal();
 			}
+		}
+
+		string GetSavedQuery(string query)
+		{
+			try
+			{
+				var xml = XElement.Load(SavedQueriesFile);
+				var found = xml.Elements().FirstOrDefault(element => element.Attribute("Name").Value == query);
+				if (found != null)
+					query = found.Value;
+			}
+			catch { }
+			return query;
 		}
 
 		string slidesSizeField;
@@ -426,6 +444,8 @@ namespace NeoPlayer
 				var parts = currentSlidesQuery.Split(':');
 				TumblrSlideSource.Run(parts[1], Cryptor.Decrypt(parts[2].Substring(1)), fileName => AddSlide(fileName), tokenSource.Token);
 			}
+			else if (currentSlidesQuery.StartsWith("dir:"))
+				Directory.EnumerateFiles(currentSlidesQuery.Substring("dir:".Length)).ForEach(file => AddSlide(file));
 			else
 				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => AddSlide(fileName), tokenSource.Token);
 		}
