@@ -383,7 +383,7 @@ namespace NeoPlayer
 					slideBitmap.EndInit();
 
 					// Set DPI to 96 (incorrect setting causes picture not to display properly)
-					var stride = slideBitmap.PixelWidth * slideBitmap.Format.BitsPerPixel; 
+					var stride = slideBitmap.PixelWidth * slideBitmap.Format.BitsPerPixel;
 					var pixelData = new byte[stride * slideBitmap.PixelHeight];
 					slideBitmap.CopyPixels(pixelData, stride, 0);
 
@@ -451,7 +451,10 @@ namespace NeoPlayer
 				TumblrSlideSource.Run(parts[1], Cryptor.Decrypt(parts[2].Substring(1)), fileName => AddSlide(fileName), tokenSource.Token);
 			}
 			else if (currentSlidesQuery.StartsWith("dir:"))
-				Directory.EnumerateFiles(currentSlidesQuery.Substring("dir:".Length)).ForEach(file => AddSlide(file));
+			{
+				var random = new Random();
+				Directory.EnumerateFiles(currentSlidesQuery.Substring("dir:".Length)).OrderBy(x => random.Next()).ForEach(file => AddSlide(file));
+			}
 			else
 				GoogleSlideSource.Run(currentSlidesQuery, currentSlidesSize, fileName => AddSlide(fileName), tokenSource.Token);
 		}
