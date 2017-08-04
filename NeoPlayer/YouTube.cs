@@ -79,7 +79,7 @@ namespace NeoPlayer
 						StartInfo = new ProcessStartInfo
 						{
 							FileName = Settings.YouTubeDLPath,
-							Arguments = $"-g {auth} {url}",
+							Arguments = $"-g -f best {auth} {url}",
 							UseShellExecute = false,
 							RedirectStandardOutput = true,
 							RedirectStandardError = true,
