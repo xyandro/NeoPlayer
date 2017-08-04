@@ -3,23 +3,34 @@ package neoplayer.neoremote;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class MediaListAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
     private final ArrayList<MediaData> list;
     private final ArrayList<MediaData> queue;
     private ArrayList<MediaData> filteredList;
+    private final ImageButton sortOrder;
     private String filter = "";
+    private boolean numSort = false;
 
     public MediaListAdapter(MainActivity mainActivity, ArrayList<MediaData> list, ArrayList<MediaData> queue) {
+        this(mainActivity, list, queue, null);
+    }
+
+    public MediaListAdapter(MainActivity mainActivity, ArrayList<MediaData> list, ArrayList<MediaData> queue, ImageButton sortOrder) {
         super();
         this.mainActivity = mainActivity;
         this.list = filteredList = list;
         this.queue = queue;
+        this.sortOrder = sortOrder;
+        setNumSort(false);
     }
 
     @Override
@@ -72,16 +83,33 @@ public class MediaListAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void toggleNumSort() {
+        setNumSort(!numSort);
+    }
+
+    public void setNumSort(boolean numSort) {
+        this.numSort = numSort;
+        if (sortOrder != null)
+            sortOrder.setImageResource(numSort ? R.drawable.alphaorder : R.drawable.numorder);
+        notifyDataSetChanged();
+    }
+
     @Override
     public void notifyDataSetChanged() {
-        if (filter.length() == 0) {
-            filteredList = list;
-        } else {
-            filteredList = new ArrayList<>();
-            for (MediaData mediaData : list) {
-                if (mediaData.description.toLowerCase().contains(filter))
-                    filteredList.add(mediaData);
-            }
+        filteredList = new ArrayList<>();
+
+        for (MediaData mediaData : list) {
+            if ((filter.length() == 0) || (mediaData.description.toLowerCase().contains(filter)))
+                filteredList.add(mediaData);
+        }
+
+        if (numSort) {
+            Collections.sort(filteredList, new Comparator<MediaData>() {
+                @Override
+                public int compare(MediaData md1, MediaData md2) {
+                    return Long.compare(md1.playlistOrder, md2.playlistOrder);
+                }
+            });
         }
 
         super.notifyDataSetChanged();

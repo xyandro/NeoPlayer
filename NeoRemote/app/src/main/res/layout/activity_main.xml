@@ -148,6 +148,19 @@
                         android:background="@null"
                         android:scaleType="fitCenter"
                         android:src="@drawable/clear" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent" />
+
+                    <ImageButton
+                        android:id="@+id/cool_sort_order"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:background="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/numorder" />
                 </LinearLayout>
             </LinearLayout>
 

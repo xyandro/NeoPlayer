@@ -88,6 +88,10 @@ public class Message {
         return byteBuffer.getInt();
     }
 
+    public long getLong() {
+        return byteBuffer.getLong();
+    }
+
     public String getString() {
         int size = getInt();
         byte[] bytes = new byte[size];
@@ -102,7 +106,8 @@ public class Message {
     public MediaData getMediaData() {
         String description = getString();
         String url = getString();
-        return new MediaData(description, url);
+        long playlistOrder = getLong();
+        return new MediaData(description, url, playlistOrder);
     }
 
     public ArrayList<MediaData> getMediaDatas() {

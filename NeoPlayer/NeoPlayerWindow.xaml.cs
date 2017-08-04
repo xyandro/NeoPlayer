@@ -63,7 +63,7 @@ namespace NeoPlayer
 			changeSlideTimer.Start();
 
 			status.Queue = new List<MediaData>();
-			status.Cool = Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
+			status.Cool = Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}", PlaylistOrder = new FileInfo(fileName).LastWriteTime.Ticks }).ToList();
 			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 

@@ -50,10 +50,10 @@ public class MainActivity extends Activity {
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
-    private final MediaListAdapter queueAdapter;
-    private final MediaListAdapter coolAdapter;
-    private final MediaListAdapter youTubeAdapter;
-    private final MediaListAdapter moviesAdapter;
+    private MediaListAdapter queueAdapter;
+    private MediaListAdapter coolAdapter;
+    private MediaListAdapter youTubeAdapter;
+    private MediaListAdapter moviesAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
     private int currentSlidesSize;
@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
     private ListView queueVideosList;
     private NEEditText coolSearchText;
     private ImageButton coolClearSearch;
+    private ImageButton coolSortOrder;
     private ListView coolVideosList;
     private NEEditText moviesSearchText;
     private ImageButton moviesClearSearch;
@@ -119,13 +120,6 @@ public class MainActivity extends Activity {
         validSizes.put("20 MP", "20mp");
         validSizes.put("40 MP", "40mp");
         validSizes.put("70 MP", "70mp");
-    }
-
-    public MainActivity() {
-        queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
-        coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos);
-        youTubeAdapter = new MediaListAdapter(this, youTubeVideos, queueVideos);
-        moviesAdapter = new MediaListAdapter(this, moviesVideos, queueVideos);
     }
 
     @Override
@@ -176,6 +170,7 @@ public class MainActivity extends Activity {
         queueVideosList = findViewById(R.id.queue_videos_list);
         coolSearchText = findViewById(R.id.cool_search_text);
         coolClearSearch = findViewById(R.id.cool_clear_search);
+        coolSortOrder = findViewById(R.id.cool_sort_order);
         coolVideosList = findViewById(R.id.cool_videos_list);
         moviesSearchText = findViewById(R.id.movies_search_text);
         moviesClearSearch = findViewById(R.id.movies_clear_search);
@@ -202,6 +197,11 @@ public class MainActivity extends Activity {
         navbarForward5 = findViewById(R.id.navbar_forward5);
         navbarForward30 = findViewById(R.id.navbar_forward30);
         navbarForward = findViewById(R.id.navbar_forward);
+
+        queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
+        coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos, coolSortOrder);
+        youTubeAdapter = new MediaListAdapter(this, youTubeVideos, queueVideos);
+        moviesAdapter = new MediaListAdapter(this, moviesVideos, queueVideos);
 
         new ScreenSlidePagerAdapter(pager);
         pager.setCurrentItem(1);
@@ -272,6 +272,13 @@ public class MainActivity extends Activity {
             public void onClick(View view) {
                 coolSearchText.clearFocus();
                 coolSearchText.setText("");
+            }
+        });
+
+        coolSortOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                coolAdapter.toggleNumSort();
             }
         });
 

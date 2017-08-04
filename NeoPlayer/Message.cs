@@ -50,6 +50,8 @@ namespace NeoPlayer
 
 		public void Add(int value) => Add(BitConverter.GetBytes(value));
 
+		public void Add(long value) => Add(BitConverter.GetBytes(value));
+
 		public void Add(string value)
 		{
 			var bytes = Encoding.UTF8.GetBytes(value);
@@ -61,6 +63,7 @@ namespace NeoPlayer
 		{
 			Add(value.Description);
 			Add(value.URL);
+			Add(value.PlaylistOrder);
 		}
 
 		public void Add(List<MediaData> values)
@@ -91,6 +94,8 @@ namespace NeoPlayer
 				Add((bool)value);
 			else if (value is int)
 				Add((int)value);
+			else if (value is long)
+				Add((long)value);
 			else if (value is string)
 				Add(value as string);
 			else if (value is MediaData)
