@@ -1,4 +1,5 @@
 *.user
 .vs
+app-release.apk
 bin
 obj

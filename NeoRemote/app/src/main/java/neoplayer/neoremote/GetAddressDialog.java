@@ -9,13 +9,11 @@ import android.view.View;
 import android.widget.EditText;
 
 public class GetAddressDialog extends DialogFragment {
-    private final MainActivity mainActivity;
-    private final String address;
+    public MainActivity mainActivity;
+    public String address;
     EditText addressText;
 
-    public GetAddressDialog(MainActivity mainActivity, String address) {
-        this.mainActivity = mainActivity;
-        this.address = address;
+    public GetAddressDialog() {
     }
 
     @Override

@@ -601,7 +601,9 @@ public class MainActivity extends Activity {
                 public void run() {
                     if (activityActive)
                         if (getAddressDialog == null) {
-                            getAddressDialog = new GetAddressDialog(MainActivity.this, neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress());
+                            getAddressDialog = new GetAddressDialog();
+                            getAddressDialog.mainActivity = MainActivity.this;
+                            getAddressDialog.address = neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress();
                             getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
                         }
                 }

@@ -55,10 +55,17 @@
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <EmbeddedResource Include="..\NeoRemote\app\build\outputs\apk\app-debug.apk">
       <Link>NeoRemote.apk</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <EmbeddedResource Include="..\NeoRemote\app\app-release.apk">
+      <Link>NeoRemote.apk</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
