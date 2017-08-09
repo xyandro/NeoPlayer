@@ -2,15 +2,20 @@ package neoplayer.neoremote;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.NotificationCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
@@ -19,6 +24,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -66,6 +72,9 @@ public class MainActivity extends Activity {
     private static final String addressFileName = "NeoPlayer.txt";
     private Thread readerThread;
     private Socket socket = null;
+    private NotificationManager mNotifyMgr;
+    private RemoteViews notificationView;
+    private NotificationCompat.Builder notification;
 
     private ViewPager pager;
     private NEEditText queueSearchText;
@@ -129,6 +138,7 @@ public class MainActivity extends Activity {
 
         prepareMediaSession();
         setupControls();
+        setupNotification();
 
         readerThread = new Thread(new Runnable() {
             @Override
@@ -453,6 +463,41 @@ public class MainActivity extends Activity {
         }.execute();
     }
 
+    private void setupNotification() {
+        mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.neoremote.android.PlayPause");
+        intentFilter.addAction("com.neoremote.android.Forward");
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getAction()) {
+                    case "com.neoremote.android.PlayPause":
+                        outputQueue.add(new Message().add("ToggleMediaPlaying").toArray());
+                        break;
+                    case "com.neoremote.android.Forward":
+                        outputQueue.add(new Message().add("MediaForward").toArray());
+                        break;
+                }
+            }
+        }, intentFilter);
+
+        notificationView = new RemoteViews(getPackageName(), R.layout.notification);
+        notificationView.setOnClickPendingIntent(R.id.notification_play_pause, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.PlayPause"), PendingIntent.FLAG_UPDATE_CURRENT));
+        notificationView.setOnClickPendingIntent(R.id.notification_forward, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.Forward"), PendingIntent.FLAG_UPDATE_CURRENT));
+
+        notification = new NotificationCompat.Builder(this);
+        notification.setSmallIcon(R.mipmap.notification);
+        notification.setContent(notificationView);
+
+        mNotifyMgr.notify(0, notification.build());
+    }
+
+    private void clearNotification() {
+        mNotifyMgr.cancel(0);
+    }
+
     private void prepareMediaSession() {
         mediaSession = new MediaSessionCompat(this, "NeoRemoteMediaSession");
         mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
@@ -501,6 +546,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        clearNotification();
+
         Thread readerThread = this.readerThread;
         this.readerThread = null;
         Socket socket = this.socket;
@@ -744,7 +792,10 @@ public class MainActivity extends Activity {
                     volumeProvider.setCurrentVolume(message.getInt() / 4);
                     break;
                 case "MediaTitle":
-                    navbarTitle.setText(message.getString());
+                    String title = message.getString();
+                    navbarTitle.setText(title);
+                    notificationView.setTextViewText(R.id.notification_text, title);
+                    mNotifyMgr.notify(0, notification.build());
                     break;
                 case "MediaPosition":
                     int position = message.getInt();
@@ -757,7 +808,10 @@ public class MainActivity extends Activity {
                     navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
                     break;
                 case "MediaPlaying":
-                    navbarPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                    int drawable = message.getBool() ? R.drawable.pause : R.drawable.play;
+                    navbarPlay.setImageResource(drawable);
+                    notificationView.setImageViewResource(R.id.notification_play_pause, drawable);
+                    mNotifyMgr.notify(0, notification.build());
                     break;
                 case "SlidesQuery":
                     currentSlidesQuery = message.getString();
