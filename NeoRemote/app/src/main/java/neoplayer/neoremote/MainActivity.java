@@ -41,6 +41,7 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -65,8 +66,8 @@ public class MainActivity extends Activity {
     private int currentSlidesSize;
     private static final int NeoPlayerToken = 0xfeedbeef;
     private static final int NeoPlayerRestartToken = 0x0badf00d;
-    private static final int NeoPlayerPort = 7398;
-    private static final int NeoPlayerRestartPort = 7397;
+    private static final int NeoPlayerPort = 7399;
+    private static final int NeoPlayerRestartPort = 7398;
     private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
     private InetAddress neoPlayerAddress = null;
     private static final String addressFileName = "NeoPlayer.txt";
@@ -611,6 +612,7 @@ public class MainActivity extends Activity {
                 });
 
                 outputQueue.clear();
+                outputQueue.add("GET /RunNeoRemote HTTP/1.1\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
 
                 final Thread writerThread = new Thread(new Runnable() {
                     @Override

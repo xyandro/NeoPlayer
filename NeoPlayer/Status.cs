@@ -7,12 +7,12 @@ namespace NeoPlayer
 	public class Status
 	{
 		readonly SingleRunner broadcastChanges;
-		readonly NetServer netServer;
+		readonly NeoServer neoServer;
 		readonly Dictionary<string, object> values = new Dictionary<string, object>();
 		readonly Dictionary<string, object> newValues = new Dictionary<string, object>();
-		public Status(NetServer netServer)
+		public Status(NeoServer neoServer)
 		{
-			this.netServer = netServer;
+			this.neoServer = neoServer;
 			broadcastChanges = new SingleRunner(BroadcastChanges);
 		}
 
@@ -48,7 +48,7 @@ namespace NeoPlayer
 					message.Add(name);
 					message.Add(value);
 				}
-				netServer.SendAll(message.ToArray());
+				neoServer.SendToNeoRemotes(message.ToArray());
 			}
 			newValues.Clear();
 		}

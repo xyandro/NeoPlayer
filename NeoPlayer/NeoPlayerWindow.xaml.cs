@@ -22,18 +22,17 @@ namespace NeoPlayer
 
 		readonly SingleRunner updateState;
 		readonly DispatcherTimer changeSlideTimer = null;
-		readonly NetServer netServer;
+		readonly NeoServer neoServer;
 		readonly Status status;
 
 		public NeoPlayerWindow()
 		{
-			netServer = new NetServer();
-			netServer.OnMessage += OnMessage;
-			netServer.OnConnect += OnConnect;
-			netServer.Run(7398);
-			WebServer.RunAsync(7399);
+			neoServer = new NeoServer();
+			neoServer.OnMessage += OnMessage;
+			neoServer.OnConnect += OnConnect;
+			neoServer.Run(7399);
 
-			status = new Status(netServer);
+			status = new Status(neoServer);
 			updateState = new SingleRunner(UpdateState);
 			slides.CollectionChanged += (s, e) => updateState.Signal();
 			music.CollectionChanged += (s, e) => updateState.Signal();

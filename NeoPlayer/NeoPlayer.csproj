@@ -66,6 +66,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\Images\favicon.ico">
+      <Link>favicon.ico</Link>
+    </EmbeddedResource>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -92,7 +95,8 @@
       <DependentUpon>NeoPlayerWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NetServer.cs" />
+    <Compile Include="NeoServer.cs" />
+    <Compile Include="NeoSocket.cs" />
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -119,7 +123,6 @@
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
     <Compile Include="WebRequest.cs" />
-    <Compile Include="WebServer.cs" />
     <Compile Include="YouTube.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

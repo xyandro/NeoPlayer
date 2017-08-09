@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,8 @@ namespace NeoPlayer
 
 		public void Enqueue(T item)
 		{
+			if (finished)
+				throw new Exception("Cannot enqueue in finished queue");
 			queue.Enqueue(item);
 			SetTaskResult(true);
 		}

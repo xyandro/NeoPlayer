@@ -10,29 +10,18 @@ namespace NeoPlayer
 	{
 		readonly MemoryStream ms = new MemoryStream();
 
-		public async static Task<Message> Read(Stream stream)
+		public async static Task<Message> GetAsync(NeoSocket neoSocket)
 		{
 			var message = new Message();
-			await message.ReadStream(stream);
-			return message;
-		}
+			var ms = message.ms;
 
-		public Message()
-		{
-			Add(0);
-		}
-
-		async Task ReadStream(Stream stream)
-		{
 			ms.SetLength(0);
 			var first = true;
 			var size = 4;
 			var buffer = new byte[1024];
 			while (ms.Length < size)
 			{
-				var block = await stream.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, size - ms.Length));
-				if (block == 0)
-					throw new EndOfStreamException();
+				var block = await neoSocket.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, size - ms.Length));
 				ms.Write(buffer, 0, block);
 
 				if ((first) && (ms.Length == size))
@@ -42,6 +31,13 @@ namespace NeoPlayer
 				}
 			}
 			ms.Position = 4;
+
+			return message;
+		}
+
+		public Message()
+		{
+			Add(0);
 		}
 
 		public void Add(byte[] value) => ms.Write(value, 0, value.Length);
