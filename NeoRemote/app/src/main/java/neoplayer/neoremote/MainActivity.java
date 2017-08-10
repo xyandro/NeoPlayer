@@ -249,14 +249,14 @@ public class MainActivity extends Activity {
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle("Restart NeoPlayer?")
                         .setMessage("Are you sure you want to restart NeoPlayer?")
-                        .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 sendRestart();
                             }
 
                         })
-                        .setPositiveButton("No", null)
+                        .setNegativeButton("No", null)
                         .show();
 
                 return false;
