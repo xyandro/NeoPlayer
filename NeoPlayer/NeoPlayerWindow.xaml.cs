@@ -30,7 +30,7 @@ namespace NeoPlayer
 			neoServer = new NeoServer();
 			neoServer.OnMessage += OnMessage;
 			neoServer.OnConnect += OnConnect;
-			neoServer.Run(7399);
+			neoServer.Run(Settings.Port);
 
 			status = new Status(neoServer);
 			updateState = new SingleRunner(UpdateState);

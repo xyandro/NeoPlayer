@@ -5,6 +5,8 @@ namespace NeoPlayer
 {
 	public static class Settings
 	{
+		const int DefaultPort = 7399;
+
 		public static bool Debug
 		{
 			get
@@ -31,9 +33,13 @@ namespace NeoPlayer
 		static string youTubeDLPath;
 		public static string YouTubeDLPath { get { return youTubeDLPath; } set { youTubeDLPath = value; WriteXML(); } }
 
+		static int port;
+		public static int Port { get { return port; } set { port = value; WriteXML(); } }
+
 		static Settings()
 		{
 			slidesPath = musicPath = videosPath = youTubeDLPath = Directory.GetCurrentDirectory();
+			port = DefaultPort;
 			try
 			{
 				var xml = XElement.Load(SettingsFile);
@@ -41,6 +47,8 @@ namespace NeoPlayer
 				musicPath = xml.Element(nameof(MusicPath))?.Value ?? musicPath;
 				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
 				youTubeDLPath = xml.Element(nameof(YouTubeDLPath))?.Value ?? youTubeDLPath;
+				if (!int.TryParse(xml.Element(nameof(Port))?.Value ?? port.ToString(), out port))
+					port = DefaultPort;
 			}
 			catch { }
 		}
@@ -51,7 +59,8 @@ namespace NeoPlayer
 				new XElement(nameof(SlidesPath), SlidesPath),
 				new XElement(nameof(MusicPath), MusicPath),
 				new XElement(nameof(VideosPath), VideosPath),
-				new XElement(nameof(YouTubeDLPath), YouTubeDLPath)
+				new XElement(nameof(YouTubeDLPath), YouTubeDLPath),
+				new XElement(nameof(Port), Port)
 			);
 			xml.Save(SettingsFile);
 		}

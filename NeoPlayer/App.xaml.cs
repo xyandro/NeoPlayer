@@ -9,7 +9,7 @@ namespace NeoPlayer
 			base.OnStartup(e);
 			Restarter.CheckRestart(e.Args);
 
-			Restarter.Start(7398);
+			Restarter.Start(Settings.Port - 1);
 			new NeoPlayerWindow().Show();
 		}
 

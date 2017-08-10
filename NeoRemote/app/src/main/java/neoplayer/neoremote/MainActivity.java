@@ -39,6 +39,7 @@ import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +50,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String FakeProtocol = "ne://";
 
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
@@ -66,10 +68,9 @@ public class MainActivity extends Activity {
     private int currentSlidesSize;
     private static final int NeoPlayerToken = 0xfeedbeef;
     private static final int NeoPlayerRestartToken = 0x0badf00d;
-    private static final int NeoPlayerPort = 7399;
-    private static final int NeoPlayerRestartPort = 7398;
+    private static final int NeoPlayerDefaultPort = 7399;
     private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
-    private InetAddress neoPlayerAddress = null;
+    private URI neoPlayerAddress = null;
     private static final String addressFileName = "NeoPlayer.txt";
     private Thread readerThread;
     private Socket socket = null;
@@ -456,7 +457,7 @@ public class MainActivity extends Activity {
             protected Void doInBackground(Void... voids) {
                 try {
                     if (neoPlayerAddress != null)
-                        new Socket(neoPlayerAddress, NeoPlayerRestartPort).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerRestartToken).array());
+                        new Socket(neoPlayerAddress.getHost(), neoPlayerAddress.getPort() - 1).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerRestartToken).array());
                 } catch (Exception e) {
                 }
                 return null;
@@ -577,7 +578,7 @@ public class MainActivity extends Activity {
                 buffer = new byte[size];
                 in.read(buffer, 0, size);
                 String address = new String(buffer, "UTF-8");
-                neoPlayerAddress = InetAddress.getByName(address);
+                neoPlayerAddress = new URI(FakeProtocol + address);
             } finally {
                 in.close();
             }
@@ -596,7 +597,7 @@ public class MainActivity extends Activity {
             first = false;
 
             socket = new Socket();
-            socket.connect(new InetSocketAddress(neoPlayerAddress, NeoPlayerPort), 1000);
+            socket.connect(new InetSocketAddress(neoPlayerAddress.getHost(), neoPlayerAddress.getPort()), 1000);
 
             try {
                 Log.d(TAG, "runReaderThread: Connected");
@@ -653,7 +654,7 @@ public class MainActivity extends Activity {
                         if (getAddressDialog == null) {
                             getAddressDialog = new GetAddressDialog();
                             getAddressDialog.mainActivity = MainActivity.this;
-                            getAddressDialog.address = neoPlayerAddress == null ? "" : neoPlayerAddress.getHostAddress();
+                            getAddressDialog.address = neoPlayerAddress == null ? "" : neoPlayerAddress.toString().substring(FakeProtocol.length());
                             getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
                         }
                 }
@@ -681,11 +682,17 @@ public class MainActivity extends Activity {
 
     public void setAddress(final String address) {
         try {
-            neoPlayerAddress = new AsyncTask<Void, Void, InetAddress>() {
+            neoPlayerAddress = new AsyncTask<Void, Void, URI>() {
                 @Override
-                protected InetAddress doInBackground(Void... voids) {
+                protected URI doInBackground(Void... voids) {
                     try {
-                        return InetAddress.getByName(address);
+                        URI uri = new URI(FakeProtocol + address);
+                        String address = InetAddress.getByName(uri.getHost()).getHostAddress();
+                        int port = uri.getPort();
+                        if (port == -1)
+                            port = NeoPlayerDefaultPort;
+                        uri = new URI(FakeProtocol + address + ":" + port);
+                        return uri;
                     } catch (Exception ex) {
                         return null;
                     }
@@ -694,7 +701,7 @@ public class MainActivity extends Activity {
             if (neoPlayerAddress == null)
                 return;
 
-            byte[] buffer = address.getBytes("UTF-8");
+            byte[] buffer = neoPlayerAddress.toString().substring(FakeProtocol.length()).getBytes("UTF-8");
             byte[] bufferSize = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(buffer.length).array();
             OutputStream out = openFileOutput(addressFileName, Context.MODE_PRIVATE);
             out.write(bufferSize);
@@ -725,7 +732,7 @@ public class MainActivity extends Activity {
                                 if (interfaceAddress.getBroadcast() == null)
                                     continue;
 
-                                DatagramPacket packet = new DatagramPacket(message, message.length, interfaceAddress.getBroadcast(), NeoPlayerPort);
+                                DatagramPacket packet = new DatagramPacket(message, message.length, interfaceAddress.getBroadcast(), NeoPlayerDefaultPort);
                                 socket.send(packet);
                             }
                         }
@@ -740,7 +747,7 @@ public class MainActivity extends Activity {
                             if (ByteBuffer.wrap(packet.getData()).order(ByteOrder.LITTLE_ENDIAN).getInt() != NeoPlayerToken)
                                 continue;
 
-                            return packet.getAddress().getHostAddress();
+                            return packet.getAddress().getHostAddress() + ":" + NeoPlayerDefaultPort;
                         }
                     } catch (Exception ex) {
                         return null;
