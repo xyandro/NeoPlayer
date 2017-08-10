@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace NeoPlayer
 {
@@ -42,8 +43,18 @@ namespace NeoPlayer
 
 		async void RunTcpListener(int port)
 		{
-			var listener = new TcpListener(IPAddress.Any, port);
-			listener.Start();
+			TcpListener listener;
+			try
+			{
+				listener = new TcpListener(IPAddress.Any, port);
+				listener.Start();
+			}
+			catch
+			{
+				MessageBox.Show($"Unable to connect to port {port}");
+				Environment.Exit(0);
+				return;
+			}
 			while (true)
 			{
 				var neoSocket = new NeoSocket(await listener.AcceptTcpClientAsync());

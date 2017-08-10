@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Windows;
 
 namespace NeoPlayer
 {
@@ -17,8 +18,18 @@ namespace NeoPlayer
 
 		static void RestarterThread(int port)
 		{
-			var listener = new TcpListener(IPAddress.Any, port);
-			listener.Start();
+			TcpListener listener;
+			try
+			{
+				listener = new TcpListener(IPAddress.Any, port);
+				listener.Start();
+			}
+			catch
+			{
+				MessageBox.Show($"Unable to connect to port {port}");
+				Environment.Exit(0);
+				return;
+			}
 			while (true)
 			{
 				using (var client = listener.AcceptTcpClient())
