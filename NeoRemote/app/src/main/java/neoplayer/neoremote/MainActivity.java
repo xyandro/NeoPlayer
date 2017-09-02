@@ -759,8 +759,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void queueVideo(MediaData mediaData) {
-        outputQueue.add(new Message().add("QueueVideo").add(mediaData).toArray());
+    public void queueVideo(MediaData mediaData, boolean top) {
+        outputQueue.add(new Message().add("QueueVideo").add(mediaData).add(top).toArray());
     }
 
     private void handleMessage(Message message) {

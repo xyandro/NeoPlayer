@@ -73,7 +73,7 @@ namespace NeoPlayer
 			var command = message.GetString();
 			switch (command)
 			{
-				case "QueueVideo": QueueVideo(message.GetMediaData()); break;
+				case "QueueVideo": QueueVideo(message.GetMediaData(), message.GetBool()); break;
 				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
 				case "ToggleMediaPlaying": ToggleMediaPlaying(); break;
 				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
@@ -108,13 +108,16 @@ namespace NeoPlayer
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
-		void QueueVideo(MediaData videoData)
+		void QueueVideo(MediaData videoData, bool top)
 		{
 			YouTube.PrepURL(videoData.URL);
 
+			var topIndex = VideoState == MediaState.None ? 0 : 1;
 			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
 			if (match == -1)
-				videos.Add(videoData);
+				videos.Insert(top ? topIndex : videos.Count, videoData);
+			else if (top)
+				videos.Move(match, topIndex);
 			else
 			{
 				videos.RemoveAt(match);

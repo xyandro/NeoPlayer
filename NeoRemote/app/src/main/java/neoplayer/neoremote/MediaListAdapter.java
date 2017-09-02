@@ -69,11 +69,21 @@ public class MediaListAdapter extends BaseAdapter {
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainActivity.queueVideo(mediaData);
+                mainActivity.queueVideo(mediaData, false);
             }
         };
         image.setOnClickListener(clickListener);
         view.setOnClickListener(clickListener);
+
+        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mainActivity.queueVideo(mediaData, true);
+                return true;
+            }
+        };
+        image.setOnLongClickListener(onLongClickListener);
+        view.setOnLongClickListener(onLongClickListener);
 
         return view;
     }
