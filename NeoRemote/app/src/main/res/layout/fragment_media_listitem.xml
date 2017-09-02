@@ -26,6 +26,6 @@
         android:gravity="center_vertical"
         android:maxLines="1"
         android:textColor="@android:color/black"
-        android:textSize="25dp" />
+        android:textSize="15dp" />
 
 </LinearLayout>
