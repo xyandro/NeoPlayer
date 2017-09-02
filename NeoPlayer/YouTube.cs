@@ -8,7 +8,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using HtmlAgilityPack;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace NeoPlayer
 {
@@ -36,19 +37,36 @@ namespace NeoPlayer
 			var url = $"https://www.youtube.com/results?sp=EgIQAQ%253D%253D&q={HttpUtility.UrlEncode(searchTerm)}";
 			var html = await URLDownloader.GetURLString(url, token);
 
-			var doc = new HtmlDocument();
-			doc.LoadHtml(html);
-			var videoNodes = doc.DocumentNode.SelectNodes("//ol[@class='item-section']//li//h3//a")?.ToList();
-			if (videoNodes == null)
+			var match = Regex.Match(html, @"window\[""ytInitialData""]\s*=\s*([^;]+);");
+			if (!match.Success)
 				return new List<MediaData>();
 
-			return videoNodes
-				.Select(videoNode => new { desc = videoNode.InnerText.Trim(), id = GetID(url, videoNode.Attributes["href"]?.Value) })
-				.Where(obj => obj.id != null)
-				.Select(obj => new MediaData
+			var jsonStr = match.Groups[1].Value;
+			var json = JsonConvert.DeserializeObject(jsonStr) as JObject;
+			return json.Descendants()
+				.OfType<JProperty>()
+				.Where(x => x.Name == "videoRenderer")
+				.Select(x => new
 				{
-					Description = HttpUtility.HtmlDecode(obj.desc),
-					URL = $"http://127.0.0.1:{Settings.Port}/fetch?url={HttpUtility.UrlEncode($"youtube://{obj.id}")}",
+					id = x.Descendants()
+						.OfType<JProperty>()
+						.Where(y => y.Name == "videoId")
+						.Select(y => y.Value.Value<string>())
+						.FirstOrDefault(),
+					title = x.Descendants()
+						.OfType<JProperty>()
+						.Where(y => y.Name == "title")
+						.SelectMany(y => y.Descendants())
+						.OfType<JProperty>()
+						.Where(y => y.Name == "simpleText")
+						.Select(y => y.Value.Value<string>())
+						.FirstOrDefault()
+				})
+				.Where(x => (!string.IsNullOrWhiteSpace(x.id)) && (!string.IsNullOrWhiteSpace(x.title)))
+				.Select(x => new MediaData
+				{
+					Description = x.title,
+					URL = $"http://127.0.0.1:{Settings.Port}/fetch?url={HttpUtility.UrlEncode($"youtube://{x.id}")}",
 				})
 				.ToList();
 		}

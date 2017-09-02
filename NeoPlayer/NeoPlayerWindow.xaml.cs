@@ -90,7 +90,7 @@ namespace NeoPlayer
 		async public void SearchYouTube(string search, AsyncQueue<byte[]> queue)
 		{
 			var cts = new CancellationTokenSource();
-			cts.CancelAfter(10000);
+			cts.CancelAfter(20000);
 			var suggestions = await YouTube.GetSuggestionsAsync(search, cts.Token);
 
 			var message = new Message();
