@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
     private Thread readerThread;
     private Socket socket = null;
     private NotificationManager mNotifyMgr;
+    private BroadcastReceiver broadcastReceiver;
     private RemoteViews notificationView;
     private NotificationCompat.Builder notification;
 
@@ -471,7 +472,7 @@ public class MainActivity extends Activity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("com.neoremote.android.PlayPause");
         intentFilter.addAction("com.neoremote.android.Forward");
-        registerReceiver(new BroadcastReceiver() {
+        broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getAction()) {
@@ -483,7 +484,8 @@ public class MainActivity extends Activity {
                         break;
                 }
             }
-        }, intentFilter);
+        };
+        registerReceiver(broadcastReceiver, intentFilter);
 
         notificationView = new RemoteViews(getPackageName(), R.layout.notification);
         notificationView.setOnClickPendingIntent(R.id.notification_play_pause, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.PlayPause"), PendingIntent.FLAG_UPDATE_CURRENT));
@@ -498,6 +500,7 @@ public class MainActivity extends Activity {
 
     private void clearNotification() {
         mNotifyMgr.cancel(0);
+        unregisterReceiver(broadcastReceiver);
     }
 
     private void prepareMediaSession() {
