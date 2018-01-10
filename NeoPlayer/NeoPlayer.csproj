@@ -123,6 +123,7 @@
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
     <Compile Include="WebRequest.cs" />
+    <Compile Include="WLAN.cs" />
     <Compile Include="YouTube.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -543,6 +543,8 @@ namespace NeoPlayer
 				CycleSlide(-1);
 			if (e.Key == Key.Q)
 				new QueryDialog(this).ShowDialog();
+			if (e.Key == Key.N)
+				WLAN.Start("NeoPlayer", "NeoPlayer");
 			base.OnKeyDown(e);
 		}
 
