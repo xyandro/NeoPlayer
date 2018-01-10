@@ -64,40 +64,6 @@ namespace NeoPlayer
 			}
 		}
 
-		async Task HandleFetchAsync(AsyncQueue<byte[]> queue, WebRequest webRequest)
-		{
-			var url = webRequest.GetParameter("url");
-			var uri = await YouTube.GetURLAsync(url);
-
-			using (var remote = new TcpClient())
-			{
-				await remote.ConnectAsync(uri.Host, uri.Port);
-
-				var remoteStream = remote.GetStream() as Stream;
-				if (uri.Scheme == "https")
-				{
-					remoteStream = new SslStream(remoteStream);
-					(remoteStream as SslStream).AuthenticateAsClient(uri.Host);
-				}
-				var neoSocket = new NeoSocket(remoteStream);
-
-				webRequest.RequestUri = uri;
-				var buffer = Encoding.ASCII.GetBytes(webRequest.HeadersStr);
-				await neoSocket.WriteAsync(buffer, 0, buffer.Length);
-
-				var reply = await WebRequest.GetAsync(neoSocket);
-
-				queue.Enqueue(Encoding.ASCII.GetBytes(reply.HeadersStr));
-
-				try
-				{
-					while (reply.ContentLeft > 0)
-						queue.Enqueue(await reply.ReadBlockAsync(neoSocket));
-				}
-				finally { queue.SetFinished(); }
-			}
-		}
-
 		void SendQueue(AsyncQueue<byte[]> queue, Stream fileStream, string contentType)
 		{
 			var headers = new List<string>
@@ -151,7 +117,6 @@ namespace NeoPlayer
 					switch (localPath)
 					{
 						case "/": SendIndex(queue); break;
-						case "/fetch": await HandleFetchAsync(queue, webRequest); break;
 						case "/NeoRemote.apk": SendAPK(queue); break;
 						case "/favicon.ico": SendFavicon(queue); break;
 						case "/RunNeoRemote": await RunNeoRemote(neoSocket, queue); break;

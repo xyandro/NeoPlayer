@@ -33,12 +33,15 @@ namespace NeoPlayer
 		static string youTubeDLPath;
 		public static string YouTubeDLPath { get { return youTubeDLPath; } set { youTubeDLPath = value; WriteXML(); } }
 
+		static string ffMpegPath;
+		public static string FFMpegPath { get { return ffMpegPath; } set { ffMpegPath = value; WriteXML(); } }
+
 		static int port;
 		public static int Port { get { return port; } set { port = value; WriteXML(); } }
 
 		static Settings()
 		{
-			slidesPath = musicPath = videosPath = youTubeDLPath = Directory.GetCurrentDirectory();
+			slidesPath = musicPath = videosPath = youTubeDLPath = ffMpegPath = Directory.GetCurrentDirectory();
 			port = DefaultPort;
 			try
 			{
@@ -47,6 +50,7 @@ namespace NeoPlayer
 				musicPath = xml.Element(nameof(MusicPath))?.Value ?? musicPath;
 				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
 				youTubeDLPath = xml.Element(nameof(YouTubeDLPath))?.Value ?? youTubeDLPath;
+				ffMpegPath = xml.Element(nameof(FFMpegPath))?.Value ?? ffMpegPath;
 				if (!int.TryParse(xml.Element(nameof(Port))?.Value ?? port.ToString(), out port))
 					port = DefaultPort;
 			}
@@ -60,6 +64,7 @@ namespace NeoPlayer
 				new XElement(nameof(MusicPath), MusicPath),
 				new XElement(nameof(VideosPath), VideosPath),
 				new XElement(nameof(YouTubeDLPath), YouTubeDLPath),
+				new XElement(nameof(FFMpegPath), FFMpegPath),
 				new XElement(nameof(Port), Port)
 			);
 			xml.Save(SettingsFile);

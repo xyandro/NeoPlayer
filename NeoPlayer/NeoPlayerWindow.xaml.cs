@@ -13,6 +13,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using NeoPlayer.Models;
 
 namespace NeoPlayer
 {
@@ -24,9 +25,16 @@ namespace NeoPlayer
 		readonly DispatcherTimer changeSlideTimer = null;
 		readonly NeoServer neoServer;
 		readonly Status status;
+		readonly Database database;
 
 		public NeoPlayerWindow()
 		{
+			database = new Database();
+
+			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/watch?v=rTPIsyCQ6Lg"));
+			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvr2C958wB8Rh3JMnTb_UkuX"));
+			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvqF6Dk6bWXyKcMQRbUCQaKp&disable_polymer=true"));
+
 			neoServer = new NeoServer();
 			neoServer.OnMessage += OnMessage;
 			neoServer.OnConnect += OnConnect;
@@ -62,7 +70,8 @@ namespace NeoPlayer
 			changeSlideTimer.Start();
 
 			status.Queue = new List<MediaData>();
-			status.Cool = Directory.EnumerateFiles(Settings.VideosPath).Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}", PlaylistOrder = new FileInfo(fileName).LastWriteTime.Ticks }).ToList();
+			var files = Directory.EnumerateFiles(Settings.VideosPath).GroupBy(path => Path.GetFileNameWithoutExtension(path)).ToDictionary(group => group.Key, group => group.First());
+			status.Cool = database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = $"file:///{files[video.GetSanitizedTitle()]}" }).ToList();
 			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 
@@ -82,36 +91,14 @@ namespace NeoPlayer
 				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
-				case "SearchYouTube": SearchYouTube(message.GetString(), queue); break;
 				default: throw new Exception("Invalid command");
 			}
-		}
-
-		async public void SearchYouTube(string search, AsyncQueue<byte[]> queue)
-		{
-			var cts = new CancellationTokenSource();
-			cts.CancelAfter(20000);
-			var suggestions = await YouTube.GetSuggestionsAsync(search, cts.Token);
-
-			var message = new Message();
-			message.Add(1);
-			message.Add("YouTube");
-			message.Add(suggestions);
-			queue.Enqueue(message.ToArray());
-		}
-
-		void SetSlidesData(string slidesQuery, string slidesSize)
-		{
-			SlidesQuery = slidesQuery;
-			SlidesSize = slidesSize;
 		}
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
 		void QueueVideo(MediaData videoData, bool top)
 		{
-			YouTube.PrepURL(videoData.URL);
-
 			var topIndex = VideoState == MediaState.None ? 0 : 1;
 			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
 			if (match == -1)
@@ -551,6 +538,7 @@ namespace NeoPlayer
 		protected override void OnClosed(EventArgs e)
 		{
 			base.OnClosed(e);
+			database.Dispose();
 			Environment.Exit(0);
 		}
 

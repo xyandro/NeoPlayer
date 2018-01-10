@@ -32,17 +32,21 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>Lib\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\Lib\Newtonsoft.Json.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\Lib\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
@@ -66,6 +70,18 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(SolutionDir)\Lib\sqlceer40EN.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\Lib\sqlceme40.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\Lib\sqlceqp40.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(SolutionDir)\Lib\sqlcese40.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <EmbeddedResource Include="..\Images\favicon.ico">
       <Link>favicon.ico</Link>
     </EmbeddedResource>
@@ -80,9 +96,13 @@
     <Compile Include="AsyncHelper.cs" />
     <Compile Include="AsyncQueue.cs" />
     <Compile Include="Cryptor.cs" />
+    <Compile Include="Database.cs" />
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="MediaData.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="Models\IgnoreAttribute.cs" />
+    <Compile Include="Models\PrimaryKeyAttribute.cs" />
+    <Compile Include="Models\VideoFile.cs" />
     <Compile Include="MoreLinq.cs" />
     <None Include="Movies.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -122,9 +142,9 @@
     <Compile Include="Status.cs" />
     <Compile Include="TumblrSlideSource.cs" />
     <Compile Include="URLDownloader.cs" />
+    <Compile Include="VideoFileDownloader.cs" />
     <Compile Include="WebRequest.cs" />
     <Compile Include="WLAN.cs" />
-    <Compile Include="YouTube.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

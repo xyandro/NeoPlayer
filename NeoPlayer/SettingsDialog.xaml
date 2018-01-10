@@ -30,10 +30,13 @@
 		<Label Grid.Row="3" Grid.Column="0" Content="_YouTubeDL path:" HorizontalAlignment="Right" Target="{Binding ElementName=youTubeDLPath}"/>
 		<TextBox Grid.Row="3" Grid.Column="1" Name="youTubeDLPath" Text="{Binding YouTubeDLPath, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<Label Grid.Row="4" Grid.Column="0" Content="_Port:" HorizontalAlignment="Right" Target="{Binding ElementName=port}"/>
-		<TextBox Grid.Row="4" Grid.Column="1" Name="port" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+		<Label Grid.Row="4" Grid.Column="0" Content="_FFMpeg path:" HorizontalAlignment="Right" Target="{Binding ElementName=ffMpegPath}"/>
+		<TextBox Grid.Row="4" Grid.Column="1" Name="ffMpegPath" Text="{Binding FFMpegPath, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<UniformGrid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
+		<Label Grid.Row="5" Grid.Column="0" Content="_Port:" HorizontalAlignment="Right" Target="{Binding ElementName=port}"/>
+		<TextBox Grid.Row="5" Grid.Column="1" Name="port" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+
+		<UniformGrid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
 			<Button IsDefault="True" Content="OK" Padding="10,0" Click="OnOKClick"/>
 			<Button IsCancel="True" Content="Cancel" Padding="10,0"/>
 		</UniformGrid>
