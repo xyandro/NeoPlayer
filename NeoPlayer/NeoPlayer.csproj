@@ -103,6 +103,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />
     <Compile Include="Models\PrimaryKeyAttribute.cs" />
+    <Compile Include="Models\Shortcut.cs" />
     <Compile Include="Models\VideoFile.cs" />
     <Compile Include="MoreLinq.cs" />
     <None Include="Movies.txt">
@@ -137,6 +138,13 @@
     </Page>
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
+    </Compile>
+    <Page Include="ShortcutsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="ShortcutsDialog.xaml.cs">
+      <DependentUpon>ShortcutsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="SingleRunner.cs" />
     <Compile Include="SlideDownloader.cs" />
