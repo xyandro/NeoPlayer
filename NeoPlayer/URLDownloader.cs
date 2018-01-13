@@ -20,7 +20,7 @@ namespace NeoPlayer
 			client.Timeout = TimeSpan.FromSeconds(30);
 			client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0");
 
-			if (Settings.Debug)
+			if (Helpers.Debug)
 				Directory.CreateDirectory(cacheDir);
 		}
 
@@ -31,7 +31,7 @@ namespace NeoPlayer
 				fileName = $@"{cacheDir}\Cache-{BitConverter.ToString(md5cng.ComputeHash(Encoding.UTF8.GetBytes(url))).Replace("-", "")}.dat";
 
 			MemoryStream result;
-			if (Settings.Debug)
+			if (Helpers.Debug)
 			{
 				var fileInfo = new FileInfo(fileName);
 				if (fileInfo.Exists)
@@ -59,7 +59,7 @@ namespace NeoPlayer
 				}
 			}
 
-			if (Settings.Debug)
+			if (Helpers.Debug)
 			{
 				using (var output = File.Create(fileName))
 					await result.CopyToAsync(output, 81920, token);

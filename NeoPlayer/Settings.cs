@@ -7,18 +7,6 @@ namespace NeoPlayer
 	{
 		const int DefaultPort = 7399;
 
-		public static bool Debug
-		{
-			get
-			{
-#if DEBUG
-				return true;
-#else
-				return false;
-#endif
-			}
-		}
-
 		static readonly string SettingsFile = Path.Combine(Path.GetDirectoryName(typeof(Settings).Assembly.Location), "Settings.xml");
 
 		static string slidesPath;

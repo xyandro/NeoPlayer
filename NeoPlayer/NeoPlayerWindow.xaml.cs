@@ -54,7 +54,7 @@ namespace NeoPlayer
 			var random = new Random();
 			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => AddMusic(new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }));
 
-			SlidesQuery = Settings.Debug ? "test" : "landscape";
+			SlidesQuery = Helpers.Debug ? "test" : "landscape";
 			SlidesSize = "2mp";
 			SlideDisplayTime = 60;
 			SlidesPlaying = true;
