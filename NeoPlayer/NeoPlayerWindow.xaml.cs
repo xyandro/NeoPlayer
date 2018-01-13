@@ -25,12 +25,9 @@ namespace NeoPlayer
 		readonly DispatcherTimer changeSlideTimer = null;
 		readonly NeoServer neoServer;
 		readonly Status status;
-		readonly Database database;
 
 		public NeoPlayerWindow()
 		{
-			database = new Database();
-
 			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/watch?v=rTPIsyCQ6Lg"));
 			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvr2C958wB8Rh3JMnTb_UkuX"));
 			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvqF6Dk6bWXyKcMQRbUCQaKp&disable_polymer=true"));
@@ -71,7 +68,7 @@ namespace NeoPlayer
 
 			status.Queue = new List<MediaData>();
 			var files = Directory.EnumerateFiles(Settings.VideosPath).GroupBy(path => Path.GetFileNameWithoutExtension(path)).ToDictionary(group => group.Key, group => group.First());
-			status.Cool = database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = $"file:///{files[video.GetSanitizedTitle()]}" }).ToList();
+			status.Cool = Database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = $"file:///{files[video.GetSanitizedTitle()]}" }).ToList();
 			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 
@@ -538,7 +535,7 @@ namespace NeoPlayer
 		protected override void OnClosed(EventArgs e)
 		{
 			base.OnClosed(e);
-			database.Dispose();
+			Database.Close();
 			Environment.Exit(0);
 		}
 

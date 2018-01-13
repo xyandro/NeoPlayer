@@ -15,18 +15,18 @@ namespace NeoPlayer
 	{
 		const int Concurrency = 6;
 
-		async public static void DownloadAsync(Database db, string url)
+		async public static void DownloadAsync(string url)
 		{
 			var videoFiles = await GetVideoFiles(url);
 			if (!videoFiles.Any())
 				return;
 
 			var parameters = Enumerable.Range(0, videoFiles.Count).ToDictionary(index => $"@Identifier{index}", index => (object)videoFiles[index].Identifier);
-			var found = await db.GetAsync<VideoFile>($"Identifier IN ({string.Join(", ", parameters.Keys)})", parameters);
+			var found = await Database.GetAsync<VideoFile>($"Identifier IN ({string.Join(", ", parameters.Keys)})", parameters);
 			var foundIdentifiers = new HashSet<string>(found.Select(file => file.Identifier));
 			videoFiles = videoFiles.Where(file => !foundIdentifiers.Contains(file.Identifier)).ToList();
 
-			await DownloadFilesAsync(db, videoFiles);
+			await DownloadFilesAsync(videoFiles);
 		}
 
 		async static Task<List<VideoFile>> GetVideoFiles(string url)
@@ -106,7 +106,7 @@ namespace NeoPlayer
 			}
 		}
 
-		async static Task DownloadFilesAsync(Database db, List<VideoFile> videoFiles)
+		async static Task DownloadFilesAsync(List<VideoFile> videoFiles)
 		{
 			var queue = new Queue<VideoFile>(videoFiles);
 			var running = new HashSet<Task>();
@@ -115,7 +115,7 @@ namespace NeoPlayer
 				while ((running.Count != Concurrency) && (queue.Any()))
 				{
 					var videoFile = queue.Dequeue();
-					running.Add(DownloadFileAsync(db, videoFile));
+					running.Add(DownloadFileAsync(videoFile));
 				}
 				if (running.Count == 0)
 					break;
@@ -123,7 +123,7 @@ namespace NeoPlayer
 			}
 		}
 
-		async static Task DownloadFileAsync(Database db, VideoFile videoFile)
+		async static Task DownloadFileAsync(VideoFile videoFile)
 		{
 			using (var process = new Process
 			{
@@ -168,7 +168,7 @@ namespace NeoPlayer
 					throw;
 				}
 
-				db.AddOrUpdate(videoFile);
+				await Database.AddOrUpdateAsync(videoFile);
 			}
 		}
 	}

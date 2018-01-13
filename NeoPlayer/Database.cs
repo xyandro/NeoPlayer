@@ -10,14 +10,14 @@ using NeoPlayer.Models;
 
 namespace NeoPlayer
 {
-	class Database : IDisposable
+	static class Database
 	{
-		readonly string DB_FILE = Path.Combine(Path.GetDirectoryName(typeof(App).Assembly.Location), "NeoPlayer.db");
-		public bool Exists => File.Exists(DB_FILE);
+		static readonly string DB_FILE = Path.Combine(Path.GetDirectoryName(typeof(App).Assembly.Location), "NeoPlayer.db");
+		static public bool Exists => File.Exists(DB_FILE);
 
-		SqlCeConnection conn = null;
+		static SqlCeConnection conn = null;
 
-		public Database()
+		static Database()
 		{
 			var cs = new SqlCeConnectionStringBuilder { DataSource = DB_FILE }.ToString();
 
@@ -30,71 +30,91 @@ namespace NeoPlayer
 
 			if (create)
 			{
-				ExecuteNonQuery("CREATE TABLE Version (CurrentVersion INT)");
-				ExecuteNonQuery("INSERT INTO Version (CurrentVersion) VALUES (0)");
+				ExecuteNonQueryAsync("CREATE TABLE Version (CurrentVersion INT)").Wait();
+				ExecuteNonQueryAsync("INSERT INTO Version (CurrentVersion) VALUES (0)").Wait();
 			}
 
-			UpdateToLatest();
+			UpdateToLatestAsync().Wait();
 		}
 
-		void UpdateToLatest()
+		async static Task UpdateToLatestAsync()
 		{
 			var version = ExecuteScalar<int>("SELECT TOP 1 CurrentVersion FROM Version");
 			while (true)
 			{
 				++version;
-				var method = typeof(Database).GetMethod($"UpdateTo{version}", BindingFlags.Instance | BindingFlags.NonPublic);
+				var method = typeof(Database).GetMethod($"UpdateTo{version}", BindingFlags.Static | BindingFlags.NonPublic);
 				if (method == null)
 					break;
-				method.Invoke(this, new object[] { });
-				ExecuteNonQuery("UPDATE Version SET CurrentVersion = @Version", new Dictionary<string, object> { ["@Version"] = version });
+				method.Invoke(null, new object[] { });
+				await ExecuteNonQueryAsync("UPDATE Version SET CurrentVersion = @Version", new Dictionary<string, object> { ["@Version"] = version });
 			}
 		}
 
-		void UpdateTo1()
+		async static void UpdateTo1()
 		{
-			ExecuteNonQuery("CREATE TABLE VideoFile (VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1), Identifier NVARCHAR(256), FileName NVARCHAR(1024), Title NVARCHAR(1024))");
+			await ExecuteNonQueryAsync("CREATE TABLE VideoFile (VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1), Identifier NVARCHAR(256), FileName NVARCHAR(1024), Title NVARCHAR(1024))");
 		}
 
-		List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties().Where(prop => prop.GetCustomAttribute<IgnoreAttribute>() == null).ToList();
+		static List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties().Where(prop => prop.GetCustomAttribute<IgnoreAttribute>() == null).ToList();
 
-		void ExecuteNonQuery(string query, Dictionary<string, object> parameters = null)
+		static PropertyInfo GetPrimaryKey(List<PropertyInfo> properties)
+		{
+			var primaryKeyProp = properties.Where(prop => prop.GetCustomAttribute<PrimaryKeyAttribute>() != null).FirstOrDefault();
+			if (primaryKeyProp == null)
+				throw new Exception($"Unable to identify primary key");
+			return primaryKeyProp;
+		}
+
+		static PropertyInfo GetPrimaryKeyProp<T>() => GetPrimaryKey(GetProperties<T>());
+
+		async static Task ExecuteNonQueryAsync(string query, Dictionary<string, object> parameters = null)
 		{
 			using (var cmd = new SqlCeCommand(query, conn))
 			{
 				AddParameters(cmd, parameters);
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 		}
 
-		int GetInsertID() => ExecuteScalar<int>("SELECT @@IDENTITY");
+		static int GetInsertID() => ExecuteScalar<int>("SELECT @@IDENTITY");
 
-		public void AddOrUpdate<T>(T obj)
+		async static public Task AddOrUpdateAsync<T>(T obj)
 		{
 			var properties = GetProperties<T>();
-			var primaryKeyProp = properties.Where(prop => prop.GetCustomAttribute<PrimaryKeyAttribute>() != null).FirstOrDefault();
-			if (primaryKeyProp == null)
-				throw new Exception($"Unable to identify primary key for type {typeof(T).Name}");
+			var primaryKeyProp = GetPrimaryKey(properties);
+			properties.Remove(primaryKeyProp);
+			var parameters = properties.ToDictionary(prop => $"@{prop.Name}", prop => prop.GetValue(obj));
 
 			string query;
 			var primaryKey = (int)primaryKeyProp.GetValue(obj);
 			if (primaryKey == 0)
-			{
-				properties.Remove(primaryKeyProp);
 				query = $"INSERT INTO {typeof(T).Name} ({string.Join(", ", properties.Select(prop => prop.Name))}) VALUES ({string.Join(", ", properties.Select(prop => $"@{prop.Name}"))})";
-			}
 			else
-				query = $"UPDATE {typeof(T).Name} SET {string.Join(", ", properties.Select(prop => $"{prop.Name} = @{prop.Name}"))} WHERE {primaryKeyProp.Name} = @{primaryKeyProp.Name}";
+			{
+				query = $"UPDATE {typeof(T).Name} SET {string.Join(", ", properties.Select(prop => $"{prop.Name} = @{prop.Name}"))} WHERE {primaryKeyProp.Name} = @ID";
+				parameters["@ID"] = primaryKey;
+			}
 
-			var parameters = properties.ToDictionary(prop => prop.Name, prop => prop.GetValue(obj));
-
-			ExecuteNonQuery(query, parameters);
+			await ExecuteNonQueryAsync(query, parameters);
 
 			if (primaryKey == 0)
 				primaryKeyProp.SetValue(obj, GetInsertID());
 		}
 
-		async public Task<List<T>> GetAsync<T>(string where = null, Dictionary<string, object> parameters = null)
+		static async public Task DeleteAsync<T>(int id)
+		{
+			var primaryKeyProp = GetPrimaryKeyProp<T>();
+			await ExecuteNonQueryAsync($"DELETE FROM {typeof(T).Name} WHERE {primaryKeyProp.Name} = @ID", new Dictionary<string, object> { ["@ID"] = id });
+		}
+
+		static async public Task DeleteAsync<T>(T obj)
+		{
+			var primaryKeyProp = GetPrimaryKeyProp<T>();
+			await ExecuteNonQueryAsync($"DELETE FROM {typeof(T).Name} WHERE {primaryKeyProp.Name} = @ID", new Dictionary<string, object> { ["@ID"] = primaryKeyProp.GetValue(obj) });
+		}
+
+		static async public Task<List<T>> GetAsync<T>(string where = null, Dictionary<string, object> parameters = null)
 		{
 			var result = new List<T>();
 			var props = GetProperties<T>();
@@ -118,7 +138,7 @@ namespace NeoPlayer
 			return result;
 		}
 
-		T ExecuteScalar<T>(string query, Dictionary<string, object> parameters = null)
+		static T ExecuteScalar<T>(string query, Dictionary<string, object> parameters = null)
 		{
 			object result;
 			using (var cmd = new SqlCeCommand(query, conn))
@@ -129,7 +149,7 @@ namespace NeoPlayer
 			return (T)Convert.ChangeType(result, typeof(T));
 		}
 
-		async Task<DbDataReader> ExecuteReaderAsync(string query, Dictionary<string, object> parameters = null)
+		static async Task<DbDataReader> ExecuteReaderAsync(string query, Dictionary<string, object> parameters = null)
 		{
 			using (var cmd = new SqlCeCommand(query, conn))
 			{
@@ -138,14 +158,14 @@ namespace NeoPlayer
 			}
 		}
 
-		void AddParameters(SqlCeCommand cmd, Dictionary<string, object> parameters)
+		static void AddParameters(SqlCeCommand cmd, Dictionary<string, object> parameters)
 		{
 			if (parameters != null)
 				foreach (var pair in parameters)
 					cmd.Parameters.AddWithValue(pair.Key, pair.Value ?? DBNull.Value);
 		}
 
-		public void Dispose()
+		static public void Close()
 		{
 			conn?.Dispose();
 			conn = null;
