@@ -60,12 +60,12 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <EmbeddedResource Include="..\NeoRemote\app\build\outputs\apk\app-debug.apk">
+    <EmbeddedResource Include="..\NeoRemote\app\build\outputs\apk\debug\app-debug.apk">
       <Link>NeoRemote.apk</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <EmbeddedResource Include="..\NeoRemote\app\app-release.apk">
+    <EmbeddedResource Include="..\NeoRemote\app\release\app-release.apk">
       <Link>NeoRemote.apk</Link>
     </EmbeddedResource>
   </ItemGroup>
