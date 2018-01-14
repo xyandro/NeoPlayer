@@ -71,8 +71,7 @@ namespace NeoPlayer
 
 		void UpdateCool()
 		{
-			var files = Directory.EnumerateFiles(Settings.VideosPath).GroupBy(path => Path.GetFileNameWithoutExtension(path)).ToDictionary(group => group.Key, group => group.First());
-			status.Cool = Database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = $"file:///{files[video.GetSanitizedTitle()]}" }).ToList();
+			status.Cool = Database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = Path.Combine(Settings.VideosPath, video.FileName) }).ToList();
 		}
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);

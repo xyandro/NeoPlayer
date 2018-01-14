@@ -40,7 +40,7 @@ namespace NeoPlayer
 			{
 				AddOrUpdateAsync(new Shortcut { Name = "cool", Value = "https://www.youtube.com/playlist?list=PLzDWcvdzYAvqF6Dk6bWXyKcMQRbUCQaKp" }).Wait();
 				AddOrUpdateAsync(new Shortcut { Name = "test", Value = "https://www.youtube.com/playlist?list=PLzDWcvdzYAvr2C958wB8Rh3JMnTb_UkuX" }).Wait();
-				AddOrUpdateAsync(new Shortcut { Name = "video", Value = "https://www.youtube.com/watch?v=jcBYfBGCKMk&t=3s" }).Wait();
+				AddOrUpdateAsync(new Shortcut { Name = "video", Value = "https://www.youtube.com/watch?v=jcBYfBGCKMk" }).Wait();
 			}
 		}
 
@@ -60,8 +60,23 @@ namespace NeoPlayer
 
 		async static void UpdateTo1()
 		{
-			await ExecuteNonQueryAsync("CREATE TABLE VideoFile (VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1), Identifier NVARCHAR(256), FileName NVARCHAR(1024), Title NVARCHAR(1024))");
-			await ExecuteNonQueryAsync("CREATE TABLE Shortcut (ShortcutID INT NOT NULL PRIMARY KEY IDENTITY(1, 1), Name NVARCHAR(50), Value NVARCHAR(1024))");
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE VideoFile
+(
+	VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	Identifier NVARCHAR(256) NOT NULL,
+	Title NVARCHAR(1024) NOT NULL,
+	FileName NVARCHAR(1024) NOT NULL,
+	CONSTRAINT uk_VideoFile_Identifier UNIQUE (Identifier)
+)");
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE Shortcut
+(
+	ShortcutID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	Name NVARCHAR(50) NOT NULL,
+	Value NVARCHAR(1024) NOT NULL,
+	CONSTRAINT uk_Shortcut_Name UNIQUE (Name)
+)");
 		}
 
 		static List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties().Where(prop => prop.GetCustomAttribute<IgnoreAttribute>() == null).ToList();

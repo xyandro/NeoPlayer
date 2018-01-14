@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -138,6 +139,26 @@ namespace NeoPlayer
 
 		async static Task DownloadFileAsync(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action done)
 		{
+			for (var pass = 0; pass < 2; ++pass)
+			{
+				var found = Directory.EnumerateFiles(Settings.VideosPath).Where(path => Path.GetFileNameWithoutExtension(path).EndsWith($"-{videoFile.Identifier}")).FirstOrDefault();
+				if (found != null)
+				{
+					videoFile.FileName = Path.GetFileName(found);
+					await Database.AddOrUpdateAsync(videoFile);
+					done();
+					return;
+				}
+
+				if (pass != 0)
+					return;
+
+				await RunYouTubeDL(videoFile, updateDownload, done);
+			}
+		}
+
+		async static Task RunYouTubeDL(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action done)
+		{
 			var id = GetID();
 			try
 			{
@@ -148,7 +169,7 @@ namespace NeoPlayer
 					StartInfo = new ProcessStartInfo
 					{
 						FileName = Settings.YouTubeDLPath,
-						Arguments = $@"-iwc -o ""{videoFile.GetSanitizedTitle()}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
+						Arguments = $@"-iwc -o ""{string.Concat($"{videoFile.Title}-{videoFile.Identifier}".Split(Path.GetInvalidFileNameChars()))}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
 						WorkingDirectory = Settings.VideosPath,
 						UseShellExecute = false,
 						StandardOutputEncoding = Encoding.Default,
@@ -189,9 +210,6 @@ namespace NeoPlayer
 						process.Kill();
 						throw;
 					}
-
-					await Database.AddOrUpdateAsync(videoFile);
-					done();
 				}
 			}
 			finally
