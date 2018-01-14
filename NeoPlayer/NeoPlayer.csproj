@@ -103,6 +103,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="Models\DownloadData.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />
+    <Compile Include="Models\MusicFile.cs" />
     <Compile Include="Models\PrimaryKeyAttribute.cs" />
     <Compile Include="Models\Shortcut.cs" />
     <Compile Include="Models\VideoFile.cs" />

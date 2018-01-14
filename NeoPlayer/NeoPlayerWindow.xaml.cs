@@ -46,7 +46,7 @@ namespace NeoPlayer
 			Win32.SetThreadExecutionState(Win32.ES_CONTINUOUS | Win32.ES_DISPLAY_REQUIRED | Win32.ES_SYSTEM_REQUIRED);
 
 			var random = new Random();
-			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).ForEach(fileName => AddMusic(new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }));
+			Directory.EnumerateFiles(Settings.MusicPath).OrderBy(x => random.Next()).Select(fileName => new MusicFile { FileName = fileName, Title = Path.GetFileNameWithoutExtension(fileName) }).ForEach(file => music.Add(file));
 
 			SlidesQuery = Helpers.Debug ? "test" : "landscape";
 			SlidesSize = "2mp";
@@ -198,7 +198,7 @@ namespace NeoPlayer
 		}
 
 		readonly ObservableCollection<string> slides = new ObservableCollection<string>();
-		readonly ObservableCollection<MediaData> music = new ObservableCollection<MediaData>();
+		readonly ObservableCollection<MusicFile> music = new ObservableCollection<MusicFile>();
 		readonly ObservableCollection<MediaData> videos = new ObservableCollection<MediaData>();
 
 		MediaState videoStateField;
@@ -224,7 +224,7 @@ namespace NeoPlayer
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex] : null;
-		public MediaData CurrentMusic => music.FirstOrDefault();
+		public MusicFile CurrentMusic => music.FirstOrDefault();
 		public MediaData CurrentVideo => videos.FirstOrDefault();
 
 		public IEnumerable<MediaData> QueueVideos => videos;
@@ -242,12 +242,6 @@ namespace NeoPlayer
 		public void AddSlide(string fileName)
 		{
 			slides.Add(fileName);
-			updateState.Signal();
-		}
-
-		public void AddMusic(MediaData musicData)
-		{
-			music.Add(musicData);
 			updateState.Signal();
 		}
 
@@ -324,7 +318,8 @@ namespace NeoPlayer
 
 		DateTime? slideTime = null;
 		string previousSlide;
-		MediaData previousMusic, previousVideo;
+		MusicFile previousMusic;
+		MediaData previousVideo;
 		void UpdateState()
 		{
 			SetupSlideDownloader();
@@ -341,7 +336,8 @@ namespace NeoPlayer
 			{
 				mediaPlayer.Stop();
 				mediaPlayer.Source = null;
-				previousMusic = previousVideo = null;
+				previousMusic = null;
+				previousVideo = null;
 				status.MediaTitle = "";
 			}
 
@@ -399,15 +395,15 @@ namespace NeoPlayer
 				FadeInUIElement(slide);
 			}
 
-			status.MediaTitle = CurrentVideo?.Description ?? CurrentMusic?.Description ?? "";
+			status.MediaTitle = CurrentVideo?.Description ?? CurrentMusic?.Title ?? "";
 			if (MusicState != MediaState.None)
 			{
 				if (previousMusic != CurrentMusic)
 				{
 					previousMusic = CurrentMusic;
-					mediaPlayer.Source = new Uri(previousMusic.URL);
+					mediaPlayer.Source = new Uri(previousMusic.FileName);
 				}
-				status.MediaTitle = previousMusic.Description;
+				status.MediaTitle = previousMusic.Title;
 				switch (MusicState)
 				{
 					case MediaState.Play: mediaPlayer.Play(); break;
