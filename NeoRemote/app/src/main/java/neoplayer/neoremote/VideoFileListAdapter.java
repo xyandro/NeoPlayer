@@ -11,20 +11,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class MediaListAdapter extends BaseAdapter {
+public class VideoFileListAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final ArrayList<MediaData> list;
-    private final ArrayList<MediaData> queue;
-    private ArrayList<MediaData> filteredList;
+    private final ArrayList<VideoFile> list;
+    private final ArrayList<VideoFile> queue;
+    private ArrayList<VideoFile> filteredList;
     private final ImageButton sortOrder;
     private String filter = "";
     private boolean numSort = false;
 
-    public MediaListAdapter(MainActivity mainActivity, ArrayList<MediaData> list, ArrayList<MediaData> queue) {
+    public VideoFileListAdapter(MainActivity mainActivity, ArrayList<VideoFile> list, ArrayList<VideoFile> queue) {
         this(mainActivity, list, queue, null);
     }
 
-    public MediaListAdapter(MainActivity mainActivity, ArrayList<MediaData> list, ArrayList<MediaData> queue, ImageButton sortOrder) {
+    public VideoFileListAdapter(MainActivity mainActivity, ArrayList<VideoFile> list, ArrayList<VideoFile> queue, ImageButton sortOrder) {
         super();
         this.mainActivity = mainActivity;
         this.list = filteredList = list;
@@ -50,11 +50,11 @@ public class MediaListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final MediaData mediaData = filteredList.get(position);
+        final VideoFile videoFile = filteredList.get(position);
 
         boolean found = false;
-        for (MediaData queueMediaData : queue) {
-            if (queueMediaData.url.equals(mediaData.url)) {
+        for (VideoFile queueVideoFile : queue) {
+            if (queueVideoFile.videoFileID == videoFile.videoFileID) {
                 found = true;
                 break;
             }
@@ -65,11 +65,11 @@ public class MediaListAdapter extends BaseAdapter {
             view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
         ImageView image = view.findViewById(R.id.image);
         image.setImageResource(found ? R.drawable.check : R.drawable.uncheck);
-        ((TextView) view.findViewById(R.id.name)).setText(mediaData.description);
+        ((TextView) view.findViewById(R.id.name)).setText(videoFile.title);
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainActivity.queueVideo(mediaData, false);
+                mainActivity.queueVideo(videoFile, false);
             }
         };
         image.setOnClickListener(clickListener);
@@ -78,7 +78,7 @@ public class MediaListAdapter extends BaseAdapter {
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mainActivity.queueVideo(mediaData, true);
+                mainActivity.queueVideo(videoFile, true);
                 return true;
             }
         };
@@ -108,15 +108,15 @@ public class MediaListAdapter extends BaseAdapter {
     public void notifyDataSetChanged() {
         filteredList = new ArrayList<>();
 
-        for (MediaData mediaData : list) {
-            if ((filter.length() == 0) || (mediaData.description.toLowerCase().contains(filter)))
-                filteredList.add(mediaData);
+        for (VideoFile videoFile : list) {
+            if ((filter.length() == 0) || (videoFile.title.toLowerCase().contains(filter)))
+                filteredList.add(videoFile);
         }
 
         if (numSort) {
-            Collections.sort(filteredList, new Comparator<MediaData>() {
+            Collections.sort(filteredList, new Comparator<VideoFile>() {
                 @Override
-                public int compare(MediaData md1, MediaData md2) {
+                public int compare(VideoFile md1, VideoFile md2) {
                     return Long.compare(md1.playlistOrder, md2.playlistOrder);
                 }
             });

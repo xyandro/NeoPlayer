@@ -99,7 +99,6 @@
     <Compile Include="Database.cs" />
     <Compile Include="GoogleSlideSource.cs" />
     <Compile Include="Helpers.cs" />
-    <Compile Include="MediaData.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Models\DownloadData.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />

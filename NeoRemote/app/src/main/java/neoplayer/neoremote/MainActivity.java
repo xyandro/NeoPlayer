@@ -52,14 +52,14 @@ public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FakeProtocol = "ne://";
 
-    private final ArrayList<MediaData> queueVideos = new ArrayList<>();
-    private final ArrayList<MediaData> coolVideos = new ArrayList<>();
+    private final ArrayList<VideoFile> queueVideos = new ArrayList<>();
+    private final ArrayList<VideoFile> coolVideos = new ArrayList<>();
     private final ArrayList<DownloadData> downloadVideos = new ArrayList<>();
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
-    private MediaListAdapter queueAdapter;
-    private MediaListAdapter coolAdapter;
+    private VideoFileListAdapter queueAdapter;
+    private VideoFileListAdapter coolAdapter;
     private DownloadListAdapter downloadAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
@@ -203,8 +203,8 @@ public class MainActivity extends Activity {
         navbarForward30 = findViewById(R.id.navbar_forward30);
         navbarForward = findViewById(R.id.navbar_forward);
 
-        queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
-        coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos, coolSortOrder);
+        queueAdapter = new VideoFileListAdapter(this, queueVideos, queueVideos);
+        coolAdapter = new VideoFileListAdapter(this, coolVideos, queueVideos, coolSortOrder);
         downloadAdapter = new DownloadListAdapter(this, downloadVideos);
 
         new ScreenSlidePagerAdapter(pager);
@@ -729,8 +729,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void queueVideo(MediaData mediaData, boolean top) {
-        outputQueue.add(new Message().add("QueueVideo").add(mediaData).add(top).toArray());
+    public void queueVideo(VideoFile videoFile, boolean top) {
+        outputQueue.add(new Message().add("QueueVideo").add(videoFile.videoFileID).add(top).toArray());
     }
 
     private void handleMessage(Message message) {
@@ -741,16 +741,16 @@ public class MainActivity extends Activity {
             switch (field) {
                 case "Queue":
                     queueVideos.clear();
-                    for (MediaData mediaData : message.getMediaDatas())
-                        queueVideos.add(mediaData);
+                    for (VideoFile videoFile : message.getVideoFiles())
+                        queueVideos.add(videoFile);
                     queueAdapter.notifyDataSetChanged();
                     coolAdapter.notifyDataSetChanged();
                     downloadAdapter.notifyDataSetChanged();
                     break;
                 case "Cool":
                     coolVideos.clear();
-                    for (MediaData mediaData : message.getMediaDatas())
-                        coolVideos.add(mediaData);
+                    for (VideoFile videoFile : message.getVideoFiles())
+                        coolVideos.add(videoFile);
                     coolAdapter.notifyDataSetChanged();
                     break;
                 case "Downloads":

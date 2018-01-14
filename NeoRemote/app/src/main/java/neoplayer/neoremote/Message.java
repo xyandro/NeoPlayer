@@ -41,9 +41,9 @@ public class Message {
         return this;
     }
 
-    public Message add(MediaData mediaData) {
-        add(mediaData.description);
-        add(mediaData.url);
+    public Message add(VideoFile videoFile) {
+        add(videoFile.videoFileID);
+        add(videoFile.title);
         return this;
     }
 
@@ -88,10 +88,6 @@ public class Message {
         return byteBuffer.getInt();
     }
 
-    public long getLong() {
-        return byteBuffer.getLong();
-    }
-
     public String getString() {
         int size = getInt();
         byte[] bytes = new byte[size];
@@ -103,20 +99,20 @@ public class Message {
         }
     }
 
-    public MediaData getMediaData() {
-        String description = getString();
-        String url = getString();
-        long playlistOrder = getLong();
-        return new MediaData(description, url, playlistOrder);
+    public VideoFile getVideoFile() {
+        int videoFileID = getInt();
+        String title = getString();
+        int playlistOrder = getInt();
+        return new VideoFile(videoFileID, title, playlistOrder);
     }
 
-    public ArrayList<MediaData> getMediaDatas() {
+    public ArrayList<VideoFile> getVideoFiles() {
         int count = getInt();
-        ArrayList<MediaData> mediaDatas = new ArrayList<>();
+        ArrayList<VideoFile> videoFiles = new ArrayList<>();
         for (int ctr = 0; ctr < count; ++ctr) {
-            mediaDatas.add(getMediaData());
+            videoFiles.add(getVideoFile());
         }
-        return mediaDatas;
+        return videoFiles;
     }
 
     public DownloadData getDownloadData() {

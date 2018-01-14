@@ -56,14 +56,14 @@ namespace NeoPlayer
 			Add(bytes);
 		}
 
-		public void Add(MediaData value)
+		public void Add(VideoFile value)
 		{
-			Add(value.Description);
-			Add(value.URL);
-			Add(value.PlaylistOrder);
+			Add(value.VideoFileID);
+			Add(value.Title);
+			Add(1);
 		}
 
-		public void Add(List<MediaData> values)
+		public void Add(List<VideoFile> values)
 		{
 			Add(values.Count);
 			values.ForEach(value => Add(value));
@@ -107,10 +107,10 @@ namespace NeoPlayer
 				Add((long)value);
 			else if (value is string)
 				Add(value as string);
-			else if (value is MediaData)
-				Add(value as MediaData);
-			else if (value is List<MediaData>)
-				Add(value as List<MediaData>);
+			else if (value is VideoFile)
+				Add(value as VideoFile);
+			else if (value is List<VideoFile>)
+				Add(value as List<VideoFile>);
 			else if (value is DownloadData)
 				Add(value as DownloadData);
 			else if (value is List<DownloadData>)
@@ -124,7 +124,5 @@ namespace NeoPlayer
 		public int GetInt() => BitConverter.ToInt32(GetBytes(4), 0);
 
 		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
-
-		public MediaData GetMediaData() => new MediaData { Description = GetString(), URL = GetString() };
 	}
 }

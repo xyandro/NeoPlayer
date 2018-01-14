@@ -161,6 +161,8 @@ CREATE TABLE Shortcut
 			return result;
 		}
 
+		static async public Task<T> GetAsync<T>(int primaryKeyID) => (await GetAsync<T>($"{GetPrimaryKeyProp<T>().Name} = @ID", new Dictionary<string, object> { ["@ID"] = primaryKeyID })).FirstOrDefault();
+
 		static T ExecuteScalar<T>(string query, Dictionary<string, object> parameters = null)
 		{
 			object result;

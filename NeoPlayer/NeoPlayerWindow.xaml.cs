@@ -38,7 +38,7 @@ namespace NeoPlayer
 			updateState = new SingleRunner(UpdateState);
 			slides.CollectionChanged += (s, e) => updateState.Signal();
 			music.CollectionChanged += (s, e) => updateState.Signal();
-			videos.CollectionChanged += (s, e) => { status.Queue = videos.ToList(); updateState.Signal(); };
+			queue.CollectionChanged += (s, e) => { status.Queue = queue.ToList(); updateState.Signal(); };
 
 			InitializeComponent();
 
@@ -63,15 +63,12 @@ namespace NeoPlayer
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
 			changeSlideTimer.Start();
 
-			status.Queue = new List<MediaData>();
+			status.Queue = new List<VideoFile>();
 			UpdateCool();
 			status.Downloads = new List<DownloadData>();
 		}
 
-		void UpdateCool()
-		{
-			status.Cool = Database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = Path.Combine(Settings.VideosPath, video.FileName) }).ToList();
-		}
+		void UpdateCool() => status.Cool = Database.GetAsync<VideoFile>().Result;
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
@@ -80,7 +77,7 @@ namespace NeoPlayer
 			var command = message.GetString();
 			switch (command)
 			{
-				case "QueueVideo": QueueVideo(message.GetMediaData(), message.GetBool()); break;
+				case "QueueVideo": QueueVideo(message.GetInt(), message.GetBool()); break;
 				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
 				case "ToggleMediaPlaying": ToggleMediaPlaying(); break;
 				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
@@ -113,17 +110,21 @@ namespace NeoPlayer
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
-		void QueueVideo(MediaData videoData, bool top)
+		void QueueVideo(int videoFileID, bool top)
 		{
+			var videoFile = Database.GetAsync<VideoFile>(videoFileID).Result;
+			if (videoFile == null)
+				return;
+
 			var topIndex = VideoState == MediaState.None ? 0 : 1;
-			var match = videos.IndexOf(video => video.URL == videoData.URL).DefaultIfEmpty(-1).First();
+			var match = queue.IndexOf(video => video.VideoFileID == videoFileID).DefaultIfEmpty(-1).First();
 			if (match == -1)
-				videos.Insert(top ? topIndex : videos.Count, videoData);
+				queue.Insert(top ? topIndex : queue.Count, videoFile);
 			else if (top)
-				videos.Move(match, topIndex);
+				queue.Move(match, topIndex);
 			else
 			{
-				videos.RemoveAt(match);
+				queue.RemoveAt(match);
 				if (match == 0)
 					VideoState = MediaState.None;
 			}
@@ -198,7 +199,7 @@ namespace NeoPlayer
 
 		readonly ObservableCollection<string> slides = new ObservableCollection<string>();
 		readonly ObservableCollection<MusicFile> music = new ObservableCollection<MusicFile>();
-		readonly ObservableCollection<MediaData> videos = new ObservableCollection<MediaData>();
+		readonly ObservableCollection<VideoFile> queue = new ObservableCollection<VideoFile>();
 
 		MediaState videoStateField;
 		MediaState VideoState
@@ -224,9 +225,7 @@ namespace NeoPlayer
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex] : null;
 		public MusicFile CurrentMusic => music.FirstOrDefault();
-		public MediaData CurrentVideo => videos.FirstOrDefault();
-
-		public IEnumerable<MediaData> QueueVideos => videos;
+		public VideoFile CurrentVideo => queue.FirstOrDefault();
 
 		public int Volume
 		{
@@ -318,7 +317,7 @@ namespace NeoPlayer
 		DateTime? slideTime = null;
 		string previousSlide;
 		MusicFile previousMusic;
-		MediaData previousVideo;
+		VideoFile previousVideo;
 		void UpdateState()
 		{
 			SetupSlideDownloader();
@@ -345,8 +344,8 @@ namespace NeoPlayer
 				if (previousVideo != CurrentVideo)
 				{
 					previousVideo = CurrentVideo;
-					status.MediaTitle = previousVideo.Description;
-					mediaPlayer.Source = new Uri(previousVideo.URL);
+					status.MediaTitle = previousVideo.Title;
+					mediaPlayer.Source = new Uri(Path.Combine(Settings.VideosPath, previousVideo.FileName));
 					mediaPlayer.Pause();
 				}
 
@@ -394,7 +393,7 @@ namespace NeoPlayer
 				FadeInUIElement(slide);
 			}
 
-			status.MediaTitle = CurrentVideo?.Description ?? CurrentMusic?.Title ?? "";
+			status.MediaTitle = CurrentVideo?.Title ?? CurrentMusic?.Title ?? "";
 			if (MusicState != MediaState.None)
 			{
 				if (previousMusic != CurrentMusic)
@@ -413,7 +412,7 @@ namespace NeoPlayer
 
 		void ValidateState()
 		{
-			if (videos.Count == 0)
+			if (queue.Count == 0)
 				VideoState = MediaState.None;
 			if (music.Count == 0)
 				MusicState = MediaState.None;
@@ -475,7 +474,7 @@ namespace NeoPlayer
 
 		public void ToggleMediaPlaying()
 		{
-			if ((MusicState == MediaState.None) && (videos.Any()))
+			if ((MusicState == MediaState.None) && (queue.Any()))
 				VideoState = VideoState == MediaState.Play ? MediaState.Pause : MediaState.Play;
 			else
 				MusicState = MusicState == MediaState.Play ? MediaState.Pause : MediaState.Play;
@@ -485,21 +484,21 @@ namespace NeoPlayer
 
 		public void MediaForward()
 		{
-			if ((MusicState != MediaState.None) || (!videos.Any()))
+			if ((MusicState != MediaState.None) || (!queue.Any()))
 			{
 				if (music.Any())
 				{
 					music.Add(music[0]);
 					music.RemoveAt(0);
 				}
-				if (videos.Any())
+				if (queue.Any())
 					MusicState = MediaState.None;
 			}
 			else
 			{
-				if (videos.Any())
+				if (queue.Any())
 				{
-					videos.RemoveAt(0);
+					queue.RemoveAt(0);
 					VideoState = MediaState.None;
 				}
 
