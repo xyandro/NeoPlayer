@@ -16,17 +16,17 @@ public class Message {
 
     public Message add(byte[] value) {
         byteBuffer.put(value);
-		return this;
+        return this;
     }
 
     public Message add(boolean value) {
         byteBuffer.put((byte) (value ? 1 : 0));
-		return this;
+        return this;
     }
 
     public Message add(int value) {
         byteBuffer.putInt(value);
-		return this;
+        return this;
     }
 
     public Message add(String value) {
@@ -38,13 +38,13 @@ public class Message {
         }
         add(bytes.length);
         add(bytes);
-		return this;
+        return this;
     }
 
     public Message add(MediaData mediaData) {
         add(mediaData.description);
         add(mediaData.url);
-		return this;
+        return this;
     }
 
     public byte[] toArray() {
@@ -117,5 +117,20 @@ public class Message {
             mediaDatas.add(getMediaData());
         }
         return mediaDatas;
+    }
+
+    public DownloadData getDownloadData() {
+        String title = getString();
+        int progress = getInt();
+        return new DownloadData(title, progress);
+    }
+
+    public ArrayList<DownloadData> getDownloadDatas() {
+        int count = getInt();
+        ArrayList<DownloadData> downloadDatas = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            downloadDatas.add(getDownloadData());
+        }
+        return downloadDatas;
     }
 }

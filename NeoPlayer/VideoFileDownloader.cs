@@ -13,11 +13,24 @@ namespace NeoPlayer
 {
 	static class VideoFileDownloader
 	{
-		const int Concurrency = 6;
+		const int Concurrency = 4;
 
-		async public static void DownloadAsync(string url)
+		static int ID = 0;
+		static int GetID() => ++ID;
+
+		async public static void DownloadAsync(string url, Action<int, DownloadData> updateDownload, Action done)
 		{
-			var videoFiles = await GetVideoFiles(url);
+			List<VideoFile> videoFiles;
+			var id = GetID();
+			try
+			{
+				updateDownload(id, new DownloadData { Title = url, Progress = 0 });
+				videoFiles = await GetVideoFiles(url);
+			}
+			finally
+			{
+				updateDownload(id, null);
+			}
 			if (!videoFiles.Any())
 				return;
 
@@ -26,7 +39,7 @@ namespace NeoPlayer
 			var foundIdentifiers = new HashSet<string>(found.Select(file => file.Identifier));
 			videoFiles = videoFiles.Where(file => !foundIdentifiers.Contains(file.Identifier)).ToList();
 
-			await DownloadFilesAsync(videoFiles);
+			await DownloadFilesAsync(videoFiles, updateDownload, done);
 		}
 
 		async static Task<List<VideoFile>> GetVideoFiles(string url)
@@ -106,7 +119,7 @@ namespace NeoPlayer
 			}
 		}
 
-		async static Task DownloadFilesAsync(List<VideoFile> videoFiles)
+		async static Task DownloadFilesAsync(List<VideoFile> videoFiles, Action<int, DownloadData> updateDownload, Action done)
 		{
 			var queue = new Queue<VideoFile>(videoFiles);
 			var running = new HashSet<Task>();
@@ -115,7 +128,7 @@ namespace NeoPlayer
 				while ((running.Count != Concurrency) && (queue.Any()))
 				{
 					var videoFile = queue.Dequeue();
-					running.Add(DownloadFileAsync(videoFile));
+					running.Add(DownloadFileAsync(videoFile, updateDownload, done));
 				}
 				if (running.Count == 0)
 					break;
@@ -123,52 +136,67 @@ namespace NeoPlayer
 			}
 		}
 
-		async static Task DownloadFileAsync(VideoFile videoFile)
+		async static Task DownloadFileAsync(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action done)
 		{
-			using (var process = new Process
+			var id = GetID();
+			try
 			{
-				StartInfo = new ProcessStartInfo
+				var downloadData = new DownloadData { Title = videoFile.Title, Progress = 0 };
+				updateDownload(id, downloadData);
+				using (var process = new Process
 				{
-					FileName = Settings.YouTubeDLPath,
-					Arguments = $@"-iwc -o ""{videoFile.GetSanitizedTitle()}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
-					WorkingDirectory = Settings.VideosPath,
-					UseShellExecute = false,
-					StandardOutputEncoding = Encoding.Default,
-					StandardErrorEncoding = Encoding.Default,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true,
-					CreateNoWindow = true,
-				}
-			})
-			{
-				process.OutputDataReceived += (s, e) =>
-				{
-					if (e.Data == null)
-						return;
-
-					var match = Regex.Match(e.Data, @"^\[download\]\s*([0-9.]+)%(?:\s|$)");
-					if (match.Success)
+					StartInfo = new ProcessStartInfo
 					{
-						var percent = double.Parse(match.Groups[1].Value);
-						//progress?.Report(new ProgressReport(percent, 100));
+						FileName = Settings.YouTubeDLPath,
+						Arguments = $@"-iwc -o ""{videoFile.GetSanitizedTitle()}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
+						WorkingDirectory = Settings.VideosPath,
+						UseShellExecute = false,
+						StandardOutputEncoding = Encoding.Default,
+						StandardErrorEncoding = Encoding.Default,
+						RedirectStandardOutput = true,
+						RedirectStandardError = true,
+						CreateNoWindow = true,
 					}
-				};
-				process.ErrorDataReceived += (s, e) => { };
-				process.Start();
-				process.BeginOutputReadLine();
-				process.BeginErrorReadLine();
-
-				var tcs = new TaskCompletionSource<object>();
-				process.EnableRaisingEvents = true;
-				process.Exited += (s, e) => { process.WaitForExit(); tcs.TrySetResult(null); };
-				try { await tcs.Task; }
-				catch when (!process.HasExited)
+				})
 				{
-					process.Kill();
-					throw;
-				}
+					process.OutputDataReceived += (s, e) =>
+					{
+						if (e.Data == null)
+							return;
 
-				await Database.AddOrUpdateAsync(videoFile);
+						var match = Regex.Match(e.Data, @"^\[download\]\s*([0-9.]+)%(?:\s|$)");
+						if (match.Success)
+						{
+							var percent = (int)double.Parse(match.Groups[1].Value);
+							if (percent != downloadData.Progress)
+							{
+								downloadData.Progress = percent;
+								updateDownload(id, downloadData);
+							}
+						}
+					};
+					process.ErrorDataReceived += (s, e) => { };
+					process.Start();
+					process.BeginOutputReadLine();
+					process.BeginErrorReadLine();
+
+					var tcs = new TaskCompletionSource<object>();
+					process.EnableRaisingEvents = true;
+					process.Exited += (s, e) => { process.WaitForExit(); tcs.TrySetResult(null); };
+					try { await tcs.Task; }
+					catch when (!process.HasExited)
+					{
+						process.Kill();
+						throw;
+					}
+
+					await Database.AddOrUpdateAsync(videoFile);
+					done();
+				}
+			}
+			finally
+			{
+				updateDownload(id, null);
 			}
 		}
 	}

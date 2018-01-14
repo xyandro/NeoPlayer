@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NeoPlayer.Models;
 
 namespace NeoPlayer
 {
@@ -68,6 +69,18 @@ namespace NeoPlayer
 			values.ForEach(value => Add(value));
 		}
 
+		public void Add(DownloadData value)
+		{
+			Add(value.Title);
+			Add(value.Progress);
+		}
+
+		public void Add(List<DownloadData> values)
+		{
+			Add(values.Count);
+			values.ForEach(value => Add(value));
+		}
+
 		public byte[] ToArray()
 		{
 			var result = ms.ToArray();
@@ -98,6 +111,10 @@ namespace NeoPlayer
 				Add(value as MediaData);
 			else if (value is List<MediaData>)
 				Add(value as List<MediaData>);
+			else if (value is DownloadData)
+				Add(value as DownloadData);
+			else if (value is List<DownloadData>)
+				Add(value as List<DownloadData>);
 			else
 				throw new Exception($"Unknown type: {value?.GetType().Name ?? "<NULL>"}");
 		}

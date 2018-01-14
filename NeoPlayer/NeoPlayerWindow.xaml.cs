@@ -25,13 +25,10 @@ namespace NeoPlayer
 		readonly DispatcherTimer changeSlideTimer = null;
 		readonly NeoServer neoServer;
 		readonly Status status;
+		readonly Dictionary<int, DownloadData> downloads = new Dictionary<int, DownloadData>();
 
 		public NeoPlayerWindow()
 		{
-			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/watch?v=rTPIsyCQ6Lg"));
-			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvr2C958wB8Rh3JMnTb_UkuX"));
-			//Task.Run(() => VideoFileDownloader.DownloadAsync(database, "https://www.youtube.com/playlist?list=PLzDWcvdzYAvqF6Dk6bWXyKcMQRbUCQaKp&disable_polymer=true"));
-
 			neoServer = new NeoServer();
 			neoServer.OnMessage += OnMessage;
 			neoServer.OnConnect += OnConnect;
@@ -67,9 +64,15 @@ namespace NeoPlayer
 			changeSlideTimer.Start();
 
 			status.Queue = new List<MediaData>();
+			UpdateCool();
+			status.Downloads = new List<DownloadData>();
+			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
+		}
+
+		void UpdateCool()
+		{
 			var files = Directory.EnumerateFiles(Settings.VideosPath).GroupBy(path => Path.GetFileNameWithoutExtension(path)).ToDictionary(group => group.Key, group => group.First());
 			status.Cool = Database.GetAsync<VideoFile>().Result.Select(video => new MediaData { Description = video.Title, URL = $"file:///{files[video.GetSanitizedTitle()]}" }).ToList();
-			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
@@ -88,8 +91,26 @@ namespace NeoPlayer
 				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
+				case "DownloadUrl": DownloadURL(message.GetString()); break;
 				default: throw new Exception("Invalid command");
 			}
+		}
+
+		async void DownloadURL(string url)
+		{
+			var result = await Database.GetAsync<Shortcut>($"{nameof(Shortcut.Name)} = @Name", new Dictionary<string, object> { ["@Name"] = url });
+			url = result.Select(shortcut => shortcut.Value).FirstOrDefault() ?? url;
+			VideoFileDownloader.DownloadAsync(url, (id, downloadData) =>
+			{
+				Dispatcher.Invoke(() =>
+				{
+					if (downloadData == null)
+						downloads.Remove(id);
+					else
+						downloads[id] = downloadData;
+					status.Downloads = downloads.Values.ToList();
+				});
+			}, UpdateCool);
 		}
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;

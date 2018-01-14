@@ -54,14 +54,14 @@ public class MainActivity extends Activity {
 
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
-    private final ArrayList<MediaData> youTubeVideos = new ArrayList<>();
+    private final ArrayList<DownloadData> downloadVideos = new ArrayList<>();
     private final ArrayList<MediaData> moviesVideos = new ArrayList<>();
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
     private MediaListAdapter queueAdapter;
     private MediaListAdapter coolAdapter;
-    private MediaListAdapter youTubeAdapter;
+    private DownloadListAdapter downloadAdapter;
     private MediaListAdapter moviesAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
@@ -99,9 +99,9 @@ public class MainActivity extends Activity {
     private ImageButton slidesBack;
     private ImageButton slidesPlay;
     private ImageButton slidesForward;
-    private NEEditText youtubeSearchText;
-    private ImageButton youtubeSubmit;
-    private ListView youtubeVideosList;
+    private NEEditText downloadUrl;
+    private ImageButton downloadSubmit;
+    private ListView downloadVideosList;
     private TextView navbarTitle;
     private TextView navbarCurrentTime;
     private SeekBar navbarSeekBar;
@@ -197,9 +197,9 @@ public class MainActivity extends Activity {
         slidesBack = findViewById(R.id.slides_back);
         slidesPlay = findViewById(R.id.slides_play);
         slidesForward = findViewById(R.id.slides_forward);
-        youtubeSearchText = findViewById(R.id.youtube_search_text);
-        youtubeSubmit = findViewById(R.id.youtube_submit);
-        youtubeVideosList = findViewById(R.id.youtube_videos_list);
+        downloadUrl = findViewById(R.id.download_url);
+        downloadSubmit = findViewById(R.id.download_submit);
+        downloadVideosList = findViewById(R.id.download_videos_list);
         navbarTitle = findViewById(R.id.navbar_title);
         navbarCurrentTime = findViewById(R.id.navbar_current_time);
         navbarSeekBar = findViewById(R.id.navbar_seek_bar);
@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
 
         queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
         coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos, coolSortOrder);
-        youTubeAdapter = new MediaListAdapter(this, youTubeVideos, queueVideos);
+        downloadAdapter = new DownloadListAdapter(this, downloadVideos);
         moviesAdapter = new MediaListAdapter(this, moviesVideos, queueVideos);
 
         new ScreenSlidePagerAdapter(pager);
@@ -382,12 +382,12 @@ public class MainActivity extends Activity {
             }
         });
 
-        youtubeVideosList.setAdapter(youTubeAdapter);
-        youtubeSubmit.setOnClickListener(new View.OnClickListener() {
+        downloadVideosList.setAdapter(downloadAdapter);
+        downloadSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                youtubeSearchText.clearFocus();
-                outputQueue.add(new Message().add("SearchYouTube").add(youtubeSearchText.getText().toString()).toArray());
+                downloadUrl.clearFocus();
+                outputQueue.add(new Message().add("DownloadUrl").add(downloadUrl.getText().toString()).toArray());
             }
         });
 
@@ -778,7 +778,7 @@ public class MainActivity extends Activity {
                         queueVideos.add(mediaData);
                     queueAdapter.notifyDataSetChanged();
                     coolAdapter.notifyDataSetChanged();
-                    youTubeAdapter.notifyDataSetChanged();
+                    downloadAdapter.notifyDataSetChanged();
                     moviesAdapter.notifyDataSetChanged();
                     break;
                 case "Cool":
@@ -787,12 +787,12 @@ public class MainActivity extends Activity {
                         coolVideos.add(mediaData);
                     coolAdapter.notifyDataSetChanged();
                     break;
-                case "YouTube":
-                    youTubeVideos.clear();
-                    for (MediaData mediaData : message.getMediaDatas())
-                        youTubeVideos.add(mediaData);
-                    youTubeAdapter.notifyDataSetChanged();
-                    youtubeVideosList.smoothScrollToPosition(0);
+                case "Downloads":
+                    downloadVideos.clear();
+                    for (DownloadData downloadData : message.getDownloadDatas())
+                        downloadVideos.add(downloadData);
+                    downloadAdapter.notifyDataSetChanged();
+                    downloadVideosList.smoothScrollToPosition(0);
                     break;
                 case "Movies":
                     moviesVideos.clear();
