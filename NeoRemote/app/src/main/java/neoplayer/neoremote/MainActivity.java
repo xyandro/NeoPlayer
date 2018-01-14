@@ -353,8 +353,12 @@ public class MainActivity extends Activity {
         downloadSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                downloadUrl.clearFocus();
-                outputQueue.add(new Message().add("DownloadUrl").add(downloadUrl.getText().toString()).toArray());
+                String url = downloadUrl.getText().toString();
+                if (!url.equals("")) {
+                    downloadUrl.setText("");
+                    downloadUrl.clearFocus();
+                    outputQueue.add(new Message().add("DownloadURL").add(url).toArray());
+                }
             }
         });
 

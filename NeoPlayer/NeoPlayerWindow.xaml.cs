@@ -86,7 +86,7 @@ namespace NeoPlayer
 				case "SetSlidesQuery": SlidesQuery = message.GetString(); SlidesSize = message.GetString(); break;
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
-				case "DownloadUrl": DownloadURL(message.GetString()); break;
+				case "DownloadURL": DownloadURL(message.GetString()); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
