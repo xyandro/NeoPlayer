@@ -55,14 +55,12 @@ public class MainActivity extends Activity {
     private final ArrayList<MediaData> queueVideos = new ArrayList<>();
     private final ArrayList<MediaData> coolVideos = new ArrayList<>();
     private final ArrayList<DownloadData> downloadVideos = new ArrayList<>();
-    private final ArrayList<MediaData> moviesVideos = new ArrayList<>();
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
     private MediaListAdapter queueAdapter;
     private MediaListAdapter coolAdapter;
     private DownloadListAdapter downloadAdapter;
-    private MediaListAdapter moviesAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
     private int currentSlidesSize;
@@ -87,9 +85,6 @@ public class MainActivity extends Activity {
     private ImageButton coolClearSearch;
     private ImageButton coolSortOrder;
     private ListView coolVideosList;
-    private NEEditText moviesSearchText;
-    private ImageButton moviesClearSearch;
-    private ListView moviesVideosList;
     private NEEditText slidesQuery;
     private Spinner slidesSize;
     private ImageButton slidesClear;
@@ -185,9 +180,6 @@ public class MainActivity extends Activity {
         coolClearSearch = findViewById(R.id.cool_clear_search);
         coolSortOrder = findViewById(R.id.cool_sort_order);
         coolVideosList = findViewById(R.id.cool_videos_list);
-        moviesSearchText = findViewById(R.id.movies_search_text);
-        moviesClearSearch = findViewById(R.id.movies_clear_search);
-        moviesVideosList = findViewById(R.id.movies_videos_list);
         slidesQuery = findViewById(R.id.slides_query);
         slidesSize = findViewById(R.id.slides_size);
         slidesClear = findViewById(R.id.slides_clear);
@@ -214,7 +206,6 @@ public class MainActivity extends Activity {
         queueAdapter = new MediaListAdapter(this, queueVideos, queueVideos);
         coolAdapter = new MediaListAdapter(this, coolVideos, queueVideos, coolSortOrder);
         downloadAdapter = new DownloadListAdapter(this, downloadVideos);
-        moviesAdapter = new MediaListAdapter(this, moviesVideos, queueVideos);
 
         new ScreenSlidePagerAdapter(pager);
         pager.setCurrentItem(1);
@@ -292,30 +283,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 coolAdapter.toggleNumSort();
-            }
-        });
-
-        moviesSearchText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                moviesAdapter.setFilter(charSequence.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
-        moviesVideosList.setAdapter(moviesAdapter);
-        moviesClearSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                moviesSearchText.clearFocus();
-                moviesSearchText.setText("");
             }
         });
 
@@ -779,7 +746,6 @@ public class MainActivity extends Activity {
                     queueAdapter.notifyDataSetChanged();
                     coolAdapter.notifyDataSetChanged();
                     downloadAdapter.notifyDataSetChanged();
-                    moviesAdapter.notifyDataSetChanged();
                     break;
                 case "Cool":
                     coolVideos.clear();
@@ -793,12 +759,6 @@ public class MainActivity extends Activity {
                         downloadVideos.add(downloadData);
                     downloadAdapter.notifyDataSetChanged();
                     downloadVideosList.smoothScrollToPosition(0);
-                    break;
-                case "Movies":
-                    moviesVideos.clear();
-                    for (MediaData mediaData : message.getMediaDatas())
-                        moviesVideos.add(mediaData);
-                    moviesAdapter.notifyDataSetChanged();
                     break;
                 case "MediaVolume":
                     volumeProvider.setCurrentVolume(message.getInt() / 4);

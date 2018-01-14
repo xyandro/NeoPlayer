@@ -66,7 +66,6 @@ namespace NeoPlayer
 			status.Queue = new List<MediaData>();
 			UpdateCool();
 			status.Downloads = new List<DownloadData>();
-			status.Movies = File.ReadAllLines("Movies.txt").Select(fileName => new MediaData { Description = Path.GetFileNameWithoutExtension(fileName), URL = $"file:///{fileName}" }).ToList();
 		}
 
 		void UpdateCool()
