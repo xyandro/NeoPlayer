@@ -68,7 +68,7 @@ namespace NeoPlayer
 			status.Downloads = new List<DownloadData>();
 		}
 
-		void UpdateCool() => status.Cool = Database.GetAsync<VideoFile>().Result;
+		void UpdateCool() => status.Cool = Database.GetAsync<VideoFile>().Result.OrderBy(videoFile => videoFile.Title).ToList();
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
