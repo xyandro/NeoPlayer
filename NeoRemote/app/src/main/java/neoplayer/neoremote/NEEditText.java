@@ -1,5 +1,6 @@
 package neoplayer.neoremote;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.InputType;
@@ -8,10 +9,11 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class NEEditText extends EditText {
+    private Integer clickViewResource = null;
+
     public NEEditText(final Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -20,6 +22,9 @@ public class NEEditText extends EditText {
             String attr = attrs.getAttributeName(x);
             if (attr.equals("inputType"))
                 hasInputType = true;
+            else if (attr.equals("clickView")) {
+                clickViewResource = attrs.getAttributeResourceValue(x, 0);
+            }
         }
 
         if (!hasInputType)
@@ -36,15 +41,15 @@ public class NEEditText extends EditText {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
         });
-    }
 
-    public void linkButton(final ImageButton button) {
-        setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                button.performClick();
-                return true;
-            }
-        });
+        if (clickViewResource != null) {
+            setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                    ((Activity) getContext()).findViewById(clickViewResource).performClick();
+                    return true;
+                }
+            });
+        }
     }
 }

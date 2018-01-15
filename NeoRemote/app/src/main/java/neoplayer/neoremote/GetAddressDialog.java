@@ -12,9 +12,6 @@ public class GetAddressDialog extends DialogFragment {
     public MainActivity mainActivity;
     public String address;
 
-    public GetAddressDialog() {
-    }
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog dialog = new AlertDialog.Builder(mainActivity)
