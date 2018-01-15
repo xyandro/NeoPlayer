@@ -9,12 +9,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.databinding.DataBindingUtil;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.NotificationCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,12 +22,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
+
+import neoplayer.neoremote.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -77,36 +75,7 @@ public class MainActivity extends Activity {
     private RemoteViews notificationView;
     private NotificationCompat.Builder notification;
 
-    private ViewPager pager;
-    private NEEditText queueSearchText;
-    private ImageButton queueClearSearch;
-    private ListView queueVideosList;
-    private NEEditText coolSearchText;
-    private ImageButton coolClearSearch;
-    private ImageButton coolSortOrder;
-    private ListView coolVideosList;
-    private NEEditText slidesQuery;
-    private Spinner slidesSize;
-    private ImageButton slidesClear;
-    private ImageButton slidesSubmit;
-    private SeekBar slidesDisplayTime;
-    private TextView slidesDisplayTimeText;
-    private ImageButton slidesBack;
-    private ImageButton slidesPlay;
-    private ImageButton slidesForward;
-    private NEEditText downloadUrl;
-    private ImageButton downloadSubmit;
-    private ListView downloadVideosList;
-    private TextView navbarTitle;
-    private TextView navbarCurrentTime;
-    private SeekBar navbarSeekBar;
-    private TextView navbarMaxTime;
-    private ImageButton navbarBack30;
-    private ImageButton navbarBack5;
-    private ImageButton navbarPlay;
-    private ImageButton navbarForward5;
-    private ImageButton navbarForward30;
-    private ImageButton navbarForward;
+    ActivityMainBinding binding;
 
     static {
         validSizes.put("Any size", "");
@@ -132,7 +101,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         prepareMediaSession();
         setupControls();
@@ -172,45 +141,14 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
-        pager = findViewById(R.id.pager);
-        queueSearchText = findViewById(R.id.queue_search_text);
-        queueClearSearch = findViewById(R.id.queue_clear_search);
-        queueVideosList = findViewById(R.id.queue_videos_list);
-        coolSearchText = findViewById(R.id.cool_search_text);
-        coolClearSearch = findViewById(R.id.cool_clear_search);
-        coolSortOrder = findViewById(R.id.cool_sort_order);
-        coolVideosList = findViewById(R.id.cool_videos_list);
-        slidesQuery = findViewById(R.id.slides_query);
-        slidesSize = findViewById(R.id.slides_size);
-        slidesClear = findViewById(R.id.slides_clear);
-        slidesSubmit = findViewById(R.id.slides_submit);
-        slidesDisplayTime = findViewById(R.id.slides_display_time);
-        slidesDisplayTimeText = findViewById(R.id.slides_display_time_text);
-        slidesBack = findViewById(R.id.slides_back);
-        slidesPlay = findViewById(R.id.slides_play);
-        slidesForward = findViewById(R.id.slides_forward);
-        downloadUrl = findViewById(R.id.download_url);
-        downloadSubmit = findViewById(R.id.download_submit);
-        downloadVideosList = findViewById(R.id.download_videos_list);
-        navbarTitle = findViewById(R.id.navbar_title);
-        navbarCurrentTime = findViewById(R.id.navbar_current_time);
-        navbarSeekBar = findViewById(R.id.navbar_seek_bar);
-        navbarMaxTime = findViewById(R.id.navbar_max_time);
-        navbarBack30 = findViewById(R.id.navbar_back30);
-        navbarBack5 = findViewById(R.id.navbar_back5);
-        navbarPlay = findViewById(R.id.navbar_play);
-        navbarForward5 = findViewById(R.id.navbar_forward5);
-        navbarForward30 = findViewById(R.id.navbar_forward30);
-        navbarForward = findViewById(R.id.navbar_forward);
-
         queueAdapter = new VideoFileListAdapter(this, queueVideos, queueVideos);
-        coolAdapter = new VideoFileListAdapter(this, coolVideos, queueVideos, coolSortOrder);
+        coolAdapter = new VideoFileListAdapter(this, coolVideos, queueVideos, binding.coolSortOrder);
         downloadAdapter = new DownloadListAdapter(this, downloadVideos);
 
-        new ScreenSlidePagerAdapter(pager);
-        pager.setCurrentItem(1);
+        new ScreenSlidePagerAdapter(binding.pager);
+        binding.pager.setCurrentItem(1);
 
-        queueSearchText.addTextChangedListener(new TextWatcher() {
+        binding.queueSearchText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -225,16 +163,16 @@ public class MainActivity extends Activity {
             }
         });
 
-        queueVideosList.setAdapter(queueAdapter);
-        queueClearSearch.setOnClickListener(new View.OnClickListener() {
+        binding.queueVideosList.setAdapter(queueAdapter);
+        binding.queueClearSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                queueSearchText.clearFocus();
-                queueSearchText.setText("");
+                binding.queueSearchText.clearFocus();
+                binding.queueSearchText.setText("");
             }
         });
 
-        queueClearSearch.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.queueClearSearch.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 new AlertDialog.Builder(MainActivity.this)
@@ -255,7 +193,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        coolSearchText.addTextChangedListener(new TextWatcher() {
+        binding.coolSearchText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -270,16 +208,16 @@ public class MainActivity extends Activity {
             }
         });
 
-        coolVideosList.setAdapter(coolAdapter);
-        coolClearSearch.setOnClickListener(new View.OnClickListener() {
+        binding.coolVideosList.setAdapter(coolAdapter);
+        binding.coolClearSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                coolSearchText.clearFocus();
-                coolSearchText.setText("");
+                binding.coolSearchText.clearFocus();
+                binding.coolSearchText.setText("");
             }
         });
 
-        coolSortOrder.setOnClickListener(new View.OnClickListener() {
+        binding.coolSortOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 coolAdapter.toggleNumSort();
@@ -287,34 +225,34 @@ public class MainActivity extends Activity {
         });
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, new ArrayList<>(validSizes.keySet()));
-        slidesSize.setAdapter(adapter);
+        binding.slidesSize.setAdapter(adapter);
 
-        slidesClear.setOnClickListener(new View.OnClickListener() {
+        binding.slidesClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                slidesQuery.setText(currentSlidesQuery);
-                slidesSize.setSelection(currentSlidesSize);
-                slidesQuery.clearFocus();
+                binding.slidesQuery.setText(currentSlidesQuery);
+                binding.slidesSize.setSelection(currentSlidesSize);
+                binding.slidesQuery.clearFocus();
             }
         });
 
-        slidesSubmit.setOnClickListener(new View.OnClickListener() {
+        binding.slidesSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                slidesQuery.clearFocus();
-                String query = slidesQuery.getText().toString();
-                String size = validSizes.get(slidesSize.getSelectedItem());
+                binding.slidesQuery.clearFocus();
+                String query = binding.slidesQuery.getText().toString();
+                String size = validSizes.get(binding.slidesSize.getSelectedItem());
                 outputQueue.add(new Message().add("SetSlidesQuery").add(query).add(size).toArray());
             }
         });
 
-        slidesDisplayTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        binding.slidesDisplayTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
                 int displayTime = seekBarToDisplayTime(value);
                 value = displayTimeToSeekBar(displayTime);
                 seekBar.setProgress(value);
-                slidesDisplayTimeText.setText(DateUtils.formatElapsedTime(displayTime));
+                binding.slidesDisplayTimeText.setText(DateUtils.formatElapsedTime(displayTime));
                 if (fromUser)
                     outputQueue.add(new Message().add("SetSlideDisplayTime").add(displayTime).toArray());
             }
@@ -328,44 +266,44 @@ public class MainActivity extends Activity {
             }
         });
 
-        slidesBack.setOnClickListener(new View.OnClickListener() {
+        binding.slidesBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("CycleSlide").add(false).toArray());
             }
         });
 
-        slidesPlay.setOnClickListener(new View.OnClickListener() {
+        binding.slidesPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("ToggleSlidesPlaying").toArray());
             }
         });
 
-        slidesForward.setOnClickListener(new View.OnClickListener() {
+        binding.slidesForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("CycleSlide").add(true).toArray());
             }
         });
 
-        downloadVideosList.setAdapter(downloadAdapter);
-        downloadSubmit.setOnClickListener(new View.OnClickListener() {
+        binding.downloadVideosList.setAdapter(downloadAdapter);
+        binding.downloadSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String url = downloadUrl.getText().toString();
+                String url = binding.downloadUrl.getText().toString();
                 if (!url.equals("")) {
-                    downloadUrl.setText("");
-                    downloadUrl.clearFocus();
+                    binding.downloadUrl.setText("");
+                    binding.downloadUrl.clearFocus();
                     outputQueue.add(new Message().add("DownloadURL").add(url).toArray());
                 }
             }
         });
 
-        navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        binding.navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
-                navbarCurrentTime.setText(DateUtils.formatElapsedTime(value));
+                binding.navbarCurrentTime.setText(DateUtils.formatElapsedTime(value));
             }
 
             @Override
@@ -380,42 +318,42 @@ public class MainActivity extends Activity {
             }
         });
 
-        navbarBack30.setOnClickListener(new View.OnClickListener() {
+        binding.navbarBack30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("SetPosition").add(-30).add(true).toArray());
             }
         });
 
-        navbarBack5.setOnClickListener(new View.OnClickListener() {
+        binding.navbarBack5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("SetPosition").add(-5).add(true).toArray());
             }
         });
 
-        navbarPlay.setOnClickListener(new View.OnClickListener() {
+        binding.navbarPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("ToggleMediaPlaying").toArray());
             }
         });
 
-        navbarForward5.setOnClickListener(new View.OnClickListener() {
+        binding.navbarForward5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("SetPosition").add(5).add(true).toArray());
             }
         });
 
-        navbarForward30.setOnClickListener(new View.OnClickListener() {
+        binding.navbarForward30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("SetPosition").add(30).add(true).toArray());
             }
         });
 
-        navbarForward.setOnClickListener(new View.OnClickListener() {
+        binding.navbarForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("MediaForward").toArray());
@@ -762,36 +700,36 @@ public class MainActivity extends Activity {
                     for (DownloadData downloadData : message.getDownloadDatas())
                         downloadVideos.add(downloadData);
                     downloadAdapter.notifyDataSetChanged();
-                    downloadVideosList.smoothScrollToPosition(0);
+                    binding.downloadVideosList.smoothScrollToPosition(0);
                     break;
                 case "MediaVolume":
                     volumeProvider.setCurrentVolume(message.getInt() / 4);
                     break;
                 case "MediaTitle":
                     String title = message.getString();
-                    navbarTitle.setText(title);
+                    binding.navbarTitle.setText(title);
                     notificationView.setTextViewText(R.id.notification_text, title);
                     mNotifyMgr.notify(0, notification.build());
                     break;
                 case "MediaPosition":
                     int position = message.getInt();
                     if (!userTrackingSeekBar)
-                        navbarSeekBar.setProgress(position);
+                        binding.navbarSeekBar.setProgress(position);
                     break;
                 case "MediaMaxPosition":
                     int maxPosition = message.getInt();
-                    navbarSeekBar.setMax(maxPosition);
-                    navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
+                    binding.navbarSeekBar.setMax(maxPosition);
+                    binding.navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
                     break;
                 case "MediaPlaying":
                     int drawable = message.getBool() ? R.drawable.pause : R.drawable.play;
-                    navbarPlay.setImageResource(drawable);
+                    binding.navbarPlay.setImageResource(drawable);
                     notificationView.setImageViewResource(R.id.notification_play_pause, drawable);
                     mNotifyMgr.notify(0, notification.build());
                     break;
                 case "SlidesQuery":
                     currentSlidesQuery = message.getString();
-                    slidesQuery.setText(currentSlidesQuery);
+                    binding.slidesQuery.setText(currentSlidesQuery);
                     break;
                 case "SlidesSize":
                     int index = 0;
@@ -799,16 +737,16 @@ public class MainActivity extends Activity {
                     for (String entry : validSizes.keySet()) {
                         if (validSizes.get(entry).equals(slidesSizeStr)) {
                             currentSlidesSize = index;
-                            slidesSize.setSelection(index);
+                            binding.slidesSize.setSelection(index);
                         }
                         ++index;
                     }
                     break;
                 case "SlideDisplayTime":
-                    slidesDisplayTime.setProgress(displayTimeToSeekBar(message.getInt()));
+                    binding.slidesDisplayTime.setProgress(displayTimeToSeekBar(message.getInt()));
                     break;
                 case "SlidesPlaying":
-                    slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
+                    binding.slidesPlay.setImageResource(message.getBool() ? R.drawable.pause : R.drawable.play);
                     break;
             }
         }
