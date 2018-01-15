@@ -52,8 +52,8 @@ namespace NeoPlayer
 			SlidesSize = "2mp";
 			SlideDisplayTime = 60;
 			SlidesPlaying = true;
-			VideoState = MediaState.None;
-			MusicState = MediaState.None;
+			VideoState = null;
+			MusicState = null;
 			Volume = 50;
 
 			mediaPlayer.MediaEnded += (s, e) => MediaForward();
@@ -79,7 +79,7 @@ namespace NeoPlayer
 			{
 				case "QueueVideo": QueueVideo(message.GetInt(), message.GetBool()); break;
 				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
-				case "ToggleMediaPlaying": ToggleMediaPlaying(); break;
+				case "ToggleMediaPlaying": ToggleMediaPlaying(message.GetBool()); break;
 				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
 				case "MediaForward": MediaForward(); break;
 				case "ToggleSlidesPlaying": ToggleSlidesPlaying(); break;
@@ -116,7 +116,7 @@ namespace NeoPlayer
 			if (videoFile == null)
 				return;
 
-			var topIndex = VideoState == MediaState.None ? 0 : 1;
+			var topIndex = VideoState == null ? 0 : 1;
 			var match = queue.IndexOf(video => video.VideoFileID == videoFileID).DefaultIfEmpty(-1).First();
 			if (match == -1)
 				queue.Insert(top ? topIndex : queue.Count, videoFile);
@@ -126,15 +126,15 @@ namespace NeoPlayer
 			{
 				queue.RemoveAt(match);
 				if (match == 0)
-					VideoState = MediaState.None;
+					VideoState = null;
 			}
 		}
 
-		enum MediaState
+		public enum MediaState
 		{
-			None,
-			Pause,
-			Play,
+			Pause = 0,
+			Play = 1,
+			AllPlay = 2,
 		}
 
 		string slidesQueryField;
@@ -201,26 +201,28 @@ namespace NeoPlayer
 		readonly ObservableCollection<MusicFile> music = new ObservableCollection<MusicFile>();
 		readonly ObservableCollection<VideoFile> queue = new ObservableCollection<VideoFile>();
 
-		MediaState videoStateField;
-		MediaState VideoState
+		MediaState? videoStateField;
+		MediaState? VideoState
 		{
 			get => videoStateField;
 			set
 			{
 				videoStateField = value;
-				status.MediaPlaying = (VideoState == MediaState.Play) || (MusicState == MediaState.Play);
+				UpdateMediaPlaying();
 			}
 		}
-		MediaState musicStateField;
-		MediaState MusicState
+		MediaState? musicStateField;
+		MediaState? MusicState
 		{
 			get => musicStateField;
 			set
 			{
 				musicStateField = value;
-				status.MediaPlaying = (VideoState == MediaState.Play) || (MusicState == MediaState.Play);
+				UpdateMediaPlaying();
 			}
 		}
+
+		void UpdateMediaPlaying() => status.MediaPlaying = VideoState ?? MusicState ?? MediaState.Pause;
 
 		int currentSlideIndex = 0;
 		public string CurrentSlide => slides.Any() ? slides[currentSlideIndex] : null;
@@ -324,13 +326,13 @@ namespace NeoPlayer
 
 			ValidateState();
 
-			if ((previousSlide != null) && (VideoState != MediaState.None))
+			if ((previousSlide != null) && (VideoState != null))
 			{
 				previousSlide = null;
 				slideTime = null;
 			}
 
-			if (((MusicState == MediaState.None) && (previousMusic != null)) || ((VideoState == MediaState.None) && (previousVideo != null)))
+			if (((MusicState == null) && (previousMusic != null)) || ((VideoState == null) && (previousVideo != null)))
 			{
 				mediaPlayer.Stop();
 				mediaPlayer.Source = null;
@@ -339,7 +341,7 @@ namespace NeoPlayer
 				status.MediaTitle = "";
 			}
 
-			if (VideoState != MediaState.None)
+			if (VideoState != null)
 			{
 				if (previousVideo != CurrentVideo)
 				{
@@ -361,8 +363,9 @@ namespace NeoPlayer
 
 				switch (VideoState)
 				{
-					case MediaState.Play: mediaPlayer.Play(); break;
 					case MediaState.Pause: mediaPlayer.Pause(); break;
+					case MediaState.Play: mediaPlayer.Play(); break;
+					case MediaState.AllPlay: mediaPlayer.Play(); break;
 				}
 				return;
 			}
@@ -394,7 +397,7 @@ namespace NeoPlayer
 			}
 
 			status.MediaTitle = CurrentVideo?.Title ?? CurrentMusic?.Title ?? "";
-			if (MusicState != MediaState.None)
+			if (MusicState != null)
 			{
 				if (previousMusic != CurrentMusic)
 				{
@@ -413,9 +416,9 @@ namespace NeoPlayer
 		void ValidateState()
 		{
 			if (queue.Count == 0)
-				VideoState = MediaState.None;
+				VideoState = null;
 			if (music.Count == 0)
-				MusicState = MediaState.None;
+				MusicState = null;
 			if (slides.Count == 0)
 				currentSlideIndex = 0;
 			else
@@ -426,8 +429,8 @@ namespace NeoPlayer
 					currentSlideIndex -= slides.Count;
 			}
 
-			if (VideoState != MediaState.None)
-				MusicState = MediaState.None;
+			if (VideoState != null)
+				MusicState = null;
 		}
 
 		string currentSlidesQuery;
@@ -472,19 +475,19 @@ namespace NeoPlayer
 
 		void ToggleSlidesPlaying() => SlidesPlaying = !SlidesPlaying;
 
-		public void ToggleMediaPlaying()
+		public void ToggleMediaPlaying(bool allPlay = false)
 		{
-			if ((MusicState == MediaState.None) && (queue.Any()))
-				VideoState = VideoState == MediaState.Play ? MediaState.Pause : MediaState.Play;
+			if ((MusicState == null) && (queue.Any()))
+				VideoState = allPlay ? MediaState.AllPlay : VideoState == MediaState.AllPlay ? MediaState.Play : (VideoState ?? MediaState.Pause) != MediaState.Pause ? MediaState.Pause : MediaState.Play;
 			else
-				MusicState = MusicState == MediaState.Play ? MediaState.Pause : MediaState.Play;
+				MusicState = allPlay ? MusicState : (MusicState ?? MediaState.Pause) != MediaState.Pause ? MediaState.Pause : MediaState.Play;
 
 			updateState.Signal();
 		}
 
 		public void MediaForward()
 		{
-			if ((MusicState != MediaState.None) || (!queue.Any()))
+			if ((MusicState != null) || (!queue.Any()))
 			{
 				if (music.Any())
 				{
@@ -492,14 +495,15 @@ namespace NeoPlayer
 					music.RemoveAt(0);
 				}
 				if (queue.Any())
-					MusicState = MediaState.None;
+					MusicState = null;
 			}
 			else
 			{
 				if (queue.Any())
 				{
 					queue.RemoveAt(0);
-					VideoState = MediaState.None;
+					if (VideoState != MediaState.AllPlay)
+						VideoState = null;
 				}
 
 			}

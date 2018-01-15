@@ -330,7 +330,15 @@ public class MainActivity extends Activity {
         binding.navbarPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("ToggleMediaPlaying").toArray());
+                outputQueue.add(new Message().add("ToggleMediaPlaying").add(false).toArray());
+            }
+        });
+
+        binding.navbarPlay.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                outputQueue.add(new Message().add("ToggleMediaPlaying").add(true).toArray());
+                return true;
             }
         });
 
@@ -381,7 +389,7 @@ public class MainActivity extends Activity {
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getAction()) {
                     case "com.neoremote.android.PlayPause":
-                        outputQueue.add(new Message().add("ToggleMediaPlaying").toArray());
+                        outputQueue.add(new Message().add("ToggleMediaPlaying").add(false).toArray());
                         break;
                     case "com.neoremote.android.Forward":
                         outputQueue.add(new Message().add("MediaForward").toArray());
@@ -733,7 +741,8 @@ public class MainActivity extends Activity {
                     binding.navbarMaxTime.setText(DateUtils.formatElapsedTime(maxPosition));
                     break;
                 case "MediaPlaying":
-                    int drawable = message.getBool() ? R.drawable.pause : R.drawable.play;
+                    int value = message.getInt();
+                    int drawable = value == 0 ? R.drawable.play : value == 1 ? R.drawable.pause : R.drawable.allplay;
                     binding.navbarPlay.setImageResource(drawable);
                     remoteViews.setImageViewResource(R.id.notification_play_pause, drawable);
                     notificationManager.notify(0, notification.build());

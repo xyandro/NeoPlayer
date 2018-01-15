@@ -24,7 +24,7 @@ namespace NeoPlayer
 		public string MediaTitle { set { UpdateValue(value); } }
 		public int MediaPosition { set { UpdateValue(value); } }
 		public int MediaMaxPosition { set { UpdateValue(value); } }
-		public bool MediaPlaying { set { UpdateValue(value); } }
+		public NeoPlayerWindow.MediaState MediaPlaying { set { UpdateValue((int)value); } }
 		public string SlidesQuery { set { UpdateValue(value); } }
 		public string SlidesSize { set { UpdateValue(value); } }
 		public int SlideDisplayTime { set { UpdateValue(value); } }
