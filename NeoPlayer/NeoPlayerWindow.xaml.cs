@@ -13,6 +13,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using NeoPlayer.Dialogs;
 using NeoPlayer.Models;
 
 namespace NeoPlayer
@@ -550,6 +551,8 @@ namespace NeoPlayer
 				CycleSlide(-1);
 			if (e.Key == Key.Q)
 				new QueryDialog(this).ShowDialog();
+			if (e.Key == Key.A)
+				ShowAddressesDialog.Run();
 			if (e.Key == Key.N)
 				WLAN.Start("NeoPlayer", "NeoPlayer");
 			base.OnKeyDown(e);

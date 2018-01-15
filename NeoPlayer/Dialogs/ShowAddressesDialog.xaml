@@ -1,0 +1,23 @@
+﻿<Window Name="self" x:Class="NeoPlayer.Dialogs.ShowAddressesDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Addresses" SizeToContent="Height" Width="500">
+
+	<Grid Margin="10">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+			<RowDefinition Height="10"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<Label Grid.Row="0" Grid.Column="0" Content="Current addresses available for connection:"/>
+		<TextBox Grid.Row="1" Grid.Column="0" IsReadOnly="True" Text="{Binding Addresses, ElementName=self}"/>
+
+		<Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" IsDefault="True" IsCancel="True" Content="OK" Padding="10,0" HorizontalAlignment="Right"/>
+	</Grid>
+
+</Window>

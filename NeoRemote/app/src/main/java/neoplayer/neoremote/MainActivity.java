@@ -495,8 +495,16 @@ public class MainActivity extends Activity {
                 getNeoPlayerAddress();
 
                 long startTime = System.nanoTime();
+                long connectTime = 0;
                 Log.d(TAG, "startNetworkThread: Started");
                 while (networkThread != null) try {
+                    connectTime = System.nanoTime();
+
+                    if (neoPlayerAddress == null)
+                        throw new Exception("startNetworkThread: No connection address");
+
+                    Log.d(TAG, "startNetworkThread: Connect to " + neoPlayerAddress);
+
                     socket = new Socket();
                     socket.connect(new InetSocketAddress(neoPlayerAddress.getHost(), neoPlayerAddress.getPort()), 1000);
 
@@ -544,6 +552,12 @@ public class MainActivity extends Activity {
                     }
                 } catch (Exception ex) {
                     Log.d(TAG, "startNetworkThread: Error: " + ex.getMessage());
+
+                    try {
+                        long sleepTime = Math.max(1000000000 - System.nanoTime() + connectTime, 0);
+                        Thread.sleep((int) (sleepTime / 1000000), (int) (sleepTime % 1000000));
+                    } catch (Exception ex2) {
+                    }
 
                     if (System.nanoTime() - startTime >= 1000000000)
                         runOnUiThread(new Runnable() {
