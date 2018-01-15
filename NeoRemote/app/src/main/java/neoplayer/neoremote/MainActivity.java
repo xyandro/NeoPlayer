@@ -494,11 +494,7 @@ public class MainActivity extends Activity {
             public void run() {
                 getNeoPlayerAddress();
 
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception ex) {
-                }
-
+                long startTime = System.nanoTime();
                 Log.d(TAG, "startNetworkThread: Started");
                 while (networkThread != null) try {
                     socket = new Socket();
@@ -549,12 +545,13 @@ public class MainActivity extends Activity {
                 } catch (Exception ex) {
                     Log.d(TAG, "startNetworkThread: Error: " + ex.getMessage());
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showGetAddressDialog();
-                        }
-                    });
+                    if (System.nanoTime() - startTime >= 1000000000)
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showGetAddressDialog();
+                            }
+                        });
                 }
                 Log.d(TAG, "startNetworkThread: Stopped");
             }
