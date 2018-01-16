@@ -2,6 +2,7 @@ package neoplayer.neoremote;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -10,12 +11,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.databinding.DataBindingUtil;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
@@ -379,7 +382,14 @@ public class MainActivity extends Activity {
     }
 
     private void setupNotification() {
-        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String NOTIFICATION_CHANNEL_ID = "NeoPlayer";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NeoPlayer", NotificationManager.IMPORTANCE_NONE);
+            notificationChannel.setDescription("NeoPlayer");
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("com.neoremote.android.PlayPause");
@@ -403,10 +413,21 @@ public class MainActivity extends Activity {
         remoteViews.setOnClickPendingIntent(R.id.notification_play_pause, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.PlayPause"), PendingIntent.FLAG_UPDATE_CURRENT));
         remoteViews.setOnClickPendingIntent(R.id.notification_forward, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.Forward"), PendingIntent.FLAG_UPDATE_CURRENT));
 
-        notification = new NotificationCompat.Builder(this);
+        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent, 0);
+
+        notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         notification.setSmallIcon(R.mipmap.notification);
         notification.setContent(remoteViews);
+        notification.setContentIntent(intent);
 
+        setNotification();
+    }
+
+    private void setNotification() {
+        remoteViews.setTextViewText(R.id.notification_text, binding.navbarTitle.getText());
+        remoteViews.setImageViewBitmap(R.id.notification_play_pause, ((BitmapDrawable) binding.navbarPlay.getDrawable()).getBitmap());
         notificationManager.notify(0, notification.build());
     }
 
@@ -738,8 +759,7 @@ public class MainActivity extends Activity {
                 case "MediaTitle":
                     String title = message.getString();
                     binding.navbarTitle.setText(title);
-                    remoteViews.setTextViewText(R.id.notification_text, title);
-                    notificationManager.notify(0, notification.build());
+                    setNotification();
                     break;
                 case "MediaPosition":
                     int position = message.getInt();
@@ -755,8 +775,7 @@ public class MainActivity extends Activity {
                     int value = message.getInt();
                     int drawable = value == 0 ? R.drawable.play : value == 1 ? R.drawable.pause : R.drawable.allplay;
                     binding.navbarPlay.setImageResource(drawable);
-                    remoteViews.setImageViewResource(R.id.notification_play_pause, drawable);
-                    notificationManager.notify(0, notification.build());
+                    setNotification();
                     break;
                 case "SlidesQuery":
                     currentSlidesQuery = message.getString();
