@@ -88,6 +88,15 @@ public class Message {
         return byteBuffer.getInt();
     }
 
+    public ArrayList<Integer> getInts() {
+        int count = getInt();
+        ArrayList<Integer> ints = new ArrayList<>();
+        for (int ctr = 0; ctr < count; ++ctr) {
+            ints.add(getInt());
+        }
+        return ints;
+    }
+
     public String getString() {
         int size = getInt();
         byte[] bytes = new byte[size];

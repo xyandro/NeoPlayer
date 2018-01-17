@@ -47,6 +47,12 @@ namespace NeoPlayer
 
 		public void Add(int value) => Add(BitConverter.GetBytes(value));
 
+		public void Add(List<int> values)
+		{
+			Add(values.Count);
+			values.ForEach(value => Add(value));
+		}
+
 		public void Add(long value) => Add(BitConverter.GetBytes(value));
 
 		public void Add(string value)
@@ -115,6 +121,8 @@ namespace NeoPlayer
 				Add(value as DownloadData);
 			else if (value is List<DownloadData>)
 				Add(value as List<DownloadData>);
+			else if (value is List<int>)
+				Add(value as List<int>);
 			else
 				throw new Exception($"Unknown type: {value?.GetType().Name ?? "<NULL>"}");
 		}

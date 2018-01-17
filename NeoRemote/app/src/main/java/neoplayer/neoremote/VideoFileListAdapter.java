@@ -3,44 +3,48 @@ package neoplayer.neoremote;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class VideoFileListAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final ArrayList<VideoFile> list;
-    private final ArrayList<VideoFile> queue;
-    private ArrayList<VideoFile> filteredList;
-    private final ImageButton sortOrder;
-    private String filter = "";
-    private boolean numSort = false;
+    private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
+    private HashSet<Integer> selectedIDs = new HashSet<>();
+    private ArrayList<Integer> showIDs = new ArrayList<>();
+    private final ArrayList<VideoFile> displayList = new ArrayList<>();
 
-    public VideoFileListAdapter(MainActivity mainActivity, ArrayList<VideoFile> list, ArrayList<VideoFile> queue) {
-        this(mainActivity, list, queue, null);
-    }
-
-    public VideoFileListAdapter(MainActivity mainActivity, ArrayList<VideoFile> list, ArrayList<VideoFile> queue, ImageButton sortOrder) {
+    public VideoFileListAdapter(MainActivity mainActivity) {
         super();
         this.mainActivity = mainActivity;
-        this.list = filteredList = list;
-        this.queue = queue;
-        this.sortOrder = sortOrder;
-        setNumSort(false);
+    }
+
+    public void setVideoFiles(HashMap<Integer, VideoFile> videoFiles) {
+        this.videoFiles = videoFiles;
+        notifyDataSetChanged();
+    }
+
+    public void setSelectedIDs(HashSet<Integer> selectedIDs) {
+        this.selectedIDs = selectedIDs;
+        notifyDataSetChanged();
+    }
+
+    public void setShowIDs(ArrayList<Integer> showIDs) {
+        this.showIDs = showIDs;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return filteredList.size();
+        return displayList.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return filteredList.get(i);
+        return displayList.get(i);
     }
 
     @Override
@@ -50,21 +54,13 @@ public class VideoFileListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final VideoFile videoFile = filteredList.get(position);
-
-        boolean found = false;
-        for (VideoFile queueVideoFile : queue) {
-            if (queueVideoFile.videoFileID == videoFile.videoFileID) {
-                found = true;
-                break;
-            }
-        }
+        final VideoFile videoFile = displayList.get(position);
 
         View view = convertView;
         if (view == null)
             view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
         ImageView image = view.findViewById(R.id.image);
-        image.setImageResource(found ? R.drawable.check : R.drawable.uncheck);
+        image.setImageResource(selectedIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
         ((TextView) view.findViewById(R.id.name)).setText(videoFile.title);
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
@@ -88,38 +84,14 @@ public class VideoFileListAdapter extends BaseAdapter {
         return view;
     }
 
-    public void setFilter(String filter) {
-        this.filter = filter.toLowerCase();
-        notifyDataSetChanged();
-    }
-
-    public void toggleNumSort() {
-        setNumSort(!numSort);
-    }
-
-    public void setNumSort(boolean numSort) {
-        this.numSort = numSort;
-        if (sortOrder != null)
-            sortOrder.setImageResource(numSort ? R.drawable.alphaorder : R.drawable.numorder);
-        notifyDataSetChanged();
-    }
-
     @Override
     public void notifyDataSetChanged() {
-        filteredList = new ArrayList<>();
+        displayList.clear();
 
-        for (VideoFile videoFile : list) {
-            if ((filter.length() == 0) || (videoFile.title.toLowerCase().contains(filter)))
-                filteredList.add(videoFile);
-        }
-
-        if (numSort) {
-            Collections.sort(filteredList, new Comparator<VideoFile>() {
-                @Override
-                public int compare(VideoFile md1, VideoFile md2) {
-                    return Long.compare(md1.playlistOrder, md2.playlistOrder);
-                }
-            });
+        for (int videoFileID : showIDs) {
+            VideoFile videoFile = videoFiles.get(videoFileID);
+            if (videoFile != null)
+                displayList.add(videoFile);
         }
 
         super.notifyDataSetChanged();

@@ -19,8 +19,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
@@ -44,6 +42,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -57,9 +57,7 @@ public class MainActivity extends Activity {
     private static final int NeoPlayerDefaultPort = 7399;
     private static final String addressFileName = "NeoPlayer.txt";
 
-    private final ArrayList<VideoFile> queueVideos = new ArrayList<>();
-    private final ArrayList<VideoFile> coolVideos = new ArrayList<>();
-    private final ArrayList<DownloadData> downloadVideos = new ArrayList<>();
+    private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
@@ -139,27 +137,12 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
-        queueAdapter = new VideoFileListAdapter(this, queueVideos, queueVideos);
-        coolAdapter = new VideoFileListAdapter(this, coolVideos, queueVideos, binding.coolSortOrder);
-        downloadAdapter = new DownloadListAdapter(this, downloadVideos);
+        queueAdapter = new VideoFileListAdapter(this);
+        coolAdapter = new VideoFileListAdapter(this);
+        downloadAdapter = new DownloadListAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);
         binding.pager.setCurrentItem(1);
-
-        binding.queueSearchText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                queueAdapter.setFilter(charSequence.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
 
         binding.queueVideosList.setAdapter(queueAdapter);
         binding.queueClearSearch.setOnClickListener(new View.OnClickListener() {
@@ -191,34 +174,12 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.coolSearchText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                coolAdapter.setFilter(charSequence.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
         binding.coolVideosList.setAdapter(coolAdapter);
         binding.coolClearSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 binding.coolSearchText.clearFocus();
                 binding.coolSearchText.setText("");
-            }
-        });
-
-        binding.coolSortOrder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                coolAdapter.toggleNumSort();
             }
         });
 
@@ -733,24 +694,25 @@ public class MainActivity extends Activity {
             String field = message.getString();
             switch (field) {
                 case "Queue":
-                    queueVideos.clear();
-                    for (VideoFile videoFile : message.getVideoFiles())
-                        queueVideos.add(videoFile);
-                    queueAdapter.notifyDataSetChanged();
-                    coolAdapter.notifyDataSetChanged();
-                    downloadAdapter.notifyDataSetChanged();
+                    ArrayList<Integer> queueIDs = message.getInts();
+                    HashSet<Integer> selectedIDs = new HashSet<>(queueIDs);
+                    queueAdapter.setSelectedIDs(selectedIDs);
+                    queueAdapter.setShowIDs(queueIDs);
+                    coolAdapter.setSelectedIDs(selectedIDs);
                     break;
-                case "Cool":
-                    coolVideos.clear();
-                    for (VideoFile videoFile : message.getVideoFiles())
-                        coolVideos.add(videoFile);
-                    coolAdapter.notifyDataSetChanged();
+                case "VideoFiles":
+                    videoFiles = new HashMap<>();
+                    ArrayList<Integer> showIDs = new ArrayList<>();
+                    for (VideoFile videoFile : message.getVideoFiles()) {
+                        videoFiles.put(videoFile.videoFileID, videoFile);
+                        showIDs.add(videoFile.videoFileID);
+                    }
+                    queueAdapter.setVideoFiles(videoFiles);
+                    coolAdapter.setVideoFiles(videoFiles);
+                    coolAdapter.setShowIDs(showIDs);
                     break;
                 case "Downloads":
-                    downloadVideos.clear();
-                    for (DownloadData downloadData : message.getDownloadDatas())
-                        downloadVideos.add(downloadData);
-                    downloadAdapter.notifyDataSetChanged();
+                    downloadAdapter.setDownloadData(message.getDownloadDatas());
                     binding.downloadVideosList.smoothScrollToPosition(0);
                     break;
                 case "MediaVolume":

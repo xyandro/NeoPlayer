@@ -10,12 +10,16 @@ import java.util.ArrayList;
 
 public class DownloadListAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final ArrayList<DownloadData> list;
+    private ArrayList<DownloadData> list = new ArrayList<>();
 
-    public DownloadListAdapter(MainActivity mainActivity, ArrayList<DownloadData> list) {
+    public DownloadListAdapter(MainActivity mainActivity) {
         super();
         this.mainActivity = mainActivity;
+    }
+
+    public void setDownloadData(ArrayList<DownloadData> list) {
         this.list = list;
+        notifyDataSetChanged();
     }
 
     @Override

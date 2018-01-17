@@ -39,7 +39,7 @@ namespace NeoPlayer
 			updateState = new SingleRunner(UpdateState);
 			slides.CollectionChanged += (s, e) => updateState.Signal();
 			music.CollectionChanged += (s, e) => updateState.Signal();
-			queue.CollectionChanged += (s, e) => { status.Queue = queue.ToList(); updateState.Signal(); };
+			queue.CollectionChanged += (s, e) => { status.Queue = queue.Select(videoFile => videoFile.VideoFileID).ToList(); updateState.Signal(); };
 
 			InitializeComponent();
 
@@ -64,12 +64,12 @@ namespace NeoPlayer
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
 			changeSlideTimer.Start();
 
-			status.Queue = new List<VideoFile>();
-			UpdateCool();
+			status.Queue = new List<int>();
+			UpdateVideoFiles();
 			status.Downloads = new List<DownloadData>();
 		}
 
-		void UpdateCool() => status.Cool = Database.GetAsync<VideoFile>().Result.OrderBy(videoFile => videoFile.Title).ToList();
+		void UpdateVideoFiles() => status.VideoFiles = Database.GetAsync<VideoFile>().Result;
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
@@ -106,7 +106,7 @@ namespace NeoPlayer
 						downloads[id] = downloadData;
 					status.Downloads = downloads.Values.ToList();
 				});
-			}, UpdateCool);
+			}, UpdateVideoFiles);
 		}
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
