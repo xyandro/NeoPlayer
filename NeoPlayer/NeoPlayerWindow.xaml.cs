@@ -534,7 +534,7 @@ namespace NeoPlayer
 		{
 			if ((e.Key == Key.S) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
 			{
-				new SettingsDialog().ShowDialog();
+				SettingsDialog.Run(this);
 				e.Handled = true;
 			}
 			if (e.Key == Key.Space)
@@ -557,8 +557,6 @@ namespace NeoPlayer
 				Volume += 5;
 			if (e.Key == Key.Left)
 				CycleSlide(-1);
-			if (e.Key == Key.Q)
-				new QueryDialog(this).ShowDialog();
 			if (e.Key == Key.A)
 				ShowAddressesDialog.Run();
 			if (e.Key == Key.N)

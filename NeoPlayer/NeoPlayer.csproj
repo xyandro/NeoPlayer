@@ -129,13 +129,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="QueryDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="QueryDialog.xaml.cs">
-      <DependentUpon>QueryDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Restarter.cs" />
     <Compile Include="Settings.cs" />
     <Page Include="SettingsDialog.xaml">

@@ -9,6 +9,10 @@ namespace NeoPlayer
 {
 	partial class SettingsDialog
 	{
+		static DependencyProperty SlidesQueryProperty = DependencyProperty.Register(nameof(SlidesQuery), typeof(string), typeof(SettingsDialog));
+		static DependencyProperty SlidesSizeProperty = DependencyProperty.Register(nameof(SlidesSize), typeof(string), typeof(SettingsDialog));
+		static DependencyProperty SlideDisplayTimeProperty = DependencyProperty.Register(nameof(SlideDisplayTime), typeof(int), typeof(SettingsDialog));
+
 		static DependencyProperty ShortcutsListProperty = DependencyProperty.Register(nameof(ShortcutsList), typeof(ObservableCollection<Shortcut>), typeof(SettingsDialog));
 
 		static DependencyProperty SlidesPathProperty = DependencyProperty.Register(nameof(SlidesPath), typeof(string), typeof(SettingsDialog));
@@ -17,6 +21,10 @@ namespace NeoPlayer
 		static DependencyProperty YouTubeDLPathProperty = DependencyProperty.Register(nameof(YouTubeDLPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty FFMpegPathProperty = DependencyProperty.Register(nameof(FFMpegPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty PortProperty = DependencyProperty.Register(nameof(Port), typeof(int), typeof(SettingsDialog));
+
+		string SlidesQuery { get { return (string)GetValue(SlidesQueryProperty); } set { SetValue(SlidesQueryProperty, value); } }
+		string SlidesSize { get { return (string)GetValue(SlidesSizeProperty); } set { SetValue(SlidesSizeProperty, value); } }
+		int SlideDisplayTime { get { return (int)GetValue(SlideDisplayTimeProperty); } set { SetValue(SlideDisplayTimeProperty, value); } }
 
 		ObservableCollection<Shortcut> ShortcutsList { get { return (ObservableCollection<Shortcut>)GetValue(ShortcutsListProperty); } set { SetValue(ShortcutsListProperty, value); } }
 
@@ -27,11 +35,19 @@ namespace NeoPlayer
 		string FFMpegPath { get { return (string)GetValue(FFMpegPathProperty); } set { SetValue(FFMpegPathProperty, value); } }
 		int Port { get { return (int)GetValue(PortProperty); } set { SetValue(PortProperty, value); } }
 
+		readonly NeoPlayerWindow neoPlayerWindow;
 		readonly List<Shortcut> initial;
-		public SettingsDialog()
+		SettingsDialog(NeoPlayerWindow neoPlayerWindow)
 		{
+			Owner = neoPlayerWindow;
+			this.neoPlayerWindow = neoPlayerWindow;
+
 			InitializeComponent();
 			DataContext = this;
+
+			SlidesQuery = neoPlayerWindow.SlidesQuery;
+			SlidesSize = neoPlayerWindow.SlidesSize;
+			SlideDisplayTime = neoPlayerWindow.SlideDisplayTime;
 
 			initial = Database.GetAsync<Shortcut>().Result;
 			ShortcutsList = new ObservableCollection<Shortcut>(initial.Select(shortcut => Helpers.Copy(shortcut)).OrderBy(shortcut => shortcut.Name));
@@ -52,6 +68,10 @@ namespace NeoPlayer
 
 		void OnOKClick(object sender, RoutedEventArgs e)
 		{
+			neoPlayerWindow.SlidesQuery = SlidesQuery;
+			neoPlayerWindow.SlidesSize = SlidesSize;
+			neoPlayerWindow.SlideDisplayTime = SlideDisplayTime;
+
 			Settings.SlidesPath = SlidesPath;
 			Settings.MusicPath = MusicPath;
 			Settings.VideosPath = VideosPath;
@@ -70,5 +90,7 @@ namespace NeoPlayer
 
 			DialogResult = true;
 		}
+
+		static public void Run(NeoPlayerWindow neoPlayerWindow) => new SettingsDialog(neoPlayerWindow).ShowDialog();
 	}
 }
