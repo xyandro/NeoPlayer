@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using NeoPlayer.Models;
@@ -12,6 +15,7 @@ namespace NeoPlayer
 		static DependencyProperty SlidesQueryProperty = DependencyProperty.Register(nameof(SlidesQuery), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty SlidesSizeProperty = DependencyProperty.Register(nameof(SlidesSize), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty SlideDisplayTimeProperty = DependencyProperty.Register(nameof(SlideDisplayTime), typeof(int), typeof(SettingsDialog));
+		static DependencyProperty AddressesProperty = DependencyProperty.Register(nameof(Addresses), typeof(string), typeof(SettingsDialog));
 
 		static DependencyProperty ShortcutsListProperty = DependencyProperty.Register(nameof(ShortcutsList), typeof(ObservableCollection<Shortcut>), typeof(SettingsDialog));
 
@@ -25,6 +29,7 @@ namespace NeoPlayer
 		string SlidesQuery { get { return (string)GetValue(SlidesQueryProperty); } set { SetValue(SlidesQueryProperty, value); } }
 		string SlidesSize { get { return (string)GetValue(SlidesSizeProperty); } set { SetValue(SlidesSizeProperty, value); } }
 		int SlideDisplayTime { get { return (int)GetValue(SlideDisplayTimeProperty); } set { SetValue(SlideDisplayTimeProperty, value); } }
+		string Addresses { get => (string)GetValue(AddressesProperty); set => SetValue(AddressesProperty, value); }
 
 		ObservableCollection<Shortcut> ShortcutsList { get { return (ObservableCollection<Shortcut>)GetValue(ShortcutsListProperty); } set { SetValue(ShortcutsListProperty, value); } }
 
@@ -48,6 +53,7 @@ namespace NeoPlayer
 			SlidesQuery = neoPlayerWindow.SlidesQuery;
 			SlidesSize = neoPlayerWindow.SlidesSize;
 			SlideDisplayTime = neoPlayerWindow.SlideDisplayTime;
+			GetAddresses();
 
 			initial = Database.GetAsync<Shortcut>().Result;
 			ShortcutsList = new ObservableCollection<Shortcut>(initial.Select(shortcut => Helpers.Copy(shortcut)).OrderBy(shortcut => shortcut.Name));
@@ -58,6 +64,15 @@ namespace NeoPlayer
 			YouTubeDLPath = Settings.YouTubeDLPath;
 			FFMpegPath = Settings.FFMpegPath;
 			Port = Settings.Port;
+		}
+
+		void GetAddresses()
+		{
+			var sb = new StringBuilder();
+			foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces().OrderBy(inter => inter.NetworkInterfaceType == NetworkInterfaceType.Loopback).ThenBy(inter => inter.OperationalStatus))
+				foreach (var address in networkInterface.GetIPProperties().UnicastAddresses.Select(property => property.Address).OrderBy(address => address.AddressFamily != AddressFamily.InterNetwork))
+					sb.AppendLine($"{address}: ({networkInterface.NetworkInterfaceType}, {networkInterface.OperationalStatus})");
+			Addresses = sb.ToString();
 		}
 
 		void OnDeleteShortcutClick(object sender, RoutedEventArgs e) => ShortcutsList.Remove((sender as Button).Tag as Shortcut);
