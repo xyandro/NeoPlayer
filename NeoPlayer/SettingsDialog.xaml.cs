@@ -30,6 +30,8 @@ namespace NeoPlayer
 			Port = Settings.Port;
 		}
 
+		void OnYouTubeDLUpdateClick(object sender, RoutedEventArgs e) => VideoFileDownloader.Update();
+
 		void OnOKClick(object sender, RoutedEventArgs e)
 		{
 			Settings.SlidesPath = SlidesPath;

@@ -568,6 +568,8 @@ namespace NeoPlayer
 				ShowAddressesDialog.Run();
 			if (e.Key == Key.N)
 				WLAN.Start("NeoPlayer", "NeoPlayer");
+			if ((e.Key == Key.U) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
+				VideoFileDownloader.Update();
 			base.OnKeyDown(e);
 		}
 

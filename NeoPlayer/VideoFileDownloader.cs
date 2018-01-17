@@ -43,6 +43,8 @@ namespace NeoPlayer
 			await DownloadFilesAsync(videoFiles, updateDownload, done);
 		}
 
+		public static void Update() => Process.Start(Settings.YouTubeDLPath, "-U");
+
 		async static Task<List<VideoFile>> GetVideoFiles(string url)
 		{
 			using (var process = new Process

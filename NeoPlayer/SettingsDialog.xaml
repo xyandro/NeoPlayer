@@ -7,6 +7,7 @@
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition/>
+			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -19,24 +20,25 @@
 		</Grid.RowDefinitions>
 
 		<Label Grid.Row="0" Grid.Column="0" Content="_Slides path:" HorizontalAlignment="Right" Target="{Binding ElementName=slidesPath}"/>
-		<TextBox Grid.Row="0" Grid.Column="1" Name="slidesPath" Text="{Binding SlidesPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="slidesPath" Text="{Binding SlidesPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="1" Grid.Column="0" Content="_Music path:" HorizontalAlignment="Right" Target="{Binding ElementName=musicPath}"/>
-		<TextBox Grid.Row="1" Grid.Column="1" Name="musicPath" Text="{Binding MusicPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="musicPath" Text="{Binding MusicPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="2" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
-		<TextBox Grid.Row="2" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="3" Grid.Column="0" Content="_YouTubeDL path:" HorizontalAlignment="Right" Target="{Binding ElementName=youTubeDLPath}"/>
 		<TextBox Grid.Row="3" Grid.Column="1" Name="youTubeDLPath" Text="{Binding YouTubeDLPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<Button Grid.Row="3" Grid.Column="2" Content="_Update" Click="OnYouTubeDLUpdateClick"/>
 
 		<Label Grid.Row="4" Grid.Column="0" Content="_FFMpeg path:" HorizontalAlignment="Right" Target="{Binding ElementName=ffMpegPath}"/>
-		<TextBox Grid.Row="4" Grid.Column="1" Name="ffMpegPath" Text="{Binding FFMpegPath, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Name="ffMpegPath" Text="{Binding FFMpegPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<Label Grid.Row="5" Grid.Column="0" Content="_Port:" HorizontalAlignment="Right" Target="{Binding ElementName=port}"/>
-		<TextBox Grid.Row="5" Grid.Column="1" Name="port" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Name="port" Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<UniformGrid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Rows="1" HorizontalAlignment="Right">
+		<UniformGrid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Rows="1" HorizontalAlignment="Right">
 			<Button IsDefault="True" Content="OK" Padding="10,0" Click="OnOKClick"/>
 			<Button IsCancel="True" Content="Cancel" Padding="10,0"/>
 		</UniformGrid>
