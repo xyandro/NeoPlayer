@@ -61,6 +61,7 @@ public class MainActivity extends Activity {
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
+    private VideoFileListAdapter historyAdapter;
     private VideoFileListAdapter queueAdapter;
     private VideoFileListAdapter coolAdapter;
     private DownloadListAdapter downloadAdapter;
@@ -137,12 +138,15 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
+        historyAdapter = new VideoFileListAdapter(this);
         queueAdapter = new VideoFileListAdapter(this);
         coolAdapter = new VideoFileListAdapter(this);
         downloadAdapter = new DownloadListAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);
-        binding.pager.setCurrentItem(1);
+        binding.pager.setCurrentItem(2);
+
+        binding.historyVideosList.setAdapter(historyAdapter);
 
         binding.queueVideosList.setAdapter(queueAdapter);
         binding.queueClearSearch.setOnClickListener(new View.OnClickListener() {
@@ -683,8 +687,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void queueVideo(VideoFile videoFile, boolean top) {
-        outputQueue.add(new Message().add("QueueVideo").add(videoFile.videoFileID).add(top).toArray());
+    public void queueVideo(int videoFileID, boolean top) {
+        outputQueue.add(new Message().add("QueueVideo").add(videoFileID).add(top).toArray());
     }
 
     private void handleMessage(Message message) {
@@ -693,11 +697,16 @@ public class MainActivity extends Activity {
             --count;
             String field = message.getString();
             switch (field) {
+                case "History":
+                    historyAdapter.setShowIDs(message.getInts());
+                    break;
                 case "Queue":
                     ArrayList<Integer> queueIDs = message.getInts();
-                    HashSet<Integer> selectedIDs = new HashSet<>(queueIDs);
-                    queueAdapter.setSelectedIDs(selectedIDs);
                     queueAdapter.setShowIDs(queueIDs);
+
+                    HashSet<Integer> selectedIDs = new HashSet<>(queueIDs);
+                    historyAdapter.setSelectedIDs(selectedIDs);
+                    queueAdapter.setSelectedIDs(selectedIDs);
                     coolAdapter.setSelectedIDs(selectedIDs);
                     break;
                 case "VideoFiles":
@@ -707,6 +716,7 @@ public class MainActivity extends Activity {
                         videoFiles.put(videoFile.videoFileID, videoFile);
                         showIDs.add(videoFile.videoFileID);
                     }
+                    historyAdapter.setVideoFiles(videoFiles);
                     queueAdapter.setVideoFiles(videoFiles);
                     coolAdapter.setVideoFiles(videoFiles);
                     coolAdapter.setShowIDs(showIDs);

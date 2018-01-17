@@ -17,6 +17,7 @@ namespace NeoPlayer
 			broadcastChanges = new SingleRunner(BroadcastChanges);
 		}
 
+		public List<int> History { set { UpdateValue(value); } }
 		public List<int> Queue { set { UpdateValue(value); } }
 		public List<VideoFile> VideoFiles { set { UpdateValue(value); } }
 		public List<DownloadData> Downloads { set { UpdateValue(value); } }

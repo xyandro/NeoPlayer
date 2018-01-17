@@ -65,7 +65,7 @@ public class VideoFileListAdapter extends BaseAdapter {
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainActivity.queueVideo(videoFile, false);
+                mainActivity.queueVideo(videoFile.videoFileID, false);
             }
         };
         image.setOnClickListener(clickListener);
@@ -74,7 +74,7 @@ public class VideoFileListAdapter extends BaseAdapter {
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mainActivity.queueVideo(videoFile, true);
+                mainActivity.queueVideo(videoFile.videoFileID, true);
                 return true;
             }
         };

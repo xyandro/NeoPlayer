@@ -57,16 +57,28 @@ namespace NeoPlayer
 			MusicState = null;
 			Volume = 50;
 
-			mediaPlayer.MediaEnded += (s, e) => MediaForward();
+			mediaPlayer.MediaEnded += (s, e) => { AddHistory(); MediaForward(); };
 			mediaPlayer.MediaFailed += (s, e) => MediaForward();
 
 			changeSlideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.25) };
 			changeSlideTimer.Tick += (s, e) => CheckCycleSlide();
 			changeSlideTimer.Start();
 
-			status.Queue = new List<int>();
 			UpdateVideoFiles();
+
+			status.History = new List<int>();
+			status.Queue = new List<int>();
 			status.Downloads = new List<DownloadData>();
+		}
+
+		void AddHistory()
+		{
+			if (CurrentVideo == null)
+				return;
+
+			history.Remove(CurrentVideo.VideoFileID);
+			history.Insert(0, CurrentVideo.VideoFileID);
+			status.History = history.ToList();
 		}
 
 		void UpdateVideoFiles() => status.VideoFiles = Database.GetAsync<VideoFile>().Result;
@@ -198,6 +210,7 @@ namespace NeoPlayer
 			set => slidesPlayingField = status.SlidesPlaying = value;
 		}
 
+		readonly List<int> history = new List<int>();
 		readonly ObservableCollection<string> slides = new ObservableCollection<string>();
 		readonly ObservableCollection<MusicFile> music = new ObservableCollection<MusicFile>();
 		readonly ObservableCollection<VideoFile> queue = new ObservableCollection<VideoFile>();

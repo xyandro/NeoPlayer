@@ -3,4 +3,5 @@
 
 Azure   a0cdff
 Cyan    a6ffff
+Green   99ff99
 Purple  c999ff
