@@ -145,13 +145,6 @@
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
-    <Page Include="ShortcutsDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="ShortcutsDialog.xaml.cs">
-      <DependentUpon>ShortcutsDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="SingleRunner.cs" />
     <Compile Include="SlideDownloader.cs" />
     <Compile Include="Status.cs" />

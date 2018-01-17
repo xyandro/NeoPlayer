@@ -532,11 +532,6 @@ namespace NeoPlayer
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
-			if ((e.Key == Key.D) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
-			{
-				ShortcutsDialog.Run();
-				e.Handled = true;
-			}
 			if ((e.Key == Key.S) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
 			{
 				new SettingsDialog().ShowDialog();

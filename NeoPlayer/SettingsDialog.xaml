@@ -14,6 +14,49 @@
 		</Grid.RowDefinitions>
 
 		<TabControl Grid.Row="0" Grid.Column="0">
+			<TabItem Header="Shortcuts">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition Height="10"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+
+					<ListView Grid.Row="0" Grid.Column="0" ItemsSource="{Binding ShortcutsList, ElementName=self}">
+						<ListView.View>
+							<GridView>
+								<GridViewColumn Header="Name">
+									<GridViewColumn.CellTemplate>
+										<DataTemplate>
+											<TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+										</DataTemplate>
+									</GridViewColumn.CellTemplate>
+								</GridViewColumn>
+								<GridViewColumn Header="Value">
+									<GridViewColumn.CellTemplate>
+										<DataTemplate>
+											<TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="500"/>
+										</DataTemplate>
+									</GridViewColumn.CellTemplate>
+								</GridViewColumn>
+								<GridViewColumn>
+									<GridViewColumn.CellTemplate>
+										<DataTemplate>
+											<Button Content="Delete" Click="OnDeleteShortcutClick" Tag="{Binding}"/>
+										</DataTemplate>
+									</GridViewColumn.CellTemplate>
+								</GridViewColumn>
+							</GridView>
+						</ListView.View>
+					</ListView>
+
+					<Button Grid.Row="2" Grid.Column="0" Click="OnAddShortcutClick" Content="_Add" HorizontalAlignment="Left" Margin="10,0"/>
+				</Grid>
+			</TabItem>
+
 			<TabItem Header="Settings">
 				<Grid>
 					<Grid.ColumnDefinitions>
