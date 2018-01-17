@@ -111,6 +111,7 @@
     <Compile Include="Models\IgnoreAttribute.cs" />
     <Compile Include="Models\MusicFile.cs" />
     <Compile Include="Models\PrimaryKeyAttribute.cs" />
+    <Compile Include="Models\Setting.cs" />
     <Compile Include="Models\Shortcut.cs" />
     <Compile Include="Models\VideoFile.cs" />
     <Compile Include="MoreLinq.cs" />

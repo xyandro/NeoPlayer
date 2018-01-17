@@ -1,5 +1,9 @@
-﻿using System.IO;
-using System.Xml.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using NeoPlayer.Models;
 
 namespace NeoPlayer
 {
@@ -7,55 +11,46 @@ namespace NeoPlayer
 	{
 		const int DefaultPort = 7399;
 
-		static readonly string SettingsFile = Path.Combine(Path.GetDirectoryName(typeof(Settings).Assembly.Location), "Settings.xml");
+		static readonly Dictionary<string, Setting> settings;
 
-		static string slidesPath;
-		public static string SlidesPath { get { return slidesPath; } set { slidesPath = value; WriteXML(); } }
+		public static string SlidesPath { get => GetValue(); set => SetValue(value); }
+		public static string MusicPath { get => GetValue(); set => SetValue(value); }
+		public static string VideosPath { get => GetValue(); set => SetValue(value); }
+		public static string YouTubeDLPath { get => GetValue(); set => SetValue(value); }
+		public static string FFMpegPath { get => GetValue(); set => SetValue(value); }
+		public static int Port { get => int.Parse(GetValue()); set => SetValue(value.ToString()); }
 
-		static string musicPath;
-		public static string MusicPath { get { return musicPath; } set { musicPath = value; WriteXML(); } }
+		static string GetValue([CallerMemberName]string name = "")
+		{
+			if (!settings.ContainsKey(name))
+				return null;
+			return settings[name].Value;
+		}
 
-		static string videosPath;
-		public static string VideosPath { get { return videosPath; } set { videosPath = value; WriteXML(); } }
-
-		static string youTubeDLPath;
-		public static string YouTubeDLPath { get { return youTubeDLPath; } set { youTubeDLPath = value; WriteXML(); } }
-
-		static string ffMpegPath;
-		public static string FFMpegPath { get { return ffMpegPath; } set { ffMpegPath = value; WriteXML(); } }
-
-		static int port;
-		public static int Port { get { return port; } set { port = value; WriteXML(); } }
+		static void SetValue(string value, [CallerMemberName]string name = "")
+		{
+			if (!settings.ContainsKey(name))
+				settings[name] = new Setting { Name = name };
+			settings[name].Value = value ?? "";
+			Database.AddOrUpdateAsync(settings[name]).Wait();
+		}
 
 		static Settings()
 		{
-			slidesPath = musicPath = videosPath = youTubeDLPath = ffMpegPath = Directory.GetCurrentDirectory();
-			port = DefaultPort;
-			try
-			{
-				var xml = XElement.Load(SettingsFile);
-				slidesPath = xml.Element(nameof(SlidesPath))?.Value ?? slidesPath;
-				musicPath = xml.Element(nameof(MusicPath))?.Value ?? musicPath;
-				videosPath = xml.Element(nameof(VideosPath))?.Value ?? videosPath;
-				youTubeDLPath = xml.Element(nameof(YouTubeDLPath))?.Value ?? youTubeDLPath;
-				ffMpegPath = xml.Element(nameof(FFMpegPath))?.Value ?? ffMpegPath;
-				if (!int.TryParse(xml.Element(nameof(Port))?.Value ?? port.ToString(), out port))
-					port = DefaultPort;
-			}
-			catch { }
-		}
+			settings = Database.GetAsync<Setting>().Result.ToDictionary(setting => setting.Name, StringComparer.OrdinalIgnoreCase);
 
-		static void WriteXML()
-		{
-			var xml = new XElement("Settings",
-				new XElement(nameof(SlidesPath), SlidesPath),
-				new XElement(nameof(MusicPath), MusicPath),
-				new XElement(nameof(VideosPath), VideosPath),
-				new XElement(nameof(YouTubeDLPath), YouTubeDLPath),
-				new XElement(nameof(FFMpegPath), FFMpegPath),
-				new XElement(nameof(Port), Port)
-			);
-			xml.Save(SettingsFile);
+			if (string.IsNullOrWhiteSpace(GetValue(nameof(SlidesPath))))
+				SlidesPath = Path.Combine(Directory.GetCurrentDirectory(), nameof(SlidesPath));
+			if (string.IsNullOrWhiteSpace(GetValue(nameof(MusicPath))))
+				MusicPath = Path.Combine(Directory.GetCurrentDirectory(), nameof(MusicPath));
+			if (string.IsNullOrWhiteSpace(GetValue(nameof(VideosPath))))
+				VideosPath = Path.Combine(Directory.GetCurrentDirectory(), nameof(VideosPath));
+			if (!int.TryParse(GetValue(nameof(Port)), out int result))
+				Port = DefaultPort;
+
+			Directory.CreateDirectory(SlidesPath);
+			Directory.CreateDirectory(MusicPath);
+			Directory.CreateDirectory(VideosPath);
 		}
 	}
 }

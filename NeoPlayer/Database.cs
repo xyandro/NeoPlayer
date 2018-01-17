@@ -53,29 +53,34 @@ namespace NeoPlayer
 				var method = typeof(Database).GetMethod($"UpdateTo{version}", BindingFlags.Static | BindingFlags.NonPublic);
 				if (method == null)
 					break;
-				method.Invoke(null, new object[] { });
+				await (Task)method.Invoke(null, new object[] { });
 				await ExecuteNonQueryAsync("UPDATE Version SET CurrentVersion = @Version", new Dictionary<string, object> { ["@Version"] = version });
 			}
 		}
 
-		async static void UpdateTo1()
+		async static Task UpdateTo1()
 		{
 			await ExecuteNonQueryAsync(@"
 CREATE TABLE VideoFile
 (
 	VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
-	Identifier NVARCHAR(256) NOT NULL,
+	Identifier NVARCHAR(256) NOT NULL CONSTRAINT uk_VideoFile_Identifier UNIQUE,
 	Title NVARCHAR(1024) NOT NULL,
-	FileName NVARCHAR(1024) NOT NULL,
-	CONSTRAINT uk_VideoFile_Identifier UNIQUE (Identifier)
+	FileName NVARCHAR(1024) NOT NULL
+)");
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE Setting
+(
+	SettingID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	Name NVARCHAR(50) NOT NULL CONSTRAINT uk_Setting_Name UNIQUE,
+	Value NVARCHAR(1024) NOT NULL
 )");
 			await ExecuteNonQueryAsync(@"
 CREATE TABLE Shortcut
 (
 	ShortcutID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
-	Name NVARCHAR(50) NOT NULL,
-	Value NVARCHAR(1024) NOT NULL,
-	CONSTRAINT uk_Shortcut_Name UNIQUE (Name)
+	Name NVARCHAR(50) NOT NULL CONSTRAINT uk_Shortcut_Name UNIQUE,
+	Value NVARCHAR(1024) NOT NULL
 )");
 		}
 
