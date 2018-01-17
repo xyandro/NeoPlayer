@@ -531,35 +531,31 @@ namespace NeoPlayer
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
-			if ((e.Key == Key.S) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
+			e.Handled = true;
+			if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
 			{
-				SettingsDialog.Run(this);
-				e.Handled = true;
+				switch (e.Key)
+				{
+					case Key.S: SettingsDialog.Run(this); break;
+					case Key.N: WLAN.Start("NeoPlayer", "NeoPlayer"); break;
+					case Key.U: VideoFileDownloader.Update(); break;
+					case Key.Space: ToggleMediaPlaying(); break;
+					case Key.Right: MediaForward(); break;
+					default: e.Handled = false; break;
+				}
 			}
-			if (e.Key == Key.Space)
+			else
 			{
-				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					ToggleMediaPlaying();
-				else
-					ToggleSlidesPlaying();
+				switch (e.Key)
+				{
+					case Key.Space: ToggleSlidesPlaying(); break;
+					case Key.Right: CycleSlide(1); break;
+					case Key.Down: Volume -= 5; break;
+					case Key.Up: Volume += 5; break;
+					case Key.Left: CycleSlide(-1); break;
+					default: e.Handled = false; break;
+				}
 			}
-			if (e.Key == Key.Right)
-			{
-				if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-					MediaForward();
-				else
-					CycleSlide(1);
-			}
-			if (e.Key == Key.Down)
-				Volume -= 5;
-			if (e.Key == Key.Up)
-				Volume += 5;
-			if (e.Key == Key.Left)
-				CycleSlide(-1);
-			if (e.Key == Key.N)
-				WLAN.Start("NeoPlayer", "NeoPlayer");
-			if ((e.Key == Key.U) && (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)))
-				VideoFileDownloader.Update();
 			base.OnKeyDown(e);
 		}
 

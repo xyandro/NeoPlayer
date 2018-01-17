@@ -26,19 +26,19 @@ namespace NeoPlayer
 		static DependencyProperty FFMpegPathProperty = DependencyProperty.Register(nameof(FFMpegPath), typeof(string), typeof(SettingsDialog));
 		static DependencyProperty PortProperty = DependencyProperty.Register(nameof(Port), typeof(int), typeof(SettingsDialog));
 
-		string SlidesQuery { get { return (string)GetValue(SlidesQueryProperty); } set { SetValue(SlidesQueryProperty, value); } }
-		string SlidesSize { get { return (string)GetValue(SlidesSizeProperty); } set { SetValue(SlidesSizeProperty, value); } }
-		int SlideDisplayTime { get { return (int)GetValue(SlideDisplayTimeProperty); } set { SetValue(SlideDisplayTimeProperty, value); } }
+		string SlidesQuery { get => (string)GetValue(SlidesQueryProperty); set => SetValue(SlidesQueryProperty, value); }
+		string SlidesSize { get => (string)GetValue(SlidesSizeProperty); set => SetValue(SlidesSizeProperty, value); }
+		int SlideDisplayTime { get => (int)GetValue(SlideDisplayTimeProperty); set => SetValue(SlideDisplayTimeProperty, value); }
 		string Addresses { get => (string)GetValue(AddressesProperty); set => SetValue(AddressesProperty, value); }
 
-		ObservableCollection<Shortcut> ShortcutsList { get { return (ObservableCollection<Shortcut>)GetValue(ShortcutsListProperty); } set { SetValue(ShortcutsListProperty, value); } }
+		ObservableCollection<Shortcut> ShortcutsList { get => (ObservableCollection<Shortcut>)GetValue(ShortcutsListProperty); set => SetValue(ShortcutsListProperty, value); }
 
-		string SlidesPath { get { return (string)GetValue(SlidesPathProperty); } set { SetValue(SlidesPathProperty, value); } }
-		string MusicPath { get { return (string)GetValue(MusicPathProperty); } set { SetValue(MusicPathProperty, value); } }
-		string VideosPath { get { return (string)GetValue(VideosPathProperty); } set { SetValue(VideosPathProperty, value); } }
-		string YouTubeDLPath { get { return (string)GetValue(YouTubeDLPathProperty); } set { SetValue(YouTubeDLPathProperty, value); } }
-		string FFMpegPath { get { return (string)GetValue(FFMpegPathProperty); } set { SetValue(FFMpegPathProperty, value); } }
-		int Port { get { return (int)GetValue(PortProperty); } set { SetValue(PortProperty, value); } }
+		string SlidesPath { get => (string)GetValue(SlidesPathProperty); set => SetValue(SlidesPathProperty, value); }
+		string MusicPath { get => (string)GetValue(MusicPathProperty); set => SetValue(MusicPathProperty, value); }
+		string VideosPath { get => (string)GetValue(VideosPathProperty); set => SetValue(VideosPathProperty, value); }
+		string YouTubeDLPath { get => (string)GetValue(YouTubeDLPathProperty); set => SetValue(YouTubeDLPathProperty, value); }
+		string FFMpegPath { get => (string)GetValue(FFMpegPathProperty); set => SetValue(FFMpegPathProperty, value); }
+		int Port { get => (int)GetValue(PortProperty); set => SetValue(PortProperty, value); }
 
 		readonly NeoPlayerWindow neoPlayerWindow;
 		readonly List<Shortcut> initial;
