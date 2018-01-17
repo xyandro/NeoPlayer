@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NeoPlayer
+namespace NeoPlayer.Misc
 {
 	static class Helpers
 	{

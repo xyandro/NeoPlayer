@@ -13,7 +13,10 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using NeoPlayer.Downloaders;
+using NeoPlayer.Misc;
 using NeoPlayer.Models;
+using NeoPlayer.Networking;
 
 namespace NeoPlayer
 {

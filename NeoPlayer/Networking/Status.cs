@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NeoPlayer.Misc;
 using NeoPlayer.Models;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	public class Status
 	{

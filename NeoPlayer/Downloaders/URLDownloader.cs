@@ -6,8 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NeoPlayer.Misc;
 
-namespace NeoPlayer
+namespace NeoPlayer.Downloaders
 {
 	static class URLDownloader
 	{

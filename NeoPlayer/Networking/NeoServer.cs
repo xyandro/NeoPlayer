@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using NeoPlayer.Misc;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	public class NeoServer
 	{
@@ -95,13 +95,13 @@ namespace NeoPlayer
 
 		void SendAPK(AsyncQueue<byte[]> queue)
 		{
-			using (var stream = typeof(NeoServer).Assembly.GetManifestResourceStream("NeoPlayer.NeoRemote.apk"))
+			using (var stream = typeof(NeoServer).Assembly.GetManifestResourceStream("NeoPlayer.Networking.NeoRemote.apk"))
 				SendQueue(queue, stream, "application/octet-stream");
 		}
 
 		void SendFavicon(AsyncQueue<byte[]> queue)
 		{
-			using (var stream = typeof(NeoServer).Assembly.GetManifestResourceStream("NeoPlayer.favicon.ico"))
+			using (var stream = typeof(NeoServer).Assembly.GetManifestResourceStream("NeoPlayer.Networking.favicon.ico"))
 				SendQueue(queue, stream, "image/x-icon");
 		}
 

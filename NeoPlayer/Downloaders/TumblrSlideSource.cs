@@ -6,8 +6,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NeoPlayer.Misc;
 
-namespace NeoPlayer
+namespace NeoPlayer.Downloaders
 {
 	static class TumblrSlideSource
 	{

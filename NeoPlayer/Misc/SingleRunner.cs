@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Threading;
 
-namespace NeoPlayer
+namespace NeoPlayer.Misc
 {
 	public class SingleRunner
 	{

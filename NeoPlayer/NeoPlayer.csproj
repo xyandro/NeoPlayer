@@ -61,17 +61,17 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <EmbeddedResource Include="..\NeoRemote\app\build\outputs\apk\debug\app-debug.apk">
-      <Link>NeoRemote.apk</Link>
+      <Link>Networking\NeoRemote.apk</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <EmbeddedResource Include="..\NeoRemote\app\release\app-release.apk">
-      <Link>NeoRemote.apk</Link>
+      <Link>Networking\NeoRemote.apk</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\Images\favicon.ico">
-      <Link>favicon.ico</Link>
+      <Link>Networking\favicon.ico</Link>
     </EmbeddedResource>
     <None Include="..\Lib\sqlceer40EN.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -93,13 +93,18 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AsyncHelper.cs" />
-    <Compile Include="AsyncQueue.cs" />
-    <Compile Include="Cryptor.cs" />
     <Compile Include="Database.cs" />
-    <Compile Include="GoogleSlideSource.cs" />
-    <Compile Include="Helpers.cs" />
-    <Compile Include="Message.cs" />
+    <Compile Include="Downloaders\GoogleSlideSource.cs" />
+    <Compile Include="Downloaders\SlideDownloader.cs" />
+    <Compile Include="Downloaders\TumblrSlideSource.cs" />
+    <Compile Include="Downloaders\URLDownloader.cs" />
+    <Compile Include="Downloaders\VideoFileDownloader.cs" />
+    <Compile Include="Misc\AsyncHelper.cs" />
+    <Compile Include="Misc\AsyncQueue.cs" />
+    <Compile Include="Misc\Cryptor.cs" />
+    <Compile Include="Misc\Helpers.cs" />
+    <Compile Include="Misc\MoreLinq.cs" />
+    <Compile Include="Misc\SingleRunner.cs" />
     <Compile Include="Models\DownloadData.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />
     <Compile Include="Models\MusicFile.cs" />
@@ -107,7 +112,6 @@
     <Compile Include="Models\Setting.cs" />
     <Compile Include="Models\Shortcut.cs" />
     <Compile Include="Models\VideoFile.cs" />
-    <Compile Include="MoreLinq.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -116,13 +120,17 @@
       <DependentUpon>NeoPlayerWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NeoServer.cs" />
-    <Compile Include="NeoSocket.cs" />
+    <Compile Include="Networking\Message.cs" />
+    <Compile Include="Networking\NeoServer.cs" />
+    <Compile Include="Networking\NeoSocket.cs" />
+    <Compile Include="Networking\Restarter.cs" />
+    <Compile Include="Networking\Status.cs" />
+    <Compile Include="Networking\WebRequest.cs" />
+    <Compile Include="Networking\WLAN.cs" />
     <AppDesigner Include="Properties\" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Restarter.cs" />
     <Compile Include="Settings.cs" />
     <Page Include="SettingsDialog.xaml">
       <SubType>Designer</SubType>
@@ -131,14 +139,6 @@
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SingleRunner.cs" />
-    <Compile Include="SlideDownloader.cs" />
-    <Compile Include="Status.cs" />
-    <Compile Include="TumblrSlideSource.cs" />
-    <Compile Include="URLDownloader.cs" />
-    <Compile Include="VideoFileDownloader.cs" />
-    <Compile Include="WebRequest.cs" />
-    <Compile Include="WLAN.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

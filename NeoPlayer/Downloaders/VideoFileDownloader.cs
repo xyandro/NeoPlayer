@@ -10,7 +10,7 @@ using NeoPlayer.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace NeoPlayer
+namespace NeoPlayer.Downloaders
 {
 	static class VideoFileDownloader
 	{

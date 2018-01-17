@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	static class WLAN
 	{

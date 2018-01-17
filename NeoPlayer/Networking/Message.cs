@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NeoPlayer.Models;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	public class Message
 	{

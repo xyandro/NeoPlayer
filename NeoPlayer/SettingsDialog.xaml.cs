@@ -6,6 +6,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using NeoPlayer.Downloaders;
+using NeoPlayer.Misc;
 using NeoPlayer.Models;
 
 namespace NeoPlayer

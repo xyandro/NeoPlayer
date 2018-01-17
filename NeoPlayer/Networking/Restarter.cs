@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	static class Restarter
 	{

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NeoPlayer
+namespace NeoPlayer.Misc
 {
 	static class MoreLinq
 	{

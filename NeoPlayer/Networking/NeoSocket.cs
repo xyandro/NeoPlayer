@@ -3,7 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace NeoPlayer
+namespace NeoPlayer.Networking
 {
 	public class NeoSocket
 	{

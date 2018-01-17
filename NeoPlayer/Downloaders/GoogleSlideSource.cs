@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using NeoPlayer.Misc;
 
-namespace NeoPlayer
+namespace NeoPlayer.Downloaders
 {
 	static class GoogleSlideSource
 	{
