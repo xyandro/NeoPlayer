@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Message {
     private ByteBuffer byteBuffer;
@@ -45,6 +46,18 @@ public class Message {
     public Message add(VideoFile videoFile) {
         add(videoFile.videoFileID);
         add(videoFile.title);
+        return this;
+    }
+
+    public Message add(EditTags editTags) {
+        add(editTags.videoFileIDs.size());
+        for (int videoFileID : editTags.videoFileIDs)
+            add(videoFileID);
+        add(editTags.tags.size());
+        for (Map.Entry<String, String> tag : editTags.tags.entrySet()) {
+            add(tag.getKey());
+            add(tag.getValue());
+        }
         return this;
     }
 
@@ -100,6 +113,9 @@ public class Message {
 
     public String getString() {
         int size = getInt();
+        if (size == -1)
+            return null;
+
         byte[] bytes = new byte[size];
         byteBuffer.get(bytes, 0, size);
         try {

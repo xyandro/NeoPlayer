@@ -105,8 +105,8 @@
     <Compile Include="Misc\Helpers.cs" />
     <Compile Include="Misc\MoreLinq.cs" />
     <Compile Include="Misc\SingleRunner.cs" />
-    <Compile Include="Models\AddTags.cs" />
     <Compile Include="Models\DownloadData.cs" />
+    <Compile Include="Models\EditTags.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />
     <Compile Include="Models\MusicFile.cs" />
     <Compile Include="Models\PrimaryKeyAttribute.cs" />

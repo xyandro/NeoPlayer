@@ -87,6 +87,9 @@ namespace NeoPlayer
 		{
 			var videoFiles = Database.GetAsync<VideoFile>().Result.ToDictionary(videoFile => videoFile.VideoFileID);
 			var tags = Database.GetAsync<Tag>().Result.ToDictionary(tag => tag.TagID, tag => tag.Name);
+			foreach (var tag in tags.Values)
+				foreach (var videoFile in videoFiles.Values)
+					videoFile.Tags[tag] = null;
 			Database.GetAsync<TagValue>().Result.ForEach(tagValue => videoFiles[tagValue.VideoFileID].Tags[tags[tagValue.TagID]] = tagValue.Value);
 			status.VideoFiles = videoFiles.Values.ToList();
 		}
@@ -108,7 +111,7 @@ namespace NeoPlayer
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
 				case "DownloadURL": DownloadURL(message.GetString()); break;
-				case "AddTags": AddTags(message.GetAddTags()); break;
+				case "EditTags": EditTags(message.GetEditTags()); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
@@ -130,16 +133,16 @@ namespace NeoPlayer
 			}, UpdateVideoFiles);
 		}
 
-		async void AddTags(AddTags addTags)
+		async void EditTags(EditTags editTags)
 		{
 			var tags = await Database.GetAsync<Tag>();
-			tags.AddRange(addTags.Tags.Keys.Except(tags.Select(tag => tag.Name), StringComparer.OrdinalIgnoreCase).Select(name => new Tag { Name = name }));
+			tags.AddRange(editTags.Tags.Keys.Except(tags.Select(tag => tag.Name), StringComparer.OrdinalIgnoreCase).Select(name => new Tag { Name = name }));
 			tags.Where(tag => tag.TagID == 0).ForEach(async tag => await Database.AddOrUpdateAsync(tag));
 			var tagIDs = tags.ToDictionary(tag => tag.Name, tag => tag.TagID, StringComparer.OrdinalIgnoreCase);
 
 			var tagValues = (await Database.GetAsync<TagValue>()).GroupBy(tagValue => tagValue.VideoFileID).ToDictionary(group => group.Key, group => group.ToDictionary(tagValue => tagValue.TagID));
-			foreach (var videoFileID in addTags.VideoFileIDs)
-				foreach (var tag in addTags.Tags)
+			foreach (var videoFileID in editTags.VideoFileIDs)
+				foreach (var tag in editTags.Tags)
 				{
 					var tagID = tagIDs[tag.Key];
 
@@ -152,8 +155,13 @@ namespace NeoPlayer
 					if (string.Equals(tagValue.Value, tag.Value, StringComparison.OrdinalIgnoreCase))
 						continue;
 
-					tagValue.Value = tag.Value;
-					await Database.AddOrUpdateAsync(tagValue);
+					if (!string.IsNullOrWhiteSpace(tag.Value))
+					{
+						tagValue.Value = string.IsNullOrWhiteSpace(tag.Value) ? null : tag.Value;
+						await Database.AddOrUpdateAsync(tagValue);
+					}
+					else if (tagValue.TagValueID != 0)
+						await Database.DeleteAsync(tagValue);
 				}
 
 			UpdateVideoFiles();

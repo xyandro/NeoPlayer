@@ -57,6 +57,11 @@ namespace NeoPlayer.Networking
 
 		public void Add(string value)
 		{
+			if (value == null)
+			{
+				Add(-1);
+				return;
+			}
 			var bytes = Encoding.UTF8.GetBytes(value);
 			Add(bytes.Length);
 			Add(bytes);
@@ -138,19 +143,19 @@ namespace NeoPlayer.Networking
 
 		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
 
-		public AddTags GetAddTags()
+		public EditTags GetEditTags()
 		{
-			var addTags = new AddTags { VideoFileIDs = new List<int>(), Tags = new Dictionary<string, string>() };
+			var editTags = new EditTags { VideoFileIDs = new List<int>(), Tags = new Dictionary<string, string>() };
 
 			var count = GetInt();
 			for (var ctr = 0; ctr < count; ++ctr)
-				addTags.VideoFileIDs.Add(GetInt());
+				editTags.VideoFileIDs.Add(GetInt());
 
 			count = GetInt();
 			for (var ctr = 0; ctr < count; ++ctr)
-				addTags.Tags[GetString()] = GetString();
+				editTags.Tags[GetString()] = GetString();
 
-			return addTags;
+			return editTags;
 		}
 	}
 }

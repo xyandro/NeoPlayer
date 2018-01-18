@@ -147,6 +147,12 @@ public class MainActivity extends Activity {
         binding.videosClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!starIDs.isEmpty()) {
+                    ArrayList<VideoFile> editTagFiles = new ArrayList<>();
+                    for (int videoFileID : starIDs)
+                        editTagFiles.add(videoFiles.get(videoFileID));
+                    EditTagsDialog.createDialog(MainActivity.this, EditTags.create(editTagFiles)).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
+                }
             }
         });
 
@@ -673,6 +679,10 @@ public class MainActivity extends Activity {
 
     public void queueVideo(int videoFileID, boolean top) {
         outputQueue.add(new Message().add("QueueVideo").add(videoFileID).add(top).toArray());
+    }
+
+    public void editTags(EditTags editTags) {
+        outputQueue.add(new Message().add("EditTags").add(editTags).toArray());
     }
 
     private void updateVideoList() {
