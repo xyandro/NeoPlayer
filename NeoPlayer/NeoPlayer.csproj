@@ -105,12 +105,15 @@
     <Compile Include="Misc\Helpers.cs" />
     <Compile Include="Misc\MoreLinq.cs" />
     <Compile Include="Misc\SingleRunner.cs" />
+    <Compile Include="Models\AddTags.cs" />
     <Compile Include="Models\DownloadData.cs" />
     <Compile Include="Models\IgnoreAttribute.cs" />
     <Compile Include="Models\MusicFile.cs" />
     <Compile Include="Models\PrimaryKeyAttribute.cs" />
     <Compile Include="Models\Setting.cs" />
     <Compile Include="Models\Shortcut.cs" />
+    <Compile Include="Models\Tag.cs" />
+    <Compile Include="Models\TagValue.cs" />
     <Compile Include="Models\VideoFile.cs" />
     <Page Include="NeoPlayerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

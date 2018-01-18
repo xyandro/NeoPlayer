@@ -1,13 +1,15 @@
 package neoplayer.neoremote;
 
+import java.util.HashMap;
+
 public class VideoFile {
     public int videoFileID;
     public String title;
-    public int playlistOrder;
+    public HashMap<String, String> tagValues = new HashMap<>();
 
-    public VideoFile(int videoFileID, String title, int playlistOrder) {
+    public VideoFile(int videoFileID, String title, HashMap<String, String> tagValues ) {
         this.videoFileID = videoFileID;
         this.title = title;
-        this.playlistOrder = playlistOrder;
+        this.tagValues = tagValues;
     }
 }

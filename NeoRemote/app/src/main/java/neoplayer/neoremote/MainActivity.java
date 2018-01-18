@@ -56,6 +56,7 @@ public class MainActivity extends Activity {
     private static final String addressFileName = "NeoPlayer.txt";
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
+    private HashSet<Integer> starIDs = new HashSet<>();
     private ArrayList<Integer> queue = new ArrayList<>();
     private ArrayList<Integer> history = new ArrayList<>();
     private MediaSessionCompat mediaSession;
@@ -136,7 +137,7 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
-        videoAdapter = new VideoFileListAdapter(this);
+        videoAdapter = new VideoFileListAdapter(this, starIDs);
         downloadAdapter = new DownloadListAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);

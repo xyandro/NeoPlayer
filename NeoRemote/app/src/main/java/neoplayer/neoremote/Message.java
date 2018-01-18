@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Message {
     private ByteBuffer byteBuffer;
@@ -111,8 +112,11 @@ public class Message {
     public VideoFile getVideoFile() {
         int videoFileID = getInt();
         String title = getString();
-        int playlistOrder = getInt();
-        return new VideoFile(videoFileID, title, playlistOrder);
+        int count = getInt();
+        HashMap<String, String> tagValues = new HashMap<>();
+        for (int ctr = 0; ctr < count; ++ctr)
+            tagValues.put(getString(), getString());
+        return new VideoFile(videoFileID, title, tagValues);
     }
 
     public ArrayList<VideoFile> getVideoFiles() {

@@ -5,7 +5,7 @@
     android:orientation="horizontal">
 
     <ImageButton
-        android:id="@+id/image"
+        android:id="@+id/check_image"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:adjustViewBounds="true"
@@ -28,4 +28,15 @@
         android:textColor="@android:color/black"
         android:textSize="15dp" />
 
+    <Space
+        android:layout_width="5dp"
+        android:layout_height="match_parent" />
+
+    <ImageButton
+        android:id="@+id/star_image"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:adjustViewBounds="true"
+        android:background="@null"
+        android:scaleType="fitCenter" />
 </LinearLayout>

@@ -66,7 +66,12 @@ namespace NeoPlayer.Networking
 		{
 			Add(value.VideoFileID);
 			Add(value.Title);
-			Add(1);
+			Add(value.Tags.Count);
+			foreach (var pair in value.Tags)
+			{
+				Add(pair.Key);
+				Add(pair.Value);
+			}
 		}
 
 		public void Add(List<VideoFile> values)
@@ -132,5 +137,20 @@ namespace NeoPlayer.Networking
 		public int GetInt() => BitConverter.ToInt32(GetBytes(4), 0);
 
 		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
+
+		public AddTags GetAddTags()
+		{
+			var addTags = new AddTags { VideoFileIDs = new List<int>(), Tags = new Dictionary<string, string>() };
+
+			var count = GetInt();
+			for (var ctr = 0; ctr < count; ++ctr)
+				addTags.VideoFileIDs.Add(GetInt());
+
+			count = GetInt();
+			for (var ctr = 0; ctr < count; ++ctr)
+				addTags.Tags[GetString()] = GetString();
+
+			return addTags;
+		}
 	}
 }

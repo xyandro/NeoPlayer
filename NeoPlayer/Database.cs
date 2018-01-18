@@ -83,6 +83,21 @@ CREATE TABLE Shortcut
 	Name NVARCHAR(50) NOT NULL CONSTRAINT uk_Shortcut_Name UNIQUE,
 	Value NVARCHAR(1024) NOT NULL
 )");
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE Tag
+(
+	TagID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	Name NVARCHAR(50) NOT NULL CONSTRAINT uk_Tag_Name UNIQUE
+)");
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE TagValue
+(
+	TagValueID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	VideoFileID INT NOT NULL CONSTRAINT fk_TagValue_VideoFileID REFERENCES VideoFile(VideoFileID) ON DELETE CASCADE,
+	TagID INT NOT NULL CONSTRAINT fk_TagValue_TagID REFERENCES Tag(TagID) ON DELETE CASCADE,
+	Value NVARCHAR(50) NOT NULL,
+	CONSTRAINT uk_TagValue_VideoFileID_TagID UNIQUE (VideoFileID, TagID)
+)");
 		}
 
 		static List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties().Where(prop => prop.GetCustomAttribute<IgnoreAttribute>() == null).ToList();

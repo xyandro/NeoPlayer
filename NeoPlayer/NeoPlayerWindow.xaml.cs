@@ -83,7 +83,13 @@ namespace NeoPlayer
 			status.History = history.ToList();
 		}
 
-		void UpdateVideoFiles() => status.VideoFiles = Database.GetAsync<VideoFile>().Result;
+		void UpdateVideoFiles()
+		{
+			var videoFiles = Database.GetAsync<VideoFile>().Result.ToDictionary(videoFile => videoFile.VideoFileID);
+			var tags = Database.GetAsync<Tag>().Result.ToDictionary(tag => tag.TagID, tag => tag.Name);
+			Database.GetAsync<TagValue>().Result.ForEach(tagValue => videoFiles[tagValue.VideoFileID].Tags[tags[tagValue.TagID]] = tagValue.Value);
+			status.VideoFiles = videoFiles.Values.ToList();
+		}
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
@@ -102,6 +108,7 @@ namespace NeoPlayer
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
 				case "DownloadURL": DownloadURL(message.GetString()); break;
+				case "AddTags": AddTags(message.GetAddTags()); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
@@ -121,6 +128,35 @@ namespace NeoPlayer
 					status.Downloads = downloads.Values.ToList();
 				});
 			}, UpdateVideoFiles);
+		}
+
+		async void AddTags(AddTags addTags)
+		{
+			var tags = await Database.GetAsync<Tag>();
+			tags.AddRange(addTags.Tags.Keys.Except(tags.Select(tag => tag.Name), StringComparer.OrdinalIgnoreCase).Select(name => new Tag { Name = name }));
+			tags.Where(tag => tag.TagID == 0).ForEach(async tag => await Database.AddOrUpdateAsync(tag));
+			var tagIDs = tags.ToDictionary(tag => tag.Name, tag => tag.TagID, StringComparer.OrdinalIgnoreCase);
+
+			var tagValues = (await Database.GetAsync<TagValue>()).GroupBy(tagValue => tagValue.VideoFileID).ToDictionary(group => group.Key, group => group.ToDictionary(tagValue => tagValue.TagID));
+			foreach (var videoFileID in addTags.VideoFileIDs)
+				foreach (var tag in addTags.Tags)
+				{
+					var tagID = tagIDs[tag.Key];
+
+					TagValue tagValue = null;
+					if ((tagValues.ContainsKey(videoFileID)) && (tagValues[videoFileID].ContainsKey(tagID)))
+						tagValue = tagValues[videoFileID][tagID];
+					else
+						tagValue = new TagValue { VideoFileID = videoFileID, TagID = tagID };
+
+					if (string.Equals(tagValue.Value, tag.Value, StringComparison.OrdinalIgnoreCase))
+						continue;
+
+					tagValue.Value = tag.Value;
+					await Database.AddOrUpdateAsync(tagValue);
+				}
+
+			UpdateVideoFiles();
 		}
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
