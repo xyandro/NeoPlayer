@@ -1,13 +1,11 @@
 package neoplayer.neoremote;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.databinding.DataBindingUtil;
@@ -58,12 +56,12 @@ public class MainActivity extends Activity {
     private static final String addressFileName = "NeoPlayer.txt";
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
+    private ArrayList<Integer> queue = new ArrayList<>();
+    private ArrayList<Integer> history = new ArrayList<>();
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
-    private VideoFileListAdapter historyAdapter;
-    private VideoFileListAdapter queueAdapter;
-    private VideoFileListAdapter coolAdapter;
+    private VideoFileListAdapter videoAdapter;
     private DownloadListAdapter downloadAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
@@ -138,52 +136,16 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
-        historyAdapter = new VideoFileListAdapter(this);
-        queueAdapter = new VideoFileListAdapter(this);
-        coolAdapter = new VideoFileListAdapter(this);
+        videoAdapter = new VideoFileListAdapter(this);
         downloadAdapter = new DownloadListAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);
-        binding.pager.setCurrentItem(2);
+        binding.pager.setCurrentItem(1);
 
-        binding.historyVideosList.setAdapter(historyAdapter);
-
-        binding.queueVideosList.setAdapter(queueAdapter);
-        binding.queueClearSearch.setOnClickListener(new View.OnClickListener() {
+        binding.videosList.setAdapter(videoAdapter);
+        binding.videosClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                binding.queueSearchText.clearFocus();
-                binding.queueSearchText.setText("");
-            }
-        });
-
-        binding.queueClearSearch.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle("Restart NeoPlayer?")
-                        .setMessage("Are you sure you want to restart NeoPlayer?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sendRestart();
-                            }
-
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-
-                return false;
-            }
-        });
-
-        binding.coolVideosList.setAdapter(coolAdapter);
-        binding.coolClearSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                binding.coolSearchText.clearFocus();
-                binding.coolSearchText.setText("");
             }
         });
 
@@ -247,6 +209,27 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 outputQueue.add(new Message().add("CycleSlide").add(true).toArray());
+            }
+        });
+
+        binding.videoListVideos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateVideoList();
+            }
+        });
+
+        binding.videoListQueue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateVideoList();
+            }
+        });
+
+        binding.videoListHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateVideoList();
             }
         });
 
@@ -691,6 +674,19 @@ public class MainActivity extends Activity {
         outputQueue.add(new Message().add("QueueVideo").add(videoFileID).add(top).toArray());
     }
 
+    private void updateVideoList() {
+        if (binding.videoListQueue.isChecked()) {
+            videoAdapter.setShowIDs(queue);
+        } else if (binding.videoListHistory.isChecked()) {
+            videoAdapter.setShowIDs(history);
+        } else {
+            ArrayList<Integer> showIDs = new ArrayList<>();
+            for (VideoFile videoFile : videoFiles.values())
+                showIDs.add(videoFile.videoFileID);
+            videoAdapter.setShowIDs(showIDs);
+        }
+    }
+
     private void handleMessage(Message message) {
         int count = message.getInt();
         while (count > 0) {
@@ -698,28 +694,20 @@ public class MainActivity extends Activity {
             String field = message.getString();
             switch (field) {
                 case "History":
-                    historyAdapter.setShowIDs(message.getInts());
+                    history = message.getInts();
+                    updateVideoList();
                     break;
                 case "Queue":
-                    ArrayList<Integer> queueIDs = message.getInts();
-                    queueAdapter.setShowIDs(queueIDs);
-
-                    HashSet<Integer> selectedIDs = new HashSet<>(queueIDs);
-                    historyAdapter.setSelectedIDs(selectedIDs);
-                    queueAdapter.setSelectedIDs(selectedIDs);
-                    coolAdapter.setSelectedIDs(selectedIDs);
+                    queue = message.getInts();
+                    videoAdapter.setCheckIDs(new HashSet<>(queue));
+                    updateVideoList();
                     break;
                 case "VideoFiles":
                     videoFiles = new HashMap<>();
-                    ArrayList<Integer> showIDs = new ArrayList<>();
-                    for (VideoFile videoFile : message.getVideoFiles()) {
+                    for (VideoFile videoFile : message.getVideoFiles())
                         videoFiles.put(videoFile.videoFileID, videoFile);
-                        showIDs.add(videoFile.videoFileID);
-                    }
-                    historyAdapter.setVideoFiles(videoFiles);
-                    queueAdapter.setVideoFiles(videoFiles);
-                    coolAdapter.setVideoFiles(videoFiles);
-                    coolAdapter.setShowIDs(showIDs);
+                    videoAdapter.setVideoFiles(videoFiles);
+                    updateVideoList();
                     break;
                 case "Downloads":
                     downloadAdapter.setDownloadData(message.getDownloadDatas());

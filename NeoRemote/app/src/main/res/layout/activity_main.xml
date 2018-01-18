@@ -31,256 +31,6 @@
                         android:layout_height="15dp"
                         android:fontFeatureSettings="smcp"
                         android:gravity="center"
-                        android:text="History"
-                        android:textColor="@android:color/black"
-                        android:textSize="10dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <neoplayer.neoremote.NEEditText
-                            android:id="@+id/history_search_text"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <ImageButton
-                            android:id="@+id/history_clear_search"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/clear" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/background_green">
-
-                    <ListView
-                        android:id="@+id/history_videos_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@layout/slide_border"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="55dp"
-                    android:background="@drawable/background_yellow"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="15dp"
-                        android:fontFeatureSettings="smcp"
-                        android:gravity="center"
-                        android:text="Queue"
-                        android:textColor="@android:color/black"
-                        android:textSize="10dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <neoplayer.neoremote.NEEditText
-                            android:id="@+id/queue_search_text"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <ImageButton
-                            android:id="@+id/queue_clear_search"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/clear" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/background_teal">
-
-                    <ListView
-                        android:id="@+id/queue_videos_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@layout/slide_border"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="55dp"
-                    android:background="@drawable/background_yellow"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="15dp"
-                        android:fontFeatureSettings="smcp"
-                        android:gravity="center"
-                        android:text="Cool"
-                        android:textColor="@android:color/black"
-                        android:textSize="10dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <neoplayer.neoremote.NEEditText
-                            android:id="@+id/cool_search_text"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Search" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <ImageButton
-                            android:id="@+id/cool_clear_search"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/clear" />
-
-                        <Space
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <ImageButton
-                            android:id="@+id/cool_sort_order"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:background="@null"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/numorder" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/background_azure">
-
-                    <ListView
-                        android:id="@+id/cool_videos_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@layout/slide_border"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="55dp"
-                    android:background="@drawable/background_yellow"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="15dp"
-                        android:fontFeatureSettings="smcp"
-                        android:gravity="center"
                         android:text="Slides"
                         android:textColor="@android:color/black"
                         android:textSize="10dp" />
@@ -470,6 +220,112 @@
                             android:scaleType="fitCenter"
                             android:src="@drawable/forward" />
                     </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@layout/slide_border"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:background="@drawable/background_yellow"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="15dp"
+                        android:fontFeatureSettings="smcp"
+                        android:gravity="center"
+                        android:text="Videos"
+                        android:textColor="@android:color/black"
+                        android:textSize="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal">
+
+                        <RadioGroup
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/video_list_videos"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:checked="true"
+                                android:text="Videos" />
+
+                            <RadioButton
+                                android:id="@+id/video_list_queue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:text="Queue" />
+
+                            <RadioButton
+                                android:id="@+id/video_list_history"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:text="History" />
+                        </RadioGroup>
+
+                        <ImageButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/search" />
+
+                        <Space
+                            android:layout_width="5dp"
+                            android:layout_height="match_parent" />
+
+                        <ImageButton
+                            android:id="@+id/videos_clear"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/clear" />
+
+                        <Space
+                            android:layout_width="5dp"
+                            android:layout_height="match_parent" />
+
+                        <ImageButton
+                            android:id="@+id/videos_sort"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:background="@null"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/numorder" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/background_azure">
+
+                    <ListView
+                        android:id="@+id/videos_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
                 </LinearLayout>
             </LinearLayout>
 

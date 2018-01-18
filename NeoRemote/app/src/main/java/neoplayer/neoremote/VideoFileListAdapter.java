@@ -13,7 +13,7 @@ import java.util.HashSet;
 public class VideoFileListAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
-    private HashSet<Integer> selectedIDs = new HashSet<>();
+    private HashSet<Integer> checkIDs = new HashSet<>();
     private ArrayList<Integer> showIDs = new ArrayList<>();
     private final ArrayList<VideoFile> displayList = new ArrayList<>();
 
@@ -27,8 +27,8 @@ public class VideoFileListAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void setSelectedIDs(HashSet<Integer> selectedIDs) {
-        this.selectedIDs = selectedIDs;
+    public void setCheckIDs(HashSet<Integer> checkIDs) {
+        this.checkIDs = checkIDs;
         notifyDataSetChanged();
     }
 
@@ -60,7 +60,7 @@ public class VideoFileListAdapter extends BaseAdapter {
         if (view == null)
             view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
         ImageView image = view.findViewById(R.id.image);
-        image.setImageResource(selectedIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
+        image.setImageResource(checkIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
         ((TextView) view.findViewById(R.id.name)).setText(videoFile.title);
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
