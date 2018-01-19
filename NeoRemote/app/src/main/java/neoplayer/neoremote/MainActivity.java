@@ -39,6 +39,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,6 +61,7 @@ public class MainActivity extends Activity {
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private HashSet<Integer> starIDs = new HashSet<>();
     private HashMap<String, String> searchTags;
+    private SortData sortData;
     private ArrayList<Integer> queue = new ArrayList<>();
     private ArrayList<Integer> history = new ArrayList<>();
     private MediaSessionCompat mediaSession;
@@ -156,6 +159,21 @@ public class MainActivity extends Activity {
                     for (Map.Entry<String, String> searchTag : searchTags.entrySet())
                         tags.put(searchTag.getKey(), searchTag.getValue());
                 FindDialog.createDialog(MainActivity.this, tags).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
+            }
+        });
+
+        binding.videosSort.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SortData useSortData = sortData;
+                if (useSortData == null) {
+                    HashSet<String> tags = new HashSet<>();
+                    for (VideoFile videoFile : videoFiles.values())
+                        for (String key : videoFile.tags.keySet())
+                            tags.add(key);
+                    useSortData = new SortData(tags);
+                }
+                SortDialog.createDialog(MainActivity.this, useSortData).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
             }
         });
 
@@ -706,6 +724,11 @@ public class MainActivity extends Activity {
         updateVideoList();
     }
 
+    public void setSortData(SortData sortData) {
+        this.sortData = sortData;
+        updateVideoList();
+    }
+
     private void updateVideoList() {
         if (binding.videoListQueue.isChecked()) {
             videoAdapter.setShowIDs(queue);
@@ -716,6 +739,7 @@ public class MainActivity extends Activity {
             for (VideoFile videoFile : videoFiles.values())
                 if (matchSearch(videoFile))
                     showIDs.add(videoFile.videoFileID);
+            sortIDs(showIDs);
             videoAdapter.setShowIDs(showIDs);
         }
     }
@@ -733,6 +757,37 @@ public class MainActivity extends Activity {
         }
 
         return true;
+    }
+
+    private void sortIDs(ArrayList<Integer> showIDs) {
+        Collections.sort(showIDs, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer id1, Integer id2) {
+                VideoFile videoFile1 = videoFiles.get(id1);
+                VideoFile videoFile2 = videoFiles.get(id2);
+                if (sortData != null) {
+                    for (SortData.SortItem sortItem : sortData.sortItems) {
+                        if (sortItem.direction == SortData.SortDirection.None)
+                            continue;
+                        String tag1 = videoFile1.tags.get(sortItem.tag);
+                        String tag2 = videoFile2.tags.get(sortItem.tag);
+                        if ((tag1 == null) && (tag2 == null))
+                            continue;
+                        if (tag2 == null)
+                            return -1;
+                        if (tag1 == null)
+                            return 1;
+                        int compare = tag1.compareTo(tag2);
+                        if (compare == 0)
+                            continue;
+                        if (sortItem.direction == SortData.SortDirection.Descending)
+                            compare *= -1;
+                        return compare;
+                    }
+                }
+                return videoFile1.getTitle().compareTo(videoFile2.getTitle());
+            }
+        });
     }
 
     private void handleMessage(Message message) {
