@@ -65,7 +65,7 @@ public class VideoFileListAdapter extends BaseAdapter {
         ImageView starImage = view.findViewById(R.id.star_image);
         checkImage.setImageResource(checkIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
         starImage.setImageResource(starIDs.contains(videoFile.videoFileID) ? R.drawable.star : 0);
-        ((TextView) view.findViewById(R.id.name)).setText(videoFile.title);
+        ((TextView) view.findViewById(R.id.name)).setText(videoFile.getTitle());
 
         final View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override

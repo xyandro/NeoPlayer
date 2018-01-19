@@ -70,7 +70,6 @@ namespace NeoPlayer.Networking
 		public void Add(VideoFile value)
 		{
 			Add(value.VideoFileID);
-			Add(value.Title);
 			Add(value.Tags.Count);
 			foreach (var pair in value.Tags)
 			{

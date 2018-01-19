@@ -7,8 +7,11 @@ namespace NeoPlayer.Models
 		[PrimaryKey]
 		public int VideoFileID { get; set; }
 		public string Identifier { get; set; }
-		public string Title { get; set; }
 		public string FileName { get; set; }
+		[Ignore]
+		public string Title { get => Tags[nameof(Title)]; set => Tags[nameof(Title)] = value; }
+		[Ignore]
+		public string DownloadDate { get => Tags[nameof(DownloadDate)]; set => Tags[nameof(DownloadDate)] = value; }
 		[Ignore]
 		public string URL { get; set; }
 		[Ignore]

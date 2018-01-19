@@ -13,9 +13,9 @@ public class EditTags {
         EditTags editTags = new EditTags();
         for (VideoFile videoFile : videoFiles) {
             editTags.videoFileIDs.add(videoFile.videoFileID);
-            for (Map.Entry<String, String> tagValue : videoFile.tagValues.entrySet()) {
-                String key = tagValue.getKey();
-                String value = tagValue.getValue();
+            for (Map.Entry<String, String> tag : videoFile.tags.entrySet()) {
+                String key = tag.getKey();
+                String value = tag.getValue();
                 if ((editTags.tags.containsKey(key)) && ((editTags.tags.get(key) == null) || (!editTags.tags.get(key).equals(value))))
                     value = null;
                 editTags.tags.put(key, value);

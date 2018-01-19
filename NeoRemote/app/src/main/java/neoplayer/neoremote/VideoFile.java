@@ -4,12 +4,14 @@ import java.util.HashMap;
 
 public class VideoFile {
     public int videoFileID;
-    public String title;
-    public HashMap<String, String> tagValues = new HashMap<>();
+    public HashMap<String, String> tags = new HashMap<>();
 
-    public VideoFile(int videoFileID, String title, HashMap<String, String> tagValues ) {
+    public VideoFile(int videoFileID, HashMap<String, String> tags) {
         this.videoFileID = videoFileID;
-        this.title = title;
-        this.tagValues = tagValues;
+        this.tags = tags;
+    }
+
+    public String getTitle() {
+        return tags.get("Title");
     }
 }

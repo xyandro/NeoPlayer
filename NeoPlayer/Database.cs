@@ -42,6 +42,9 @@ namespace NeoPlayer
 				AddOrUpdateAsync(new Shortcut { Name = "cool", Value = "https://www.youtube.com/playlist?list=PLzDWcvdzYAvqF6Dk6bWXyKcMQRbUCQaKp" }).Wait();
 				AddOrUpdateAsync(new Shortcut { Name = "test", Value = "https://www.youtube.com/playlist?list=PLzDWcvdzYAvr2C958wB8Rh3JMnTb_UkuX" }).Wait();
 				AddOrUpdateAsync(new Shortcut { Name = "video", Value = "https://www.youtube.com/watch?v=jcBYfBGCKMk" }).Wait();
+
+				AddOrUpdateAsync(new Setting { Name = nameof(Settings.YouTubeDLPath), Value = @"C:\Documents\YouTubeDL\youtube-dl.exe" }).Wait();
+				AddOrUpdateAsync(new Setting { Name = nameof(Settings.FFMpegPath), Value = @"C:\Documents\YouTubeDL\ffmpeg\bin\ffmpeg.exe" }).Wait();
 			}
 		}
 
@@ -66,7 +69,6 @@ CREATE TABLE VideoFile
 (
 	VideoFileID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
 	Identifier NVARCHAR(256) NOT NULL CONSTRAINT uk_VideoFile_Identifier UNIQUE,
-	Title NVARCHAR(1024) NOT NULL,
 	FileName NVARCHAR(1024) NOT NULL
 )");
 			await ExecuteNonQueryAsync(@"

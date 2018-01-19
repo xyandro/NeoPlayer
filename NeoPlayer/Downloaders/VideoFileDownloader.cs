@@ -19,6 +19,8 @@ namespace NeoPlayer.Downloaders
 		static int ID = 0;
 		static int GetID() => ++ID;
 
+		static readonly Dictionary<string, int> TagIDs = new Dictionary<string, int>();
+
 		async public static void DownloadAsync(string url, Action<int, DownloadData> updateDownload, Action done)
 		{
 			List<VideoFile> videoFiles;
@@ -114,6 +116,7 @@ namespace NeoPlayer.Downloaders
 					{
 						Identifier = $"{extractor}-{id}",
 						Title = title,
+						DownloadDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
 						URL = obj.Item1,
 					});
 				}
@@ -148,6 +151,20 @@ namespace NeoPlayer.Downloaders
 				{
 					videoFile.FileName = Path.GetFileName(found);
 					await Database.AddOrUpdateAsync(videoFile);
+					foreach (var pair in videoFile.Tags)
+					{
+						if (!TagIDs.ContainsKey(pair.Key))
+						{
+							var tag = Database.GetAsync<Tag>($"{nameof(Tag.Name)} = @Name", new Dictionary<string, object> { ["Name"] = pair.Key }).Result.FirstOrDefault();
+							if (tag == null)
+							{
+								tag = new Tag { Name = pair.Key };
+								await Database.AddOrUpdateAsync(tag);
+							}
+							TagIDs[pair.Key] = tag.TagID;
+						}
+						await Database.AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value });
+					}
 					done();
 					return;
 				}

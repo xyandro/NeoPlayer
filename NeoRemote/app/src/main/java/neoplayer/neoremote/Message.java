@@ -43,12 +43,6 @@ public class Message {
         return this;
     }
 
-    public Message add(VideoFile videoFile) {
-        add(videoFile.videoFileID);
-        add(videoFile.title);
-        return this;
-    }
-
     public Message add(EditTags editTags) {
         add(editTags.videoFileIDs.size());
         for (int videoFileID : editTags.videoFileIDs)
@@ -127,12 +121,11 @@ public class Message {
 
     public VideoFile getVideoFile() {
         int videoFileID = getInt();
-        String title = getString();
         int count = getInt();
         HashMap<String, String> tagValues = new HashMap<>();
         for (int ctr = 0; ctr < count; ++ctr)
             tagValues.put(getString(), getString());
-        return new VideoFile(videoFileID, title, tagValues);
+        return new VideoFile(videoFileID, tagValues);
     }
 
     public ArrayList<VideoFile> getVideoFiles() {
