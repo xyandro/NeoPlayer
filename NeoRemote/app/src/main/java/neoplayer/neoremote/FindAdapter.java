@@ -11,22 +11,23 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 
-public class EditTagsAdapter extends BaseAdapter {
+public class FindAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final EditTags editTags;
+    private final HashMap<String, String> tags;
     private ArrayList<Map.Entry<String, String>> list;
 
-    public EditTagsAdapter(MainActivity mainActivity, EditTags editTags) {
+    public FindAdapter(MainActivity mainActivity, HashMap<String, String> tags) {
         super();
         this.mainActivity = mainActivity;
-        this.editTags = editTags;
+        this.tags = tags;
         updateKeys();
     }
 
     private void updateKeys() {
-        list = new ArrayList<>(editTags.tags.entrySet());
+        list = new ArrayList<>(tags.entrySet());
         Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
             @Override
             public int compare(Map.Entry<String, String> entry1, Map.Entry<String, String> entry2) {
@@ -70,7 +71,7 @@ public class EditTagsAdapter extends BaseAdapter {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                value.setValue(editable.toString().trim());
+                value.setValue(editable.toString().trim().toLowerCase());
             }
         });
 

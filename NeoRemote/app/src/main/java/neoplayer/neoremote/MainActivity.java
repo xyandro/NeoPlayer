@@ -43,6 +43,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import neoplayer.neoremote.databinding.ActivityMainBinding;
@@ -57,6 +58,7 @@ public class MainActivity extends Activity {
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private HashSet<Integer> starIDs = new HashSet<>();
+    private HashMap<String, String> searchTags;
     private ArrayList<Integer> queue = new ArrayList<>();
     private ArrayList<Integer> history = new ArrayList<>();
     private MediaSessionCompat mediaSession;
@@ -142,6 +144,20 @@ public class MainActivity extends Activity {
 
         new ScreenSlidePagerAdapter(binding.pager);
         binding.pager.setCurrentItem(1);
+
+        binding.search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                HashMap<String, String> tags = new HashMap<>();
+                for (VideoFile videoFile : videoFiles.values())
+                    for (String key : videoFile.tags.keySet())
+                        tags.put(key, null);
+                if (searchTags != null)
+                    for (Map.Entry<String, String> searchTag : searchTags.entrySet())
+                        tags.put(searchTag.getKey(), searchTag.getValue());
+                FindDialog.createDialog(MainActivity.this, tags).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
+            }
+        });
 
         binding.videosList.setAdapter(videoAdapter);
         binding.videosClear.setOnClickListener(new View.OnClickListener() {
@@ -685,6 +701,11 @@ public class MainActivity extends Activity {
         outputQueue.add(new Message().add("EditTags").add(editTags).toArray());
     }
 
+    public void setSearchTags(HashMap<String, String> searchTags) {
+        this.searchTags = searchTags;
+        updateVideoList();
+    }
+
     private void updateVideoList() {
         if (binding.videoListQueue.isChecked()) {
             videoAdapter.setShowIDs(queue);
@@ -693,9 +714,25 @@ public class MainActivity extends Activity {
         } else {
             ArrayList<Integer> showIDs = new ArrayList<>();
             for (VideoFile videoFile : videoFiles.values())
-                showIDs.add(videoFile.videoFileID);
+                if (matchSearch(videoFile))
+                    showIDs.add(videoFile.videoFileID);
             videoAdapter.setShowIDs(showIDs);
         }
+    }
+
+    private boolean matchSearch(VideoFile videoFile) {
+        if (searchTags == null)
+            return true;
+
+        for (Map.Entry<String, String> searchTag : searchTags.entrySet()) {
+            String value = videoFile.tags.get(searchTag.getKey());
+            if (value == null)
+                return false;
+            if (!value.toLowerCase().contains(searchTag.getValue()))
+                return false;
+        }
+
+        return true;
     }
 
     private void handleMessage(Message message) {
