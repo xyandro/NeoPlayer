@@ -108,7 +108,8 @@
 					<TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="musicPath" Text="{Binding MusicPath, UpdateSourceTrigger=PropertyChanged}"/>
 
 					<Label Grid.Row="2" Grid.Column="0" Content="_Videos path:" HorizontalAlignment="Right" Target="{Binding ElementName=videosPath}"/>
-					<TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
+					<TextBox Grid.Row="2" Grid.Column="1" Name="videosPath" Text="{Binding VideosPath, UpdateSourceTrigger=PropertyChanged}"/>
+					<Button Grid.Row="2" Grid.Column="2" Content="Sync" Click="OnSyncVideosClick"/>
 
 					<Label Grid.Row="3" Grid.Column="0" Content="_YouTubeDL path:" HorizontalAlignment="Right" Target="{Binding ElementName=youTubeDLPath}"/>
 					<TextBox Grid.Row="3" Grid.Column="1" Name="youTubeDLPath" Text="{Binding YouTubeDLPath, UpdateSourceTrigger=PropertyChanged}"/>

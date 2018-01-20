@@ -83,25 +83,7 @@ namespace NeoPlayer
 			status.History = history.ToList();
 		}
 
-		List<VideoFile> GetVideoFiles(int? videoFileID = null)
-		{
-			string where = null;
-			Dictionary<string, object> parameters = null;
-			if (videoFileID.HasValue)
-			{
-				where = $"{nameof(VideoFile.VideoFileID)} = @ID";
-				parameters = new Dictionary<string, object> { ["@ID"] = videoFileID.Value };
-			}
-			var videoFiles = Database.GetAsync<VideoFile>(where, parameters).Result.ToDictionary(videoFile => videoFile.VideoFileID);
-			var tags = Database.GetAsync<Tag>().Result.ToDictionary(tag => tag.TagID, tag => tag.Name);
-			foreach (var tag in tags.Values)
-				foreach (var videoFile in videoFiles.Values)
-					videoFile.Tags[tag] = null;
-			Database.GetAsync<TagValue>(where, parameters).Result.ForEach(tagValue => videoFiles[tagValue.VideoFileID].Tags[tags[tagValue.TagID]] = tagValue.Value);
-			return videoFiles.Values.ToList();
-		}
-
-		void UpdateVideoFiles() => status.VideoFiles = GetVideoFiles();
+		public void UpdateVideoFiles() => status.VideoFiles = Database.GetVideoFilesAsync().Result;
 
 		void OnConnect(AsyncQueue<byte[]> queue) => status.SendAll(queue);
 
@@ -180,7 +162,7 @@ namespace NeoPlayer
 
 		void QueueVideo(int videoFileID, bool top)
 		{
-			var videoFile = GetVideoFiles(videoFileID).FirstOrDefault();
+			var videoFile = Database.GetVideoFilesAsync(videoFileID).Result.FirstOrDefault();
 			if (videoFile == null)
 				return;
 

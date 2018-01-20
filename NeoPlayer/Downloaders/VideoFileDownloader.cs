@@ -19,8 +19,6 @@ namespace NeoPlayer.Downloaders
 		static int ID = 0;
 		static int GetID() => ++ID;
 
-		static readonly Dictionary<string, int> TagIDs = new Dictionary<string, int>();
-
 		async public static void DownloadAsync(string url, Action<int, DownloadData> updateDownload, Action done)
 		{
 			List<VideoFile> videoFiles;
@@ -114,7 +112,7 @@ namespace NeoPlayer.Downloaders
 
 					results.Add(new VideoFile
 					{
-						Identifier = $"{extractor}-{id}",
+						Identifier = $"-NEID-{extractor}-{id}",
 						Title = title,
 						DownloadDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
 						URL = obj.Item1,
@@ -146,25 +144,11 @@ namespace NeoPlayer.Downloaders
 		{
 			for (var pass = 0; pass < 2; ++pass)
 			{
-				var found = Directory.EnumerateFiles(Settings.VideosPath).Where(path => Path.GetFileNameWithoutExtension(path).EndsWith($"-{videoFile.Identifier}")).FirstOrDefault();
+				var found = Directory.EnumerateFiles(Settings.VideosPath).Where(path => Path.GetFileNameWithoutExtension(path).EndsWith($"{videoFile.Identifier}")).FirstOrDefault();
 				if (found != null)
 				{
 					videoFile.FileName = Path.GetFileName(found);
-					await Database.AddOrUpdateAsync(videoFile);
-					foreach (var pair in videoFile.Tags)
-					{
-						if (!TagIDs.ContainsKey(pair.Key))
-						{
-							var tag = Database.GetAsync<Tag>($"{nameof(Tag.Name)} = @Name", new Dictionary<string, object> { ["Name"] = pair.Key }).Result.FirstOrDefault();
-							if (tag == null)
-							{
-								tag = new Tag { Name = pair.Key };
-								await Database.AddOrUpdateAsync(tag);
-							}
-							TagIDs[pair.Key] = tag.TagID;
-						}
-						try { await Database.AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value }); } catch { }
-					}
+					await Database.SaveVideoFileAsync(videoFile);
 					done();
 					return;
 				}
@@ -188,7 +172,7 @@ namespace NeoPlayer.Downloaders
 					StartInfo = new ProcessStartInfo
 					{
 						FileName = Settings.YouTubeDLPath,
-						Arguments = $@"-iwc -o ""{string.Concat($"{videoFile.Title}-{videoFile.Identifier}".Split(Path.GetInvalidFileNameChars()))}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
+						Arguments = $@"-iwc -o ""{string.Concat($"{videoFile.Title}{videoFile.Identifier}".Split(Path.GetInvalidFileNameChars()))}.%(ext)s"" --ffmpeg-location ""{Settings.FFMpegPath}"" --no-playlist ""{videoFile.URL}""",
 						WorkingDirectory = Settings.VideosPath,
 						UseShellExecute = false,
 						StandardOutputEncoding = Encoding.Default,

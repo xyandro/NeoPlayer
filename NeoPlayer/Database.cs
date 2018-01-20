@@ -218,5 +218,43 @@ CREATE TABLE TagValue
 			conn?.Dispose();
 			conn = null;
 		}
+
+		static readonly Dictionary<string, int> TagIDs = new Dictionary<string, int>();
+		async public static Task SaveVideoFileAsync(VideoFile videoFile)
+		{
+			await AddOrUpdateAsync(videoFile);
+			foreach (var pair in videoFile.Tags)
+			{
+				if (!TagIDs.ContainsKey(pair.Key))
+				{
+					var tag = (await GetAsync<Tag>($"{nameof(Tag.Name)} = @Name", new Dictionary<string, object> { ["Name"] = pair.Key })).FirstOrDefault();
+					if (tag == null)
+					{
+						tag = new Tag { Name = pair.Key };
+						await AddOrUpdateAsync(tag);
+					}
+					TagIDs[pair.Key] = tag.TagID;
+				}
+				try { await AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value }); } catch { }
+			}
+		}
+
+		async public static Task<List<VideoFile>> GetVideoFilesAsync(int? videoFileID = null)
+		{
+			string where = null;
+			Dictionary<string, object> parameters = null;
+			if (videoFileID.HasValue)
+			{
+				where = $"{nameof(VideoFile.VideoFileID)} = @ID";
+				parameters = new Dictionary<string, object> { ["@ID"] = videoFileID.Value };
+			}
+			var videoFiles = (await GetAsync<VideoFile>(where, parameters)).ToDictionary(videoFile => videoFile.VideoFileID);
+			var tags = (await GetAsync<Tag>()).ToDictionary(tag => tag.TagID, tag => tag.Name);
+			foreach (var tag in tags.Values)
+				foreach (var videoFile in videoFiles.Values)
+					videoFile.Tags[tag] = null;
+			(await GetAsync<TagValue>(where, parameters)).ForEach(tagValue => videoFiles[tagValue.VideoFileID].Tags[tags[tagValue.TagID]] = tagValue.Value);
+			return videoFiles.Values.ToList();
+		}
 	}
 }

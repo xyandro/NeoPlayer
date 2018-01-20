@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -80,6 +81,39 @@ namespace NeoPlayer
 		void OnDeleteShortcutClick(object sender, RoutedEventArgs e) => ShortcutsList.Remove((sender as Button).Tag as Shortcut);
 
 		void OnAddShortcutClick(object sender, RoutedEventArgs e) => ShortcutsList.Add(new Shortcut());
+
+		void OnSyncVideosClick(object sender, RoutedEventArgs e)
+		{
+			var videoFiles = Database.GetAsync<VideoFile>().Result.ToDictionary(videoFile => videoFile.Identifier);
+
+			foreach (var path in Directory.EnumerateFiles(VideosPath))
+			{
+				var file = Path.GetFileNameWithoutExtension(path);
+				var identifierIndex = file.IndexOf("-NEID-");
+				if (identifierIndex == -1)
+					continue;
+
+				var identifier = file.Substring(identifierIndex);
+				if (videoFiles.ContainsKey(identifier))
+				{
+					videoFiles.Remove(identifier);
+					continue;
+				}
+
+				Database.SaveVideoFileAsync(new VideoFile
+				{
+					Title = file.Substring(0, identifierIndex),
+					FileName = Path.GetFileName(path),
+					Identifier = identifier,
+					DownloadDate = new FileInfo(path).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+				}).Wait();
+			}
+
+			foreach (var videoFile in videoFiles.Values)
+				Database.DeleteAsync(videoFile).Wait();
+
+			neoPlayerWindow.UpdateVideoFiles();
+		}
 
 		void OnYouTubeDLUpdateClick(object sender, RoutedEventArgs e) => VideoFileDownloader.Update();
 
