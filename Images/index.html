@@ -17,29 +17,74 @@
 				margin-bottom: 10px;
 			}
 
-			.raw > div.size48 > div {
-				height: 48px;
+			.raw > div.ic_launcher_mdpi > div {
 				width: 48px;
+				height: 48px;
 			}
 
-			.raw > div.size72 > div {
-				height: 72px;
+			.raw > div.ic_launcher_hdpi > div {
 				width: 72px;
+				height: 72px;
 			}
 
-			.raw > div.size96 > div {
-				height: 96px;
+			.raw > div.ic_launcher_xhdpi > div {
 				width: 96px;
+				height: 96px;
 			}
 
-			.raw > div.size144 > div {
-				height: 144px;
+			.raw > div.ic_launcher_xxhdpi > div {
 				width: 144px;
+				height: 144px;
 			}
 
-			.raw > div.size192 > div {
-				height: 192px;
+			.raw > div.ic_launcher_xxxhdpi > div {
 				width: 192px;
+				height: 192px;
+			}
+
+			.raw > div.notification_mdpi > div {
+				width: 22px;
+				height: 22px;
+			}
+
+			.raw > div.notification_hdpi > div {
+				width: 33px;
+				height: 33px;
+			}
+
+			.raw > div.notification_xhdpi > div {
+				width: 44px;
+				height: 44px;
+			}
+
+			.raw > div.notification_xxhdpi > div {
+				width: 66px;
+				height: 66px;
+			}
+
+			.raw > div.notification_xxxhdpi > div {
+				width: 88px;
+				height: 88px;
+			}
+
+			.raw > div.size128x128 > div {
+				width: 128px;
+				height: 128px;
+			}
+
+			.raw > div.size156x200 > div {
+				width: 156px;
+				height: 200px;
+			}
+
+			.raw > div.size186x200 > div {
+				width: 186px;
+				height: 200px;
+			}
+
+			.raw > div.size245x200 > div {
+				width: 245px;
+				height: 200px;
 			}
 
 			.raw > div > div.black {
@@ -50,7 +95,7 @@
 				background: white;
 			}
 
-			.raw > div > div.normal > div {
+			.raw > div > div.yellow > div {
 				background: url(yellow.png);
 				border-radius: 10%;
 			}
@@ -59,86 +104,143 @@
 				width: 100%;
 				height: 100%;
 			}
-
-			.raw > div > div.normal > div > img {
-				content: url(icon-normal.svg);
-			}
-
-			.raw > div > div.round > div > img {
-				content: url(icon-round.svg);
-			}
-
-		.final {
-			margin-bottom: 10px;
-			clear: both;
-		}
 	</style>
 </head>
 <body>
 	<div class="raw">
-		<div class="size48">
-			<div class="normal black"><div><img /></div></div>
-			<div class="normal white"><div><img /></div></div>
-			<div class="round black"><div><img /></div></div>
-			<div class="round white"><div><img /></div></div>
+		<div class="ic_launcher_mdpi">
+			<div class="yellow black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="yellow white"><div><img src="ic_launcher.svg"/></div></div>
+
+			<div class="black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="white"><div><img src="ic_launcher.svg"/></div></div>
 		</div>
 
-		<div class="size72">
-			<div class="normal black"><div><img /></div></div>
-			<div class="normal white"><div><img /></div></div>
-			<div class="round black"><div><img /></div></div>
-			<div class="round white"><div><img /></div></div>
+		<div class="ic_launcher_hdpi">
+			<div class="yellow black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="yellow white"><div><img src="ic_launcher.svg"/></div></div>
+
+			<div class="black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="white"><div><img src="ic_launcher.svg"/></div></div>
 		</div>
 
-		<div class="size96">
-			<div class="normal black"><div><img /></div></div>
-			<div class="normal white"><div><img /></div></div>
-			<div class="round black"><div><img /></div></div>
-			<div class="round white"><div><img /></div></div>
+		<div class="ic_launcher_xhdpi">
+			<div class="yellow black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="yellow white"><div><img src="ic_launcher.svg"/></div></div>
+
+			<div class="black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="white"><div><img src="ic_launcher.svg"/></div></div>
 		</div>
 
-		<div class="size144">
-			<div class="normal black"><div><img /></div></div>
-			<div class="normal white"><div><img /></div></div>
-			<div class="round black"><div><img /></div></div>
-			<div class="round white"><div><img /></div></div>
+		<div class="ic_launcher_xxhdpi">
+			<div class="yellow black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="yellow white"><div><img src="ic_launcher.svg"/></div></div>
+
+			<div class="black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="white"><div><img src="ic_launcher.svg"/></div></div>
 		</div>
 
-		<div class="size192">
-			<div class="normal black"><div><img /></div></div>
-			<div class="normal white"><div><img /></div></div>
-			<div class="round black"><div><img /></div></div>
-			<div class="round white"><div><img /></div></div>
-		</div>
-	</div>
+		<div class="ic_launcher_xxxhdpi">
+			<div class="yellow black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="yellow white"><div><img src="ic_launcher.svg"/></div></div>
 
-	<div class="final">
-		<img src="48x48-normal.png" />
-		<img src="48x48-round.png" />
-		<img src="72x72-normal.png" />
-		<img src="72x72-round.png" />
-		<img src="96x96-normal.png" />
-		<img src="96x96-round.png" />
-		<img src="144x144-normal.png" />
-		<img src="144x144-round.png" />
-		<img src="192x192-normal.png" />
-		<img src="192x192-round.png" />
+			<div class="black"><div><img src="ic_launcher.svg"/></div></div>
+			<div class="white"><div><img src="ic_launcher.svg"/></div></div>
+		</div>
+
+		<div class="notification_mdpi">
+			<div class="black"><div><img src="notification.svg"/></div></div>
+			<div class="white"><div><img src="notification.svg"/></div></div>
+		</div>
+
+		<div class="notification_hdpi">
+			<div class="black"><div><img src="notification.svg"/></div></div>
+			<div class="white"><div><img src="notification.svg"/></div></div>
+		</div>
+
+		<div class="notification_xhdpi">
+			<div class="black"><div><img src="notification.svg"/></div></div>
+			<div class="white"><div><img src="notification.svg"/></div></div>
+		</div>
+
+		<div class="notification_xxhdpi">
+			<div class="black"><div><img src="notification.svg"/></div></div>
+			<div class="white"><div><img src="notification.svg"/></div></div>
+		</div>
+
+		<div class="notification_xxxhdpi">
+			<div class="black"><div><img src="notification.svg"/></div></div>
+			<div class="white"><div><img src="notification.svg"/></div></div>
+		</div>
+
+		<div class="size128x128">
+			<div class="black"><div><img src="check.svg"/></div></div>
+			<div class="white"><div><img src="check.svg"/></div></div>
+
+			<div class="black"><div><img src="clear.svg"/></div></div>
+			<div class="white"><div><img src="clear.svg"/></div></div>
+
+			<div class="black"><div><img src="numorder.svg"/></div></div>
+			<div class="white"><div><img src="numorder.svg"/></div></div>
+
+			<div class="black"><div><img src="search.svg"/></div></div>
+			<div class="white"><div><img src="search.svg"/></div></div>
+
+			<div class="black"><div><img src="sortascending.svg"/></div></div>
+			<div class="white"><div><img src="sortascending.svg"/></div></div>
+		</div>
+
+		<div class="size128x128">
+			<div class="black"><div><img src="sortdescending.svg"/></div></div>
+			<div class="white"><div><img src="sortdescending.svg"/></div></div>
+
+			<div class="black"><div><img src="star.svg"/></div></div>
+			<div class="white"><div><img src="star.svg"/></div></div>
+
+			<div class="black"><div><img src="submit.svg"/></div></div>
+			<div class="white"><div><img src="submit.svg"/></div></div>
+
+			<div class="black"><div><img src="uncheck.svg"/></div></div>
+			<div class="white"><div><img src="uncheck.svg"/></div></div>
+		</div>
+
+		<div class="size156x200">
+			<div class="black"><div><img src="allplay.svg"/></div></div>
+			<div class="white"><div><img src="allplay.svg"/></div></div>
+
+			<div class="black"><div><img src="pause.svg"/></div></div>
+			<div class="white"><div><img src="pause.svg"/></div></div>
+
+			<div class="black"><div><img src="play.svg"/></div></div>
+			<div class="white"><div><img src="play.svg"/></div></div>
+		</div>
+
+		<div class="size186x200">
+			<div class="black"><div><img src="back30.svg"/></div></div>
+			<div class="white"><div><img src="back30.svg"/></div></div>
+
+			<div class="black"><div><img src="back5.svg"/></div></div>
+			<div class="white"><div><img src="back5.svg"/></div></div>
+
+			<div class="black"><div><img src="forward30.svg"/></div></div>
+			<div class="white"><div><img src="forward30.svg"/></div></div>
+
+			<div class="black"><div><img src="forward5.svg"/></div></div>
+			<div class="white"><div><img src="forward5.svg"/></div></div>
+		</div>
+
+		<div class="size245x200">
+			<div class="black"><div><img src="back.svg"/></div></div>
+			<div class="white"><div><img src="back.svg"/></div></div>
+
+			<div class="black"><div><img src="forward.svg"/></div></div>
+			<div class="white"><div><img src="forward.svg"/></div></div>
+		</div>
 	</div>
 
 	<!--
-	a=x-c+255
-	r=255*x/(x-c+255)
-
-	48x48-normal.png   ..\NeoRemote\app\src\main\res\mipmap-mdpi\ic_launcher.png
-	48x48-round.png    ..\NeoRemote\app\src\main\res\mipmap-mdpi\ic_launcher_round.png
-	72x72-normal.png   ..\NeoRemote\app\src\main\res\mipmap-hdpi\ic_launcher.png
-	72x72-round.png    ..\NeoRemote\app\src\main\res\mipmap-hdpi\ic_launcher_round.png
-	96x96-normal.png   ..\NeoRemote\app\src\main\res\mipmap-xhdpi\ic_launcher.png
-	96x96-round.png    ..\NeoRemote\app\src\main\res\mipmap-xhdpi\ic_launcher_round.png
-	144x144-normal.png ..\NeoRemote\app\src\main\res\mipmap-xxhdpi\ic_launcher.png
-	144x144-round.png  ..\NeoRemote\app\src\main\res\mipmap-xxhdpi\ic_launcher_round.png
-	192x192-normal.png ..\NeoRemote\app\src\main\res\mipmap-xxxhdpi\ic_launcher.png
-	192x192-round.png  ..\NeoRemote\app\src\main\res\mipmap-xxxhdpi\ic_launcher_round.png
+	a=v2-v1+255
+	r=255*v2/(v2-v1+255)
 	-->
 
 </body>
