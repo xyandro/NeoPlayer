@@ -1,10 +1,11 @@
 package neoplayer.neoremote;
 
+import android.databinding.DataBindingUtil;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.TextView;
+
+import neoplayer.neoremote.databinding.SortAdapterItemBinding;
 
 public class SortAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
@@ -18,12 +19,12 @@ public class SortAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return sortData.sortItems.size();
+        return sortData.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return sortData.sortItems.get(i);
+        return sortData.getAlphaOrder(i);
     }
 
     @Override
@@ -31,22 +32,31 @@ public class SortAdapter extends BaseAdapter {
         return i;
     }
 
+    private int getSortResource(SortData.SortDirection sortDirection) {
+        switch (sortDirection) {
+            case Ascending:
+                return R.drawable.sortascending;
+            case Descending:
+                return R.drawable.sortdescending;
+            default:
+                return R.drawable.sortnone;
+        }
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final SortData.SortItem sortItem = (SortData.SortItem) getItem(position);
 
-        View view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_sort_listitem, parent, false);
+        SortAdapterItemBinding binding = DataBindingUtil.inflate(mainActivity.getLayoutInflater(), R.layout.sort_adapter_item, parent, false);
 
-        ((TextView) view.findViewById(R.id.name)).setText(sortItem.tag);
-        ((Button) view.findViewById(R.id.value)).setText(sortItem.direction.toString());
-        view.findViewById(R.id.value).setOnClickListener(new View.OnClickListener() {
+        binding.item.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sortData.toggle(sortItem, false);
                 notifyDataSetChanged();
             }
         });
-        view.findViewById(R.id.value).setOnLongClickListener(new View.OnLongClickListener() {
+        binding.item.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 sortData.toggle(sortItem, true);
@@ -55,6 +65,11 @@ public class SortAdapter extends BaseAdapter {
             }
         });
 
-        return view;
+        binding.direction.setImageResource(getSortResource(sortItem.direction));
+        if (sortItem.priority != null)
+            binding.priority.setText(sortItem.priority.toString());
+        binding.tag.setText(sortItem.tag);
+
+        return binding.getRoot();
     }
 }

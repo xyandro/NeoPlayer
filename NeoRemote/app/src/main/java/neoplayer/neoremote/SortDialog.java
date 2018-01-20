@@ -10,12 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import neoplayer.neoremote.databinding.FragmentSortBinding;
+import neoplayer.neoremote.databinding.SortDialogBinding;
 
 public class SortDialog extends DialogFragment {
     private MainActivity mainActivity;
-    private FragmentSortBinding binding;
+    private SortDialogBinding binding;
     private SortData sortData;
+    private SortAdapter sortAdapter;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -27,23 +28,24 @@ public class SortDialog extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_sort, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.sort_dialog, container, false);
 
-        binding.tagsList.setAdapter(new SortAdapter(mainActivity, sortData));
-        binding.confirm.setOnClickListener(new View.OnClickListener() {
+        binding.clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sortData.clear();
+                sortAdapter.notifyDataSetChanged();
+            }
+        });
+        binding.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mainActivity.setSortData(sortData);
                 dismiss();
             }
         });
-        binding.cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainActivity.setSortData(null);
-                dismiss();
-            }
-        });
+        sortAdapter = new SortAdapter(mainActivity, sortData);
+        binding.list.setAdapter(sortAdapter);
 
         return binding.getRoot();
     }
@@ -51,7 +53,7 @@ public class SortDialog extends DialogFragment {
     public static SortDialog createDialog(MainActivity mainActivity, SortData sortData) {
         SortDialog sortDialog = new SortDialog();
         sortDialog.mainActivity = mainActivity;
-        sortDialog.sortData = sortData;
+        sortDialog.sortData = sortData.copy();
         return sortDialog;
     }
 }

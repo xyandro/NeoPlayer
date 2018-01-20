@@ -177,6 +177,14 @@ public class MainActivity extends Activity {
             }
         });
 
+        binding.videosSort.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                setSortData(null);
+                return true;
+            }
+        });
+
         binding.videosList.setAdapter(videoAdapter);
         binding.videosClear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -766,7 +774,11 @@ public class MainActivity extends Activity {
                 VideoFile videoFile1 = videoFiles.get(id1);
                 VideoFile videoFile2 = videoFiles.get(id2);
                 if (sortData != null) {
-                    for (SortData.SortItem sortItem : sortData.sortItems) {
+                    for (int ctr = 1; ; ++ctr) {
+                        SortData.SortItem sortItem = sortData.getPriorityOrder(ctr);
+                        if (sortItem == null)
+                            break;
+
                         if (sortItem.direction == SortData.SortDirection.None)
                             continue;
                         int compare = Helpers.stringCompare(videoFile1.tags.get(sortItem.tag), videoFile2.tags.get(sortItem.tag), false, true);
