@@ -163,7 +163,7 @@ namespace NeoPlayer.Downloaders
 							}
 							TagIDs[pair.Key] = tag.TagID;
 						}
-						await Database.AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value });
+						try { await Database.AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value }); } catch { }
 					}
 					done();
 					return;
