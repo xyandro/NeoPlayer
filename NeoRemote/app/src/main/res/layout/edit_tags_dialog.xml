@@ -4,7 +4,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/background_yellow"
+        android:background="@drawable/tile_yellow"
         android:minHeight="10000dp"
         android:minWidth="10000dp"
         android:orientation="vertical">
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@drawable/background_cyan"
+            android:background="@drawable/tile_cyan"
             android:orientation="vertical">
 
             <ListView
