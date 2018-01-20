@@ -17,17 +17,16 @@
 			</feMerge>
 		</filter>
 	</defs>
-	<g fill="url(#gradient)" filter="url(#dropshadow)">
+	<g stroke="black" stroke-width="2" fill="url(#gradient)" filter="url(#dropshadow)">
 		<rect x="4" y="8" width="12" height="12" rx="6" ry="6"/>
-		<rect x="18" y="8" width="36" height="12" rx="6" ry="6"/>
+		<rect x="20" y="8" width="34" height="12" rx="6" ry="6"/>
 
 		<rect x="4" y="26" width="12" height="12" rx="6" ry="6"/>
-		<rect x="18" y="26" width="36" height="12" rx="6" ry="6"/>
+		<rect x="20" y="26" width="34" height="12" rx="6" ry="6"/>
 
 		<rect x="4" y="44" width="12" height="12" rx="6" ry="6"/>
-		<rect x="18" y="44" width="36" height="12" rx="6" ry="6"/>
+		<rect x="20" y="44" width="34" height="12" rx="6" ry="6"/>
 	</g>
-	<!-- 2,2-62,62 -->
 	<g stroke="#ff00ff" stroke-width="0.75">
 		<path fill="url(#check)" d="M5.75,13.5 A10,10,0,0,1,9,17.25 A25,25,0,0,1,17,9.25 A1.5,1.5,0,0,0,15.5,7.75 A25,25,0,0,0,9,14.25 A10,10,0,0,0,7.25,12 A1.5,1.5,0,0,0,5.75,13.5 Z"/>
 		<path fill="url(#check)" d="M5.75,31.5 A10,10,0,0,1,9,35.25 A25,25,0,0,1,17,27.25 A1.5,1.5,0,0,0,15.5,25.75 A25,25,0,0,0,9,32.25 A10,10,0,0,0,7.25,30 A1.5,1.5,0,0,0,5.75,31.5 Z"/>
