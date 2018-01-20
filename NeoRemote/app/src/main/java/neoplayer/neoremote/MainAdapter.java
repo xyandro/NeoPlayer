@@ -1,16 +1,17 @@
 package neoplayer.neoremote;
 
+import android.databinding.DataBindingUtil;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class VideoFileListAdapter extends BaseAdapter {
+import neoplayer.neoremote.databinding.MainAdapterItemBinding;
+
+public class MainAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
     private final HashSet<Integer> starIDs;
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
@@ -18,7 +19,7 @@ public class VideoFileListAdapter extends BaseAdapter {
     private ArrayList<Integer> showIDs = new ArrayList<>();
     private final ArrayList<VideoFile> displayList = new ArrayList<>();
 
-    public VideoFileListAdapter(MainActivity mainActivity, HashSet<Integer> starIDs) {
+    public MainAdapter(MainActivity mainActivity, HashSet<Integer> starIDs) {
         super();
         this.mainActivity = mainActivity;
         this.starIDs = starIDs;
@@ -58,14 +59,16 @@ public class VideoFileListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         final VideoFile videoFile = displayList.get(position);
 
-        View view = convertView;
-        if (view == null)
-            view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_media_listitem, parent, false);
-        ImageView checkImage = view.findViewById(R.id.check_image);
-        ImageView starImage = view.findViewById(R.id.star_image);
-        checkImage.setImageResource(checkIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
-        starImage.setImageResource(starIDs.contains(videoFile.videoFileID) ? R.drawable.star : 0);
-        ((TextView) view.findViewById(R.id.name)).setText(videoFile.getTitle());
+        MainAdapterItemBinding binding;
+        if (convertView == null) {
+            binding = DataBindingUtil.inflate(mainActivity.getLayoutInflater(), R.layout.main_adapter_item, parent, false);
+            binding.getRoot().setTag(binding);
+        } else
+            binding = (MainAdapterItemBinding) convertView.getTag();
+
+        binding.check.setImageResource(checkIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
+        binding.name.setText(videoFile.getTitle());
+        binding.star.setImageResource(starIDs.contains(videoFile.videoFileID) ? R.drawable.star : 0);
 
         final View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
@@ -78,11 +81,9 @@ public class VideoFileListAdapter extends BaseAdapter {
                 return true;
             }
         };
-        checkImage.setOnLongClickListener(onLongClickListener);
-        starImage.setOnLongClickListener(onLongClickListener);
-        view.setOnLongClickListener(onLongClickListener);
+        binding.getRoot().setOnLongClickListener(onLongClickListener);
 
-        View.OnClickListener clickListener = new View.OnClickListener() {
+        binding.getRoot().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!starIDs.isEmpty())
@@ -90,12 +91,9 @@ public class VideoFileListAdapter extends BaseAdapter {
                 else
                     mainActivity.queueVideo(videoFile.videoFileID, false);
             }
-        };
-        checkImage.setOnClickListener(clickListener);
-        starImage.setOnClickListener(clickListener);
-        view.setOnClickListener(clickListener);
+        });
 
-        return view;
+        return binding.getRoot();
     }
 
     @Override

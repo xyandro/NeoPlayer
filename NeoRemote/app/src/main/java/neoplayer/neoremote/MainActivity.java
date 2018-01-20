@@ -48,9 +48,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import neoplayer.neoremote.databinding.ActivityMainBinding;
+import neoplayer.neoremote.databinding.MainActivityBinding;
 
 public class MainActivity extends Activity {
+    enum ViewType {Videos, Queue, History}
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FakeProtocol = "ne://";
     private static final int NeoPlayerToken = 0xfeedbeef;
@@ -59,6 +61,7 @@ public class MainActivity extends Activity {
     private static final String addressFileName = "NeoPlayer.txt";
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
+    private ViewType viewType = ViewType.Videos;
     private HashSet<Integer> starIDs = new HashSet<>();
     private HashMap<String, String> searchTags;
     private SortData sortData;
@@ -67,7 +70,7 @@ public class MainActivity extends Activity {
     private MediaSessionCompat mediaSession;
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
-    private VideoFileListAdapter videoAdapter;
+    private MainAdapter mainAdapter;
     private DownloadAdapter downloadAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
@@ -83,7 +86,7 @@ public class MainActivity extends Activity {
     private boolean activityActive = false;
     private GetAddressDialog getAddressDialog;
 
-    private ActivityMainBinding binding;
+    private MainActivityBinding binding;
 
     static {
         validSizes.put("Any size", "");
@@ -109,7 +112,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        binding = DataBindingUtil.setContentView(this, R.layout.main_activity);
 
         setupMediaSession();
         setupControls();
@@ -142,13 +145,13 @@ public class MainActivity extends Activity {
     }
 
     private void setupControls() {
-        videoAdapter = new VideoFileListAdapter(this, starIDs);
+        mainAdapter = new MainAdapter(this, starIDs);
         downloadAdapter = new DownloadAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);
         binding.pager.setCurrentItem(1);
 
-        binding.search.setOnClickListener(new View.OnClickListener() {
+        binding.videoSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 HashMap<String, String> tags = new HashMap<>();
@@ -162,7 +165,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.videosSort.setOnClickListener(new View.OnClickListener() {
+        binding.videoSort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 SortData useSortData = sortData;
@@ -177,7 +180,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.videosSort.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.videoSort.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 setSortData(null);
@@ -185,7 +188,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.videosList.setAdapter(videoAdapter);
+        binding.videos.setAdapter(mainAdapter);
         binding.videosClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -261,23 +264,26 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.videoListVideos.setOnClickListener(new View.OnClickListener() {
+        binding.videoList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                viewType = ViewType.Videos;
                 updateVideoList();
             }
         });
 
-        binding.videoListQueue.setOnClickListener(new View.OnClickListener() {
+        binding.videoQueue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                viewType = ViewType.Queue;
                 updateVideoList();
             }
         });
 
-        binding.videoListHistory.setOnClickListener(new View.OnClickListener() {
+        binding.videoHistory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                viewType = ViewType.History;
                 updateVideoList();
             }
         });
@@ -738,17 +744,21 @@ public class MainActivity extends Activity {
     }
 
     private void updateVideoList() {
-        if (binding.videoListQueue.isChecked()) {
-            videoAdapter.setShowIDs(queue);
-        } else if (binding.videoListHistory.isChecked()) {
-            videoAdapter.setShowIDs(history);
-        } else {
-            ArrayList<Integer> showIDs = new ArrayList<>();
-            for (VideoFile videoFile : videoFiles.values())
-                if (matchSearch(videoFile))
-                    showIDs.add(videoFile.videoFileID);
-            sortIDs(showIDs);
-            videoAdapter.setShowIDs(showIDs);
+        switch (viewType) {
+            case Queue:
+                mainAdapter.setShowIDs(queue);
+                break;
+            case History:
+                mainAdapter.setShowIDs(history);
+                break;
+            default:
+                ArrayList<Integer> showIDs = new ArrayList<>();
+                for (VideoFile videoFile : videoFiles.values())
+                    if (matchSearch(videoFile))
+                        showIDs.add(videoFile.videoFileID);
+                sortIDs(showIDs);
+                mainAdapter.setShowIDs(showIDs);
+                break;
         }
     }
 
@@ -806,14 +816,14 @@ public class MainActivity extends Activity {
                     break;
                 case "Queue":
                     queue = message.getInts();
-                    videoAdapter.setCheckIDs(new HashSet<>(queue));
+                    mainAdapter.setCheckIDs(new HashSet<>(queue));
                     updateVideoList();
                     break;
                 case "VideoFiles":
                     videoFiles = new HashMap<>();
                     for (VideoFile videoFile : message.getVideoFiles())
                         videoFiles.put(videoFile.videoFileID, videoFile);
-                    videoAdapter.setVideoFiles(videoFiles);
+                    mainAdapter.setVideoFiles(videoFiles);
                     updateVideoList();
                     break;
                 case "Downloads":
