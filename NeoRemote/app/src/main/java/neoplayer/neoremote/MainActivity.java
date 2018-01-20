@@ -760,12 +760,15 @@ public class MainActivity extends Activity {
     private void updateVideoList() {
         switch (viewType) {
             case Queue:
+                binding.title.setText("Queue");
                 mainAdapter.setShowIDs(queue);
                 break;
             case History:
+                binding.title.setText("History");
                 mainAdapter.setShowIDs(history);
                 break;
             default:
+                binding.title.setText("Videos");
                 ArrayList<Integer> showIDs = new ArrayList<>();
                 for (VideoFile videoFile : videoFiles.values())
                     if (matchSearch(videoFile))
