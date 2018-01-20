@@ -40,6 +40,11 @@ public class MainAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void clearStarIDs() {
+        starIDs.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return displayList.size();

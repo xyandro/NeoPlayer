@@ -32,4 +32,10 @@ public class EditTags {
                 itr.remove();
         }
     }
+
+    public void clear() {
+        for (Map.Entry<String, String> entry : tags.entrySet()) {
+            entry.setValue(null);
+        }
+    }
 }

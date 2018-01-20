@@ -10,11 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import neoplayer.neoremote.databinding.FragmentEditTagsBinding;
+import neoplayer.neoremote.databinding.EditTagsDialogBinding;
 
 public class EditTagsDialog extends DialogFragment {
     private MainActivity mainActivity;
-    private FragmentEditTagsBinding binding;
+    private EditTagsDialogBinding binding;
+    private EditTagsAdapter editTagsAdapter;
     private EditTags editTags;
 
     @Override
@@ -27,11 +28,17 @@ public class EditTagsDialog extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit_tags, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.edit_tags_dialog, container, false);
 
-        binding.dialogTitle.setText("Edit Tags: " + editTags.videoFileIDs.size() + " video" + (editTags.videoFileIDs.size() == 1 ? "" : "s"));
-        binding.tagsList.setAdapter(new EditTagsAdapter(mainActivity, editTags));
-        binding.confirm.setOnClickListener(new View.OnClickListener() {
+        binding.title.setText("Edit Tags: " + editTags.videoFileIDs.size() + " video" + (editTags.videoFileIDs.size() == 1 ? "" : "s"));
+        binding.clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editTags.clear();
+                editTagsAdapter.notifyDataSetChanged();
+            }
+        });
+        binding.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 editTags.removeNulls();
@@ -39,12 +46,8 @@ public class EditTagsDialog extends DialogFragment {
                 dismiss();
             }
         });
-        binding.cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dismiss();
-            }
-        });
+        editTagsAdapter = new EditTagsAdapter(mainActivity, editTags);
+        binding.list.setAdapter(editTagsAdapter);
 
         return binding.getRoot();
     }

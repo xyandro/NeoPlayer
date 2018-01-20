@@ -196,7 +196,7 @@ public class MainActivity extends Activity {
         });
 
         binding.videos.setAdapter(mainAdapter);
-        binding.videosClear.setOnClickListener(new View.OnClickListener() {
+        binding.videosEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!starIDs.isEmpty()) {
@@ -205,6 +205,13 @@ public class MainActivity extends Activity {
                         editTagFiles.add(videoFiles.get(videoFileID));
                     EditTagsDialog.createDialog(MainActivity.this, EditTags.create(editTagFiles)).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
                 }
+            }
+        });
+        binding.videosEdit.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mainAdapter.clearStarIDs();
+                return true;
             }
         });
 
