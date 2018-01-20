@@ -23,31 +23,28 @@
             android:layout_height="40dp"
             android:orientation="horizontal">
 
-            <Space
-                android:layout_width="1dp"
-                android:layout_height="match_parent" />
-
-            <Button
-                android:id="@+id/confirm"
+            <ImageButton
+                android:id="@+id/clear"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
                 android:background="@null"
                 android:scaleType="fitCenter"
-                android:text="Confirm" />
+                android:src="@drawable/clear" />
 
             <Space
-                android:layout_width="1dp"
-                android:layout_height="match_parent" />
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
 
-            <Button
-                android:id="@+id/cancel"
+            <ImageButton
+                android:id="@+id/submit"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
                 android:background="@null"
                 android:scaleType="fitCenter"
-                android:text="Cancel" />
+                android:src="@drawable/submit" />
         </LinearLayout>
 
         <Space
@@ -62,7 +59,7 @@
             android:orientation="vertical">
 
             <ListView
-                android:id="@+id/tags_list"
+                android:id="@+id/list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </LinearLayout>

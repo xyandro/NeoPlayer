@@ -14,11 +14,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import neoplayer.neoremote.databinding.FragmentFindBinding;
+import neoplayer.neoremote.databinding.FindDialogBinding;
 
 public class FindDialog extends DialogFragment {
     private MainActivity mainActivity;
-    private FragmentFindBinding binding;
+    private FindDialogBinding binding;
+    private FindAdapter findAdapter;
     private HashMap<String, String> tags;
 
     @Override
@@ -31,10 +32,17 @@ public class FindDialog extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_find, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.find_dialog, container, false);
 
-        binding.tagsList.setAdapter(new FindAdapter(mainActivity, tags));
-        binding.confirm.setOnClickListener(new View.OnClickListener() {
+        binding.clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for (Map.Entry<String, String> entry : tags.entrySet())
+                    entry.setValue(null);
+                findAdapter.notifyDataSetChanged();
+            }
+        });
+        binding.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Iterator<Map.Entry<String, String>> itr = tags.entrySet().iterator();
@@ -51,13 +59,8 @@ public class FindDialog extends DialogFragment {
                 dismiss();
             }
         });
-        binding.cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainActivity.setSearchTags(null);
-                dismiss();
-            }
-        });
+        findAdapter = new FindAdapter(mainActivity, tags);
+        binding.list.setAdapter(findAdapter);
 
         return binding.getRoot();
     }

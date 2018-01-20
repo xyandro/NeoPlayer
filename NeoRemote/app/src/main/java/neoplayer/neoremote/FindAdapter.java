@@ -1,18 +1,19 @@
 package neoplayer.neoremote;
 
+import android.databinding.DataBindingUtil;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+
+import neoplayer.neoremote.databinding.EditFindAdapterItemBinding;
 
 public class FindAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
@@ -51,16 +52,25 @@ public class FindAdapter extends BaseAdapter {
         return i;
     }
 
+    boolean changing = false;
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final Map.Entry<String, String> value = (Map.Entry<String, String>) getItem(position);
 
-        View view = mainActivity.getLayoutInflater().inflate(R.layout.fragment_edittags_listitem, parent, false);
+        EditFindAdapterItemBinding binding;
+        if (convertView == null) {
+            binding = DataBindingUtil.inflate(mainActivity.getLayoutInflater(), R.layout.edit_find_adapter_item, parent, false);
+            binding.getRoot().setTag(binding);
+        } else
+            binding = (EditFindAdapterItemBinding) convertView.getTag();
 
-        ((TextView) view.findViewById(R.id.name)).setText(value.getKey());
+        binding.name.setText(value.getKey());
 
-        ((EditText) view.findViewById(R.id.value)).setText(value.getValue());
-        ((EditText) view.findViewById(R.id.value)).addTextChangedListener(new TextWatcher() {
+        changing = true;
+        binding.value.setText(value.getValue());
+        changing = false;
+        binding.value.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -71,10 +81,11 @@ public class FindAdapter extends BaseAdapter {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                value.setValue(editable.toString().trim().toLowerCase());
+                if (!changing)
+                    value.setValue(editable.toString().trim().toLowerCase());
             }
         });
 
-        return view;
+        return binding.getRoot();
     }
 }

@@ -164,6 +164,13 @@ public class MainActivity extends Activity {
                 FindDialog.createDialog(MainActivity.this, tags).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
             }
         });
+        binding.videoSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                setSearchTags(null);
+                return true;
+            }
+        });
 
         binding.videoSort.setOnClickListener(new View.OnClickListener() {
             @Override
