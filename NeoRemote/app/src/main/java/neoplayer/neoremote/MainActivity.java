@@ -769,15 +769,7 @@ public class MainActivity extends Activity {
                     for (SortData.SortItem sortItem : sortData.sortItems) {
                         if (sortItem.direction == SortData.SortDirection.None)
                             continue;
-                        String tag1 = videoFile1.tags.get(sortItem.tag);
-                        String tag2 = videoFile2.tags.get(sortItem.tag);
-                        if ((tag1 == null) && (tag2 == null))
-                            continue;
-                        if (tag2 == null)
-                            return -1;
-                        if (tag1 == null)
-                            return 1;
-                        int compare = tag1.compareTo(tag2);
+                        int compare = Helpers.stringCompare(videoFile1.tags.get(sortItem.tag), videoFile2.tags.get(sortItem.tag), false, true);
                         if (compare == 0)
                             continue;
                         if (sortItem.direction == SortData.SortDirection.Descending)
@@ -785,7 +777,7 @@ public class MainActivity extends Activity {
                         return compare;
                     }
                 }
-                return videoFile1.getTitle().compareTo(videoFile2.getTitle());
+                return Helpers.stringCompare(videoFile1.getTitle(), videoFile2.getTitle(), false, true);
             }
         });
     }
