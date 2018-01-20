@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
     private VolumeProviderCompat volumeProvider;
     private boolean userTrackingSeekBar = false;
     private VideoFileListAdapter videoAdapter;
-    private DownloadListAdapter downloadAdapter;
+    private DownloadAdapter downloadAdapter;
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
     private int currentSlidesSize;
@@ -143,7 +143,7 @@ public class MainActivity extends Activity {
 
     private void setupControls() {
         videoAdapter = new VideoFileListAdapter(this, starIDs);
-        downloadAdapter = new DownloadListAdapter(this);
+        downloadAdapter = new DownloadAdapter(this);
 
         new ScreenSlidePagerAdapter(binding.pager);
         binding.pager.setCurrentItem(1);
