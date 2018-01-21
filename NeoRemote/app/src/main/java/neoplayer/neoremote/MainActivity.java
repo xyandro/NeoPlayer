@@ -1,11 +1,13 @@
 package neoplayer.neoremote;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.databinding.DataBindingUtil;
@@ -229,6 +231,26 @@ public class MainActivity extends Activity {
                 binding.slidesQuery.setText(currentSlidesQuery);
                 binding.slidesSize.setSelection(currentSlidesSize);
                 binding.slidesQuery.clearFocus();
+            }
+        });
+
+        binding.slidesClear.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Restart NeoPlayer?")
+                        .setMessage("Are you sure you want to restart NeoPlayer?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sendRestart();
+                            }
+
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+                return true;
             }
         });
 
