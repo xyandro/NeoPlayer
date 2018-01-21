@@ -92,7 +92,7 @@ namespace NeoPlayer
 			var command = message.GetString();
 			switch (command)
 			{
-				case "QueueVideo": QueueVideo(message.GetInt(), message.GetBool()); break;
+				case "QueueVideos": QueueVideos(message.GetInts(), message.GetBool()); break;
 				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
 				case "ToggleMediaPlaying": ToggleMediaPlaying(message.GetBool()); break;
 				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
@@ -160,24 +160,32 @@ namespace NeoPlayer
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
-		void QueueVideo(int videoFileID, bool top)
+		void QueueVideos(List<int> videoFileIDs, bool top)
 		{
-			var videoFile = Database.GetVideoFilesAsync(videoFileID).Result.FirstOrDefault();
-			if (videoFile == null)
-				return;
+			var queueDict = queue.ToDictionary(videoFile => videoFile.VideoFileID);
 
-			var topIndex = VideoState == null ? 0 : 1;
-			var match = queue.IndexOf(video => video.VideoFileID == videoFileID).DefaultIfEmpty(-1).First();
-			if (match == -1)
-				queue.Insert(top ? topIndex : queue.Count, videoFile);
-			else if (top)
-				queue.Move(match, topIndex);
-			else
+			if ((top) && (VideoState != null))
+				videoFileIDs.Remove(CurrentVideo.VideoFileID);
+
+			var positions = Enumerable.Range(0, videoFileIDs.Count).ToDictionary(index => videoFileIDs[index], index => index);
+			var videoFiles = Database.GetVideoFilesAsync(videoFileIDs).Result.OrderBy(videoFile => positions[videoFile.VideoFileID]).ToList();
+
+			if ((top) || (videoFiles.Any(videoFile => queueDict.ContainsKey(videoFile.VideoFileID))))
 			{
-				queue.RemoveAt(match);
-				if (match == 0)
+				var oldFirst = queue.FirstOrDefault();
+				videoFiles.Where(videoFile => queueDict.ContainsKey(videoFile.VideoFileID)).ForEach(videoFile => queue.Remove(queueDict[videoFile.VideoFileID]));
+				if (oldFirst != queue.FirstOrDefault())
 					VideoState = null;
+				if (!top)
+					return;
 			}
+
+			var addIndex = queue.Count;
+			if (top)
+				addIndex = VideoState == null ? 0 : 1;
+
+			foreach (var videoFile in videoFiles)
+				queue.Insert(addIndex++, videoFile);
 		}
 
 		public enum MediaState

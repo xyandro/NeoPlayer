@@ -31,6 +31,19 @@ public class EditTagsDialog extends DialogFragment {
         binding = DataBindingUtil.inflate(inflater, R.layout.edit_tags_dialog, container, false);
 
         binding.title.setText("Edit Tags: " + editTags.videoFileIDs.size() + " video" + (editTags.videoFileIDs.size() == 1 ? "" : "s"));
+        binding.check.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mainActivity.queueVideos(editTags.videoFileIDs, false);
+            }
+        });
+        binding.check.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mainActivity.queueVideos(editTags.videoFileIDs, true);
+                return true;
+            }
+        });
         binding.clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

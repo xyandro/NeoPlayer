@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -62,7 +63,7 @@ public class MainActivity extends Activity {
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private ViewType viewType = ViewType.Videos;
-    private HashSet<Integer> starIDs = new HashSet<>();
+    private LinkedHashSet<Integer> starIDs = new LinkedHashSet<>();
     private HashMap<String, String> searchTags;
     private SortData sortData;
     private ArrayList<Integer> queue = new ArrayList<>();
@@ -196,21 +197,25 @@ public class MainActivity extends Activity {
         });
 
         binding.videos.setAdapter(mainAdapter);
-        binding.videosEdit.setOnClickListener(new View.OnClickListener() {
+        binding.videoEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!starIDs.isEmpty()) {
-                    ArrayList<VideoFile> editTagFiles = new ArrayList<>();
-                    for (int videoFileID : starIDs)
+                ArrayList<VideoFile> editTagFiles = new ArrayList<>();
+                for (int videoFileID : starIDs)
+                    if (videoFiles.containsKey(videoFileID))
                         editTagFiles.add(videoFiles.get(videoFileID));
+                if (!editTagFiles.isEmpty()) {
                     EditTagsDialog.createDialog(MainActivity.this, EditTags.create(editTagFiles)).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
                 }
             }
         });
-        binding.videosEdit.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.videoEdit.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mainAdapter.clearStarIDs();
+                if (starIDs.isEmpty())
+                    mainAdapter.starShowIDs();
+                else
+                    mainAdapter.clearStarIDs();
                 return true;
             }
         });
@@ -740,7 +745,13 @@ public class MainActivity extends Activity {
     }
 
     public void queueVideo(int videoFileID, boolean top) {
-        outputQueue.add(new Message().add("QueueVideo").add(videoFileID).add(top).toArray());
+        ArrayList videoFileIDs = new ArrayList();
+        videoFileIDs.add(videoFileID);
+        queueVideos(videoFileIDs, top);
+    }
+
+    public void queueVideos(ArrayList<Integer> videoFileIDs, boolean top) {
+        outputQueue.add(new Message().add("QueueVideos").add(videoFileIDs).add(top).toArray());
     }
 
     public void editTags(EditTags editTags) {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NeoPlayer.Models;
@@ -139,6 +140,8 @@ namespace NeoPlayer.Networking
 		public bool GetBool() => GetBytes(1)[0] != 0;
 
 		public int GetInt() => BitConverter.ToInt32(GetBytes(4), 0);
+
+		public List<int> GetInts() => Enumerable.Repeat(0, GetInt()).Select(x => GetInt()).ToList();
 
 		public string GetString() => Encoding.UTF8.GetString(GetBytes(GetInt()));
 

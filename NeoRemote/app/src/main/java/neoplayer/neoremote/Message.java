@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,13 @@ public class Message {
 
     public Message add(int value) {
         byteBuffer.putInt(value);
+        return this;
+    }
+
+    public Message add(Collection<Integer> values) {
+        byteBuffer.putInt(values.size());
+        for (int value : values)
+            byteBuffer.putInt(value);
         return this;
     }
 

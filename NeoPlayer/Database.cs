@@ -239,14 +239,17 @@ CREATE TABLE TagValue
 			}
 		}
 
-		async public static Task<List<VideoFile>> GetVideoFilesAsync(int? videoFileID = null)
+		async public static Task<List<VideoFile>> GetVideoFilesAsync(List<int> videoFileIDs = null)
 		{
 			string where = null;
 			Dictionary<string, object> parameters = null;
-			if (videoFileID.HasValue)
+			if (videoFileIDs != null)
 			{
-				where = $"{nameof(VideoFile.VideoFileID)} = @ID";
-				parameters = new Dictionary<string, object> { ["@ID"] = videoFileID.Value };
+				if (!videoFileIDs.Any())
+					return new List<VideoFile>();
+
+				parameters = Enumerable.Range(0, videoFileIDs.Count).ToDictionary(index => $"@ID{index}", index => (object)videoFileIDs[index]);
+				where = $"{nameof(VideoFile.VideoFileID)} IN ({string.Join(", ", parameters.Keys)})";
 			}
 			var videoFiles = (await GetAsync<VideoFile>(where, parameters)).ToDictionary(videoFile => videoFile.VideoFileID);
 			var tags = (await GetAsync<Tag>()).ToDictionary(tag => tag.TagID, tag => tag.Name);

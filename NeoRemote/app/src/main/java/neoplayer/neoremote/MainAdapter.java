@@ -8,18 +8,19 @@ import android.widget.BaseAdapter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import neoplayer.neoremote.databinding.MainAdapterItemBinding;
 
 public class MainAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final HashSet<Integer> starIDs;
+    private final LinkedHashSet<Integer> starIDs;
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private HashSet<Integer> checkIDs = new HashSet<>();
     private ArrayList<Integer> showIDs = new ArrayList<>();
     private final ArrayList<VideoFile> displayList = new ArrayList<>();
 
-    public MainAdapter(MainActivity mainActivity, HashSet<Integer> starIDs) {
+    public MainAdapter(MainActivity mainActivity, LinkedHashSet<Integer> starIDs) {
         super();
         this.mainActivity = mainActivity;
         this.starIDs = starIDs;
@@ -42,6 +43,12 @@ public class MainAdapter extends BaseAdapter {
 
     public void clearStarIDs() {
         starIDs.clear();
+        notifyDataSetChanged();
+    }
+
+    public void starShowIDs() {
+        for (int videoFileID : showIDs)
+            starIDs.add(videoFileID);
         notifyDataSetChanged();
     }
 
@@ -78,9 +85,7 @@ public class MainAdapter extends BaseAdapter {
         final View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (starIDs.contains(videoFile.videoFileID))
-                    starIDs.remove(videoFile.videoFileID);
-                else
+                if (!starIDs.remove(videoFile.videoFileID))
                     starIDs.add(videoFile.videoFileID);
                 notifyDataSetChanged();
                 return true;
