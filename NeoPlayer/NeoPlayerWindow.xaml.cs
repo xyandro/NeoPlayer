@@ -6,13 +6,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Xml.Linq;
 using NeoPlayer.Downloaders;
 using NeoPlayer.Misc;
 using NeoPlayer.Models;
@@ -22,8 +22,6 @@ namespace NeoPlayer
 {
 	partial class NeoPlayerWindow
 	{
-		static readonly string SavedQueriesFile = Path.Combine(Path.GetDirectoryName(typeof(NeoPlayerWindow).Assembly.Location), "Saved.xml");
-
 		readonly SingleRunner updateState;
 		readonly DispatcherTimer changeSlideTimer = null;
 		readonly NeoServer neoServer;
@@ -107,10 +105,16 @@ namespace NeoPlayer
 			}
 		}
 
+		async Task<string> ResolveShortcut(string name)
+		{
+			var result = await Database.GetAsync<Shortcut>($"{nameof(Shortcut.Name)} = @Name", new Dictionary<string, object> { ["@Name"] = name });
+			name = result.Select(shortcut => shortcut.Value).FirstOrDefault() ?? name;
+			return name;
+		}
+
 		async void DownloadURL(string url)
 		{
-			var result = await Database.GetAsync<Shortcut>($"{nameof(Shortcut.Name)} = @Name", new Dictionary<string, object> { ["@Name"] = url });
-			url = result.Select(shortcut => shortcut.Value).FirstOrDefault() ?? url;
+			url = await ResolveShortcut(url);
 			VideoFileDownloader.DownloadAsync(url, (id, downloadData) =>
 			{
 				Dispatcher.Invoke(() =>
@@ -203,7 +207,7 @@ namespace NeoPlayer
 			{
 				slidesQueryField = value;
 				if (slidesQueryField.StartsWith("saved:"))
-					slidesQueryField = GetSavedQuery(slidesQueryField.Substring("saved:".Length).Trim().ToLowerInvariant());
+					slidesQueryField = ResolveShortcut(slidesQueryField).Result;
 				slidesQueryField = Regex.Replace(slidesQueryField, @"[\r,]", "\n");
 				slidesQueryField = Regex.Replace(slidesQueryField, @"[^\S\n]+", " ");
 				slidesQueryField = Regex.Replace(slidesQueryField, @"(^ | $)", "", RegexOptions.Multiline);
@@ -215,19 +219,6 @@ namespace NeoPlayer
 				status.SlidesQuery = slidesQueryField;
 				updateState.Signal();
 			}
-		}
-
-		string GetSavedQuery(string query)
-		{
-			try
-			{
-				var xml = XElement.Load(SavedQueriesFile);
-				var found = xml.Elements().FirstOrDefault(element => element.Attribute("Name").Value == query);
-				if (found != null)
-					query = found.Value;
-			}
-			catch { }
-			return query;
 		}
 
 		string slidesSizeField;
