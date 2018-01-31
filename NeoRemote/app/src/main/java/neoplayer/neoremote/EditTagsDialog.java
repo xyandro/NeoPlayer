@@ -1,7 +1,9 @@
 package neoplayer.neoremote;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -42,6 +44,26 @@ public class EditTagsDialog extends DialogFragment {
             public boolean onLongClick(View view) {
                 mainActivity.queueVideos(editTags.videoFileIDs, true);
                 return true;
+            }
+        });
+        binding.delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int count = editTags.videoFileIDs.size();
+                new AlertDialog.Builder(mainActivity)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Delete videos?")
+                        .setMessage("Are you sure you want to delete " + count + " video" + (count == 1 ? "" : "s") + "?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mainActivity.deleteVideos(editTags.videoFileIDs);
+                                dismiss();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+
             }
         });
         binding.clear.setOnClickListener(new View.OnClickListener() {

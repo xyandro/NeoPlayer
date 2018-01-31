@@ -101,6 +101,7 @@ namespace NeoPlayer
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
 				case "DownloadURL": DownloadURL(message.GetString()); break;
 				case "EditTags": EditTags(message.GetEditTags()); break;
+				case "DeleteVideos": DeleteVideos(message.GetInts()); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
@@ -159,6 +160,17 @@ namespace NeoPlayer
 						await Database.DeleteAsync(tagValue);
 				}
 
+			UpdateVideoFiles();
+		}
+
+		async void DeleteVideos(List<int> videoFileIDs)
+		{
+			var videoFiles = await Database.GetVideoFilesAsync(videoFileIDs);
+			foreach (var videoFile in videoFiles)
+			{
+				await Database.DeleteAsync(videoFile);
+				File.Delete(Path.Combine(Settings.VideosPath, videoFile.FileName));
+			}
 			UpdateVideoFiles();
 		}
 

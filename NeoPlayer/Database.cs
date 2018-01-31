@@ -148,10 +148,16 @@ CREATE TABLE TagValue
 				primaryKeyProp.SetValue(obj, GetInsertID());
 		}
 
-		static async public Task DeleteAsync<T>(int id)
+		static public Task DeleteByIDAsync<T>(int id) => DeleteByIDsAsync<T>(new List<int> { id });
+
+		static async public Task DeleteByIDsAsync<T>(IEnumerable<int> ids)
 		{
+			if (!ids.Any())
+				return;
+
 			var primaryKeyProp = GetPrimaryKeyProp<T>();
-			await ExecuteNonQueryAsync($"DELETE FROM {typeof(T).Name} WHERE {primaryKeyProp.Name} = @ID", new Dictionary<string, object> { ["@ID"] = id });
+			var parameters = ids.Select((id, index) => new { id, index }).ToDictionary(obj => $"@ID{obj.index}", obj => (object)obj.id);
+			await ExecuteNonQueryAsync($"DELETE FROM {typeof(T).Name} WHERE {primaryKeyProp.Name} IN ({string.Join(", ", parameters.Keys)})", parameters);
 		}
 
 		static async public Task DeleteAsync<T>(T obj)

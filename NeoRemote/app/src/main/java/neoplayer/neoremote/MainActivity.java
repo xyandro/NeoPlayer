@@ -776,6 +776,10 @@ public class MainActivity extends Activity {
         outputQueue.add(new Message().add("QueueVideos").add(videoFileIDs).add(top).toArray());
     }
 
+    public void deleteVideos(ArrayList<Integer> videoFileIDs) {
+        outputQueue.add(new Message().add("DeleteVideos").add(videoFileIDs).toArray());
+    }
+
     public void editTags(EditTags editTags) {
         outputQueue.add(new Message().add("EditTags").add(editTags).toArray());
     }

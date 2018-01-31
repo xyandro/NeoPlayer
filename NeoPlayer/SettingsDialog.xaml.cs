@@ -132,7 +132,7 @@ namespace NeoPlayer
 
 			var deleteIDs = initial.Select(shortcut => shortcut.ShortcutID).Except(ShortcutsList.Select(shortcut => shortcut.ShortcutID)).ToList();
 			foreach (var shortcutID in deleteIDs)
-				Database.DeleteAsync<Shortcut>(shortcutID).Wait();
+				Database.DeleteByIDAsync<Shortcut>(shortcutID).Wait();
 
 			var oldShortcuts = initial.ToDictionary(shortcut => shortcut.ShortcutID);
 			var updateShortcuts = ShortcutsList.Where(shortcut => (shortcut.ShortcutID == 0) || (!Helpers.Match(shortcut, oldShortcuts[shortcut.ShortcutID]))).ToList();
