@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -569,8 +570,9 @@ namespace NeoPlayer
 				}
 
 			}
-
 		}
+
+		void SetExternalDisplay() => Process.Start("DisplaySwitch", "/external");
 
 		public void SetPosition(int position, bool relative)
 		{
@@ -590,6 +592,7 @@ namespace NeoPlayer
 					case Key.U: VideoFileDownloader.Update(); break;
 					case Key.Space: ToggleMediaPlaying(); break;
 					case Key.Right: MediaForward(); break;
+					case Key.Enter: SetExternalDisplay(); break;
 					default: e.Handled = false; break;
 				}
 			}
