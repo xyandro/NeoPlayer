@@ -55,7 +55,7 @@ public class EditTagsAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         final Map.Entry<String, String> value = (Map.Entry<String, String>) getItem(position);
 
-        View view = mainActivity.getLayoutInflater().inflate(R.layout.edit_find_adapter_item, parent, false);
+        View view = mainActivity.getLayoutInflater().inflate(R.layout.edit_adapter_item, parent, false);
 
         ((TextView) view.findViewById(R.id.name)).setText(value.getKey());
 

@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import neoplayer.neoremote.databinding.MainActivityBinding;
@@ -66,7 +65,7 @@ public class MainActivity extends Activity {
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private ViewType viewType = ViewType.Videos;
     private LinkedHashSet<Integer> starIDs = new LinkedHashSet<>();
-    private HashMap<String, String> searchTags;
+    private ArrayList<FindData> findDataList;
     private SortData sortData;
     private ArrayList<Integer> queue = new ArrayList<>();
     private ArrayList<Integer> history = new ArrayList<>();
@@ -157,20 +156,21 @@ public class MainActivity extends Activity {
         binding.videoSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                HashMap<String, String> tags = new HashMap<>();
+                HashMap<String, FindData> tags = new HashMap<>();
+                if (findDataList != null)
+                    for (FindData findData : findDataList)
+                        tags.put(findData.tag, findData.copy());
                 for (VideoFile videoFile : videoFiles.values())
-                    for (String key : videoFile.tags.keySet())
-                        tags.put(key, null);
-                if (searchTags != null)
-                    for (Map.Entry<String, String> searchTag : searchTags.entrySet())
-                        tags.put(searchTag.getKey(), searchTag.getValue());
-                FindDialog.createDialog(MainActivity.this, tags).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
+                    for (String tag : videoFile.tags.keySet())
+                        if (!tags.containsKey(tag))
+                            tags.put(tag, new FindData(tag));
+                FindDialog.createDialog(MainActivity.this, new ArrayList<>(tags.values())).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
             }
         });
         binding.videoSearch.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                setSearchTags(null);
+                setFindDataList(null);
                 return true;
             }
         });
@@ -784,8 +784,8 @@ public class MainActivity extends Activity {
         outputQueue.add(new Message().add("EditTags").add(editTags).toArray());
     }
 
-    public void setSearchTags(HashMap<String, String> searchTags) {
-        this.searchTags = searchTags;
+    public void setFindDataList(ArrayList<FindData> findDataList) {
+        this.findDataList = findDataList;
         updateVideoList();
     }
 
@@ -817,16 +817,12 @@ public class MainActivity extends Activity {
     }
 
     private boolean matchSearch(VideoFile videoFile) {
-        if (searchTags == null)
+        if (findDataList == null)
             return true;
 
-        for (Map.Entry<String, String> searchTag : searchTags.entrySet()) {
-            String value = videoFile.tags.get(searchTag.getKey());
-            if (value == null)
+        for (FindData findData : findDataList)
+            if (!findData.matches(videoFile))
                 return false;
-            if (!value.toLowerCase().contains(searchTag.getValue()))
-                return false;
-        }
 
         return true;
     }

@@ -5,46 +5,44 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
-import neoplayer.neoremote.databinding.EditFindAdapterItemBinding;
+import neoplayer.neoremote.databinding.FindAdapterItemBinding;
 
 public class FindAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
-    private final HashMap<String, String> tags;
-    private ArrayList<Map.Entry<String, String>> list;
+    private ArrayList<FindData> findDataList;
 
-    public FindAdapter(MainActivity mainActivity, HashMap<String, String> tags) {
+    public FindAdapter(MainActivity mainActivity, ArrayList<FindData> findDataList) {
         super();
         this.mainActivity = mainActivity;
-        this.tags = tags;
-        updateKeys();
+        this.findDataList = findDataList;
+        sortList();
     }
 
-    private void updateKeys() {
-        list = new ArrayList<>(tags.entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
+    private void sortList() {
+        Collections.sort(findDataList, new Comparator<FindData>() {
             @Override
-            public int compare(Map.Entry<String, String> entry1, Map.Entry<String, String> entry2) {
-                return entry1.getKey().compareTo(entry2.getKey());
+            public int compare(FindData findData1, FindData findData2) {
+                return findData1.tag.compareTo(findData2.tag);
             }
         });
     }
 
     @Override
     public int getCount() {
-        return list.size();
+        return findDataList.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return list.get(i);
+        return findDataList.get(i);
     }
 
     @Override
@@ -56,21 +54,43 @@ public class FindAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final Map.Entry<String, String> value = (Map.Entry<String, String>) getItem(position);
+        final FindData findData = (FindData) getItem(position);
 
-        EditFindAdapterItemBinding binding;
+        final FindAdapterItemBinding binding;
         if (convertView == null) {
-            binding = DataBindingUtil.inflate(mainActivity.getLayoutInflater(), R.layout.edit_find_adapter_item, parent, false);
+            binding = DataBindingUtil.inflate(mainActivity.getLayoutInflater(), R.layout.find_adapter_item, parent, false);
             binding.getRoot().setTag(binding);
         } else
-            binding = (EditFindAdapterItemBinding) convertView.getTag();
+            binding = (FindAdapterItemBinding) convertView.getTag();
 
-        binding.name.setText(value.getKey());
+        binding.name.setText(findData.tag);
 
         changing = true;
-        binding.value.setText(value.getValue());
+        binding.type.setAdapter(new ArrayAdapter<>(mainActivity.getApplicationContext(), android.R.layout.simple_spinner_item, FindData.findTypes));
+        for (int index = 0; index < FindData.findTypes.length; ++index)
+            if (FindData.findTypes[index] == findData.findType)
+                binding.type.setSelection(index);
+        binding.value1.setText(findData.value1);
+        binding.value2.setText(findData.value2);
         changing = false;
-        binding.value.addTextChangedListener(new TextWatcher() {
+
+        binding.type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
+                if (changing)
+                    return;
+
+                findData.findType = (FindData.FindType) adapterView.getItemAtPosition(pos);
+                binding.value1.setVisibility(findData.findType.paramCount >= 1 ? View.VISIBLE : View.GONE);
+                binding.value2.setVisibility(findData.findType.paramCount >= 2 ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+
+        binding.value1.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -82,7 +102,23 @@ public class FindAdapter extends BaseAdapter {
             @Override
             public void afterTextChanged(Editable editable) {
                 if (!changing)
-                    value.setValue(editable.toString().trim().toLowerCase());
+                    findData.value1 = editable.toString().trim().toLowerCase();
+            }
+        });
+
+        binding.value2.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (!changing)
+                    findData.value2 = editable.toString().trim().toLowerCase();
             }
         });
 

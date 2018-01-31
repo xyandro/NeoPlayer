@@ -10,9 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 import neoplayer.neoremote.databinding.FindDialogBinding;
 
@@ -20,7 +19,7 @@ public class FindDialog extends DialogFragment {
     private MainActivity mainActivity;
     private FindDialogBinding binding;
     private FindAdapter findAdapter;
-    private HashMap<String, String> tags;
+    private ArrayList<FindData> findDataList;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -37,38 +36,37 @@ public class FindDialog extends DialogFragment {
         binding.clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                for (Map.Entry<String, String> entry : tags.entrySet())
-                    entry.setValue(null);
+                for (FindData findData : findDataList)
+                    findData.findType = FindData.None;
                 findAdapter.notifyDataSetChanged();
             }
         });
         binding.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Iterator<Map.Entry<String, String>> itr = tags.entrySet().iterator();
-                while (itr.hasNext()) {
-                    Map.Entry<String, String> entry = itr.next();
-                    String value = entry.getValue();
-                    if ((value == null) || (value.trim().isEmpty()))
-                        itr.remove();
+                Iterator<FindData> findDataIterator = findDataList.iterator();
+                while (findDataIterator.hasNext()) {
+                    FindData findData = findDataIterator.next();
+                    if (findData.findType == FindData.None)
+                        findDataIterator.remove();
                 }
-                if (tags.isEmpty())
-                    tags = null;
+                if (findDataList.isEmpty())
+                    findDataList = null;
 
-                mainActivity.setSearchTags(tags);
+                mainActivity.setFindDataList(findDataList);
                 dismiss();
             }
         });
-        findAdapter = new FindAdapter(mainActivity, tags);
+        findAdapter = new FindAdapter(mainActivity, findDataList);
         binding.list.setAdapter(findAdapter);
 
         return binding.getRoot();
     }
 
-    public static FindDialog createDialog(MainActivity mainActivity, HashMap<String, String> tags) {
+    public static FindDialog createDialog(MainActivity mainActivity, ArrayList<FindData> findDataList) {
         FindDialog findDialog = new FindDialog();
         findDialog.mainActivity = mainActivity;
-        findDialog.tags = tags;
+        findDialog.findDataList = findDataList;
         return findDialog;
     }
 }
