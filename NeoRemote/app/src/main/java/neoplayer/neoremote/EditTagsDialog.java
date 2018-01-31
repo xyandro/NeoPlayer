@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
 
 import neoplayer.neoremote.databinding.EditTagsDialogBinding;
 
@@ -44,6 +45,26 @@ public class EditTagsDialog extends DialogFragment {
             public boolean onLongClick(View view) {
                 mainActivity.queueVideos(editTags.videoFileIDs, true);
                 return true;
+            }
+        });
+        binding.add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final EditText input = new EditText(mainActivity);
+                input.setId(R.id.add);
+                new AlertDialog.Builder(mainActivity)
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .setTitle("Add new tag")
+                        .setView(input)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                String tagName = input.getText().toString();
+                                editTags.tags.put(tagName, null);
+                                editTagsAdapter.updateKeys();
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
             }
         });
         binding.delete.setOnClickListener(new View.OnClickListener() {

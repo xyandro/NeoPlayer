@@ -25,7 +25,7 @@ public class EditTagsAdapter extends BaseAdapter {
         updateKeys();
     }
 
-    private void updateKeys() {
+    public void updateKeys() {
         list = new ArrayList<>(editTags.tags.entrySet());
         Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
             @Override
@@ -33,6 +33,7 @@ public class EditTagsAdapter extends BaseAdapter {
                 return entry1.getKey().compareTo(entry2.getKey());
             }
         });
+        notifyDataSetChanged();
     }
 
     @Override
