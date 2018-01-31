@@ -52,7 +52,6 @@ namespace NeoPlayer.Networking
 			catch
 			{
 				MessageBox.Show($"Unable to connect to port {port}");
-				Environment.Exit(0);
 				return;
 			}
 			while (true)
