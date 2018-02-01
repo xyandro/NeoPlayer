@@ -114,7 +114,7 @@ CREATE TABLE TagValue
 
 		static PropertyInfo GetPrimaryKeyProp<T>() => GetPrimaryKey(GetProperties<T>());
 
-		async static Task ExecuteNonQueryAsync(string query, Dictionary<string, object> parameters = null)
+		public async static Task ExecuteNonQueryAsync(string query, Dictionary<string, object> parameters = null)
 		{
 			using (var cmd = new SqlCeCommand(query, conn))
 			{

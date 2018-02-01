@@ -161,6 +161,8 @@ namespace NeoPlayer
 						await Database.DeleteAsync(tagValue);
 				}
 
+			await Database.ExecuteNonQueryAsync("DELETE FROM Tag WHERE TagID NOT IN (SELECT TagID FROM TagValue)");
+
 			UpdateVideoFiles();
 		}
 
