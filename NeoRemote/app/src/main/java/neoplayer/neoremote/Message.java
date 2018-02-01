@@ -13,7 +13,7 @@ public class Message {
     private ByteBuffer byteBuffer;
 
     public Message() {
-        byteBuffer = ByteBuffer.allocateDirect(1024).order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer = ByteBuffer.allocateDirect(8192).order(ByteOrder.LITTLE_ENDIAN);
         add(0);
     }
 
