@@ -73,7 +73,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:background="@drawable/tile_purple"
+                    android:background="@drawable/tile_blue"
                     android:orientation="vertical">
 
                     <TextView
@@ -132,7 +132,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
-                    android:background="@drawable/tile_pink"
+                    android:background="@drawable/tile_magenta"
                     android:orientation="vertical">
 
                     <TextView
@@ -344,7 +344,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:background="@drawable/tile_azure">
+                    android:background="@drawable/tile_cyan">
 
                     <ListView
                         android:id="@+id/videos"
@@ -412,7 +412,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:background="@drawable/tile_cyan">
+                    android:background="@drawable/tile_green">
 
                     <ListView
                         android:id="@+id/download_videos_list"
