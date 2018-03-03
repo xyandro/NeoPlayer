@@ -156,6 +156,18 @@ public class MainActivity extends Activity {
         binding.videoSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                QuickFindDialog quickFindDialog = new QuickFindDialog();
+                quickFindDialog.mainActivity = MainActivity.this;
+                if (findDataList != null)
+                    for (FindData findData : findDataList)
+                        if (findData.tag.equals("Title"))
+                            quickFindDialog.findText = findData.value1;
+                quickFindDialog.show(getFragmentManager(), "NoticeDialogFragment");
+            }
+        });
+        binding.videoSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
                 HashMap<String, FindData> tags = new HashMap<>();
                 if (findDataList != null)
                     for (FindData findData : findDataList)
@@ -165,12 +177,6 @@ public class MainActivity extends Activity {
                         if (!tags.containsKey(tag))
                             tags.put(tag, new FindData(tag));
                 FindDialog.createDialog(MainActivity.this, new ArrayList<>(tags.values())).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
-            }
-        });
-        binding.videoSearch.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                setFindDataList(null);
                 return true;
             }
         });
@@ -310,6 +316,15 @@ public class MainActivity extends Activity {
             public void onClick(View view) {
                 viewType = ViewType.Videos;
                 updateVideoList();
+            }
+        });
+
+        binding.videoList.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                viewType = ViewType.Videos;
+                setFindDataList(null);
+                return true;
             }
         });
 

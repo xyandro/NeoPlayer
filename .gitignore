@@ -1,5 +1,5 @@
 *.user
 .vs
-app-release.apk
+/NeoRemote/app/release
 bin
 obj
