@@ -184,6 +184,27 @@ public class MainActivity extends Activity {
         binding.videoSort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (sortData != null)
+                    setSortData(null);
+                else {
+                    HashSet<String> tags = new HashSet<>();
+                    for (VideoFile videoFile : videoFiles.values())
+                        for (String key : videoFile.tags.keySet())
+                            tags.add(key);
+                    SortData useSortData = new SortData(tags);
+                    for (int ctr = 0; ctr < useSortData.size(); ++ctr) {
+                        SortData.SortItem sortItem = useSortData.getAlphaOrder(ctr);
+                        if (sortItem.tag.equals("DownloadDate"))
+                            useSortData.setSortDirection(sortItem, SortData.SortDirection.Descending);
+                    }
+                    setSortData(useSortData);
+                }
+            }
+        });
+
+        binding.videoSort.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
                 SortData useSortData = sortData;
                 if (useSortData == null) {
                     HashSet<String> tags = new HashSet<>();
@@ -193,13 +214,6 @@ public class MainActivity extends Activity {
                     useSortData = new SortData(tags);
                 }
                 SortDialog.createDialog(MainActivity.this, useSortData).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
-            }
-        });
-
-        binding.videoSort.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                setSortData(null);
                 return true;
             }
         });
@@ -324,6 +338,7 @@ public class MainActivity extends Activity {
             public boolean onLongClick(View view) {
                 viewType = ViewType.Videos;
                 setFindDataList(null);
+                setSortData(null);
                 return true;
             }
         });

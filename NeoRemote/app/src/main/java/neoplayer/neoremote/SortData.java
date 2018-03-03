@@ -75,6 +75,11 @@ public class SortData {
             sortItem.priority = ++priority;
     }
 
+    public void setSortDirection(SortItem sortItem, SortDirection sortDirection) {
+        sortItem.direction = sortDirection;
+        updatePriorities();
+    }
+
     public void toggle(SortItem sortItem, boolean disable) {
         if (disable)
             sortItem.direction = SortDirection.None;
