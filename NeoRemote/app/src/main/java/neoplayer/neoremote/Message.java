@@ -17,6 +17,10 @@ public class Message {
         add(0);
     }
 
+    public Message(byte[] message) {
+        byteBuffer = ByteBuffer.wrap(message).order(ByteOrder.LITTLE_ENDIAN);
+    }
+
     public Message add(byte[] value) {
         byteBuffer.put(value);
         return this;
@@ -158,5 +162,9 @@ public class Message {
             downloadDatas.add(getDownloadData());
         }
         return downloadDatas;
+    }
+
+    public byte[] getBytes() {
+        return byteBuffer.array();
     }
 }

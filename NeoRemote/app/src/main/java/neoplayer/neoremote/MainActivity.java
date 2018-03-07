@@ -6,16 +6,19 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.databinding.DataBindingUtil;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.VolumeProviderCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -26,29 +29,13 @@ import android.widget.ArrayAdapter;
 import android.widget.RemoteViews;
 import android.widget.SeekBar;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import neoplayer.neoremote.databinding.MainActivityBinding;
 
@@ -56,11 +43,6 @@ public class MainActivity extends Activity {
     enum ViewType {Videos, Queue, History}
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String FakeProtocol = "ne://";
-    private static final int NeoPlayerToken = 0xfeedbeef;
-    private static final int NeoPlayerRestartToken = 0x0badf00d;
-    private static final int NeoPlayerDefaultPort = 7399;
-    private static final String addressFileName = "NeoPlayer.txt";
 
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private ViewType viewType = ViewType.Videos;
@@ -77,16 +59,15 @@ public class MainActivity extends Activity {
     private static final LinkedHashMap<String, String> validSizes = new LinkedHashMap<>();
     private String currentSlidesQuery;
     private int currentSlidesSize;
-    private ArrayBlockingQueue<byte[]> outputQueue = new ArrayBlockingQueue<>(100);
-    private URI neoPlayerAddress;
-    private Thread networkThread;
-    private Socket socket;
     private NotificationManager notificationManager;
-    private BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver notificationBroadcastReceiver;
     private RemoteViews remoteViews;
     private NotificationCompat.Builder notification;
     private boolean activityActive = false;
     private GetAddressDialog getAddressDialog;
+    private NetworkService networkService;
+    private BroadcastReceiver serviceBroadcastReceiver;
+    private ServiceConnection serviceConnection;
 
     private MainActivityBinding binding;
 
@@ -119,7 +100,7 @@ public class MainActivity extends Activity {
         setupMediaSession();
         setupControls();
         setupNotification();
-        startNetworkThread();
+        setupService();
     }
 
     private int seekBarToDisplayTime(int value) {
@@ -264,7 +245,7 @@ public class MainActivity extends Activity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                sendRestart();
+                                networkService.sendRestart();
                             }
 
                         })
@@ -280,7 +261,7 @@ public class MainActivity extends Activity {
                 binding.slidesQuery.clearFocus();
                 String query = binding.slidesQuery.getText().toString();
                 String size = validSizes.get(binding.slidesSize.getSelectedItem());
-                outputQueue.add(new Message().add("SetSlidesQuery").add(query).add(size).toArray());
+                sendMessage(new Message().add("SetSlidesQuery").add(query).add(size).toArray());
             }
         });
 
@@ -292,7 +273,7 @@ public class MainActivity extends Activity {
                 seekBar.setProgress(value);
                 binding.slidesDisplayTimeText.setText(DateUtils.formatElapsedTime(displayTime));
                 if (fromUser)
-                    outputQueue.add(new Message().add("SetSlideDisplayTime").add(displayTime).toArray());
+                    sendMessage(new Message().add("SetSlideDisplayTime").add(displayTime).toArray());
             }
 
             @Override
@@ -307,21 +288,21 @@ public class MainActivity extends Activity {
         binding.slidesBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("CycleSlide").add(false).toArray());
+                sendMessage(new Message().add("CycleSlide").add(false).toArray());
             }
         });
 
         binding.slidesPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("ToggleSlidesPlaying").toArray());
+                sendMessage(new Message().add("ToggleSlidesPlaying").toArray());
             }
         });
 
         binding.slidesForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("CycleSlide").add(true).toArray());
+                sendMessage(new Message().add("CycleSlide").add(true).toArray());
             }
         });
 
@@ -367,7 +348,7 @@ public class MainActivity extends Activity {
                 if (!url.equals("")) {
                     binding.downloadUrl.setText("");
                     binding.downloadUrl.clearFocus();
-                    outputQueue.add(new Message().add("DownloadURL").add(url).toArray());
+                    sendMessage(new Message().add("DownloadURL").add(url).toArray());
                 }
             }
         });
@@ -385,7 +366,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                outputQueue.add(new Message().add("SetPosition").add(seekBar.getProgress()).add(false).toArray());
+                sendMessage(new Message().add("SetPosition").add(seekBar.getProgress()).add(false).toArray());
                 userTrackingSeekBar = false;
             }
         });
@@ -393,28 +374,28 @@ public class MainActivity extends Activity {
         binding.navbarBack30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("SetPosition").add(-30).add(true).toArray());
+                sendMessage(new Message().add("SetPosition").add(-30).add(true).toArray());
             }
         });
 
         binding.navbarBack5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("SetPosition").add(-5).add(true).toArray());
+                sendMessage(new Message().add("SetPosition").add(-5).add(true).toArray());
             }
         });
 
         binding.navbarPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("ToggleMediaPlaying").add(false).toArray());
+                sendMessage(new Message().add("ToggleMediaPlaying").add(false).toArray());
             }
         });
 
         binding.navbarPlay.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                outputQueue.add(new Message().add("ToggleMediaPlaying").add(true).toArray());
+                sendMessage(new Message().add("ToggleMediaPlaying").add(true).toArray());
                 return true;
             }
         });
@@ -422,37 +403,23 @@ public class MainActivity extends Activity {
         binding.navbarForward5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("SetPosition").add(5).add(true).toArray());
+                sendMessage(new Message().add("SetPosition").add(5).add(true).toArray());
             }
         });
 
         binding.navbarForward30.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("SetPosition").add(30).add(true).toArray());
+                sendMessage(new Message().add("SetPosition").add(30).add(true).toArray());
             }
         });
 
         binding.navbarForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                outputQueue.add(new Message().add("MediaForward").toArray());
+                sendMessage(new Message().add("MediaForward").toArray());
             }
         });
-    }
-
-    private void sendRestart() {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                try {
-                    if (neoPlayerAddress != null)
-                        new Socket(neoPlayerAddress.getHost(), neoPlayerAddress.getPort() - 1).getOutputStream().write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerRestartToken).array());
-                } catch (Exception e) {
-                }
-                return null;
-            }
-        }.execute();
     }
 
     private void setupNotification() {
@@ -468,20 +435,20 @@ public class MainActivity extends Activity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("com.neoremote.android.PlayPause");
         intentFilter.addAction("com.neoremote.android.Forward");
-        broadcastReceiver = new BroadcastReceiver() {
+        notificationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getAction()) {
                     case "com.neoremote.android.PlayPause":
-                        outputQueue.add(new Message().add("ToggleMediaPlaying").add(false).toArray());
+                        sendMessage(new Message().add("ToggleMediaPlaying").add(false).toArray());
                         break;
                     case "com.neoremote.android.Forward":
-                        outputQueue.add(new Message().add("MediaForward").toArray());
+                        sendMessage(new Message().add("MediaForward").toArray());
                         break;
                 }
             }
         };
-        registerReceiver(broadcastReceiver, intentFilter);
+        registerReceiver(notificationBroadcastReceiver, intentFilter);
 
         remoteViews = new RemoteViews(getPackageName(), R.layout.notification);
         remoteViews.setOnClickPendingIntent(R.id.notification_play_pause, PendingIntent.getBroadcast(this, 0, new Intent("com.neoremote.android.PlayPause"), PendingIntent.FLAG_UPDATE_CURRENT));
@@ -507,7 +474,7 @@ public class MainActivity extends Activity {
 
     private void clearNotification() {
         notificationManager.cancel(0);
-        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(notificationBroadcastReceiver);
     }
 
     private void setupMediaSession() {
@@ -526,12 +493,12 @@ public class MainActivity extends Activity {
         volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 25, 13) {
             @Override
             public void onSetVolumeTo(int volume) {
-                outputQueue.add(new Message().add("SetVolume").add(volume * 4).add(false).toArray());
+                sendMessage(new Message().add("SetVolume").add(volume * 4).add(false).toArray());
             }
 
             @Override
             public void onAdjustVolume(int delta) {
-                outputQueue.add(new Message().add("SetVolume").add(delta * 4).add(true).toArray());
+                sendMessage(new Message().add("SetVolume").add(delta * 4).add(true).toArray());
             }
         };
 
@@ -559,154 +526,58 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
 
-        stopNetworkThread();
+        clearService();
         clearNotification();
         clearMediaSession();
         finish();
     }
 
-    private void getNeoPlayerAddress() {
-        try {
-            InputStream in = openFileInput(addressFileName);
-            try {
-                byte[] buffer = new byte[4];
-                in.read(buffer, 0, 4);
-                int size = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt();
-                buffer = new byte[size];
-                in.read(buffer, 0, size);
-                String address = new String(buffer, "UTF-8");
-                neoPlayerAddress = new URI(FakeProtocol + address);
-            } finally {
-                in.close();
-            }
-        } catch (Exception ex) {
-        }
-    }
-
-    private void startNetworkThread() {
-        networkThread = new Thread(new Runnable() {
+    private void setupService() {
+        serviceBroadcastReceiver = new BroadcastReceiver() {
             @Override
-            public void run() {
-                getNeoPlayerAddress();
-
-                long startTime = System.nanoTime();
-                long connectTime = 0;
-                Log.d(TAG, "startNetworkThread: Started");
-                while (networkThread != null) try {
-                    connectTime = System.nanoTime();
-
-                    if (neoPlayerAddress == null)
-                        throw new Exception("startNetworkThread: No connection address");
-
-                    Log.d(TAG, "startNetworkThread: Connect to " + neoPlayerAddress);
-
-                    socket = new Socket();
-                    socket.connect(new InetSocketAddress(neoPlayerAddress.getHost(), neoPlayerAddress.getPort()), 1000);
-
-                    try {
-                        Log.d(TAG, "startNetworkThread: Connected");
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                clearGetAddressDialog();
-                            }
-                        });
-
-                        outputQueue.clear();
-                        outputQueue.add("GET /RunNeoRemote HTTP/1.1\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
-
-                        final Thread writerThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                runWriterThread(socket);
-                            }
-                        });
-                        writerThread.start();
-
-                        try {
-                            while (true) {
-                                final Message message = new Message(socket.getInputStream());
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        handleMessage(message);
-                                    }
-                                });
-                            }
-                        } finally {
-                            socket.close();
-                            outputQueue.add(new byte[0]); // Signal writer thread to stop
-                            try {
-                                writerThread.join();
-                            } catch (Exception e) {
-                            }
-                        }
-                    } finally {
-                        socket.close();
-                    }
-                } catch (Exception ex) {
-                    Log.d(TAG, "startNetworkThread: Error: " + ex.getMessage());
-
-                    try {
-                        long sleepTime = Math.max(1000000000 - System.nanoTime() + connectTime, 0);
-                        Thread.sleep((int) (sleepTime / 1000000), (int) (sleepTime % 1000000));
-                    } catch (Exception ex2) {
-                    }
-
-                    if (System.nanoTime() - startTime >= 1000000000)
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showGetAddressDialog();
-                            }
-                        });
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getStringExtra("action")) {
+                    case "showGetAddressDialog":
+                        showGetAddressDialog(intent.getStringExtra("address"));
+                        break;
+                    case "clearGetAddressDialog":
+                        clearGetAddressDialog();
+                        break;
+                    case "handleMessage":
+                        handleMessage(intent.getByteArrayExtra("message"));
+                        break;
                 }
-                Log.d(TAG, "startNetworkThread: Stopped");
             }
-        });
-        networkThread.start();
-    }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(serviceBroadcastReceiver, new IntentFilter(NetworkService.ServiceIntent));
 
-    private void runWriterThread(Socket socket) {
-        try {
-            Log.d(TAG, "runWriterThread: Started");
-            while (!socket.isClosed()) {
-                byte[] message = outputQueue.take();
-                if (message.length == 0)
-                    continue;
-
-                socket.getOutputStream().write(message);
-            }
-            Log.d(TAG, "runWriterThread: Socket disconnected");
-        } catch (Exception ex) {
-            Log.d(TAG, "runWriterThread: Error: " + ex.getMessage());
-        }
-        Log.d(TAG, "runWriterThread: Stopped");
-    }
-
-    private void stopNetworkThread() {
-        Thread networkThread = this.networkThread;
-        this.networkThread = null;
-        Socket socket = this.socket;
-        if (socket != null)
-            try {
-                socket.close();
-            } catch (IOException e) {
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder service) {
+                networkService = ((NetworkService.NetworkServiceBinder) service).getService();
             }
 
-        try {
-            networkThread.join();
-        } catch (InterruptedException e) {
-        }
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                finish();
+            }
+        };
+
+        bindService(new Intent(this, NetworkService.class), serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    private void showGetAddressDialog() {
+    private void clearService() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceBroadcastReceiver);
+        unbindService(serviceConnection);
+    }
+
+    private void showGetAddressDialog(String neoPlayerAddress) {
         if ((!activityActive) || (getAddressDialog != null))
             return;
         getAddressDialog = new GetAddressDialog();
         getAddressDialog.mainActivity = MainActivity.this;
-        getAddressDialog.address = neoPlayerAddress == null ? "" : neoPlayerAddress.toString().substring(FakeProtocol.length());
+        getAddressDialog.networkService = networkService;
+        getAddressDialog.address = neoPlayerAddress;
         getAddressDialog.show(getFragmentManager(), "NoticeDialogFragment");
     }
 
@@ -717,85 +588,6 @@ public class MainActivity extends Activity {
         getAddressDialog = null;
     }
 
-    public void setAddress(final String address) {
-        try {
-            neoPlayerAddress = new AsyncTask<Void, Void, URI>() {
-                @Override
-                protected URI doInBackground(Void... voids) {
-                    try {
-                        URI uri = new URI(FakeProtocol + address);
-                        String address = InetAddress.getByName(uri.getHost()).getHostAddress();
-                        int port = uri.getPort();
-                        if (port == -1)
-                            port = NeoPlayerDefaultPort;
-                        uri = new URI(FakeProtocol + address + ":" + port);
-                        return uri;
-                    } catch (Exception ex) {
-                        return null;
-                    }
-                }
-            }.execute().get();
-            if (neoPlayerAddress == null)
-                return;
-
-            byte[] buffer = neoPlayerAddress.toString().substring(FakeProtocol.length()).getBytes("UTF-8");
-            byte[] bufferSize = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(buffer.length).array();
-            OutputStream out = openFileOutput(addressFileName, Context.MODE_PRIVATE);
-            out.write(bufferSize);
-            out.write(buffer);
-            out.close();
-        } catch (Exception ex) {
-        }
-    }
-
-    public static String findNeoPlayer() {
-        try {
-            return new AsyncTask<Void, Void, String>() {
-                @Override
-                protected String doInBackground(Void... voids) {
-                    try {
-                        Log.d(TAG, "findNeoPlayer: Scanning for NeoPlayer...");
-                        DatagramSocket socket = new DatagramSocket();
-                        socket.setBroadcast(true);
-                        socket.setSoTimeout(1000);
-                        byte[] message = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(NeoPlayerToken).array();
-
-                        for (Enumeration<NetworkInterface> niEnum = NetworkInterface.getNetworkInterfaces(); niEnum.hasMoreElements(); ) {
-                            NetworkInterface ni = niEnum.nextElement();
-                            if (ni.isLoopback())
-                                continue;
-
-                            for (InterfaceAddress interfaceAddress : ni.getInterfaceAddresses()) {
-                                if (interfaceAddress.getBroadcast() == null)
-                                    continue;
-
-                                DatagramPacket packet = new DatagramPacket(message, message.length, interfaceAddress.getBroadcast(), NeoPlayerDefaultPort);
-                                socket.send(packet);
-                            }
-                        }
-
-                        DatagramPacket packet = new DatagramPacket(message, message.length);
-                        while (true) {
-                            socket.receive(packet);
-
-                            if (packet.getData().length != 4)
-                                continue;
-
-                            if (ByteBuffer.wrap(packet.getData()).order(ByteOrder.LITTLE_ENDIAN).getInt() != NeoPlayerToken)
-                                continue;
-
-                            return packet.getAddress().getHostAddress() + ":" + NeoPlayerDefaultPort;
-                        }
-                    } catch (Exception ex) {
-                        return null;
-                    }
-                }
-            }.execute().get();
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
     public void queueVideo(int videoFileID, boolean top) {
         ArrayList videoFileIDs = new ArrayList();
         videoFileIDs.add(videoFileID);
@@ -803,15 +595,15 @@ public class MainActivity extends Activity {
     }
 
     public void queueVideos(ArrayList<Integer> videoFileIDs, boolean top) {
-        outputQueue.add(new Message().add("QueueVideos").add(videoFileIDs).add(top).toArray());
+        sendMessage(new Message().add("QueueVideos").add(videoFileIDs).add(top).toArray());
     }
 
     public void deleteVideos(ArrayList<Integer> videoFileIDs) {
-        outputQueue.add(new Message().add("DeleteVideos").add(videoFileIDs).toArray());
+        sendMessage(new Message().add("DeleteVideos").add(videoFileIDs).toArray());
     }
 
     public void editTags(EditTags editTags) {
-        outputQueue.add(new Message().add("EditTags").add(editTags).toArray());
+        sendMessage(new Message().add("EditTags").add(editTags).toArray());
     }
 
     public void setFindDataList(ArrayList<FindData> findDataList) {
@@ -884,7 +676,12 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void handleMessage(Message message) {
+    private void sendMessage(byte[] message) {
+        networkService.sendMessage(message);
+    }
+
+    private void handleMessage(byte[] bytes) {
+        Message message = new Message(bytes);
         int count = message.getInt();
         while (count > 0) {
             --count;

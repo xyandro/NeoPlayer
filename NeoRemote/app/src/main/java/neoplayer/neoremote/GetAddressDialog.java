@@ -10,6 +10,7 @@ import android.widget.EditText;
 
 public class GetAddressDialog extends DialogFragment {
     public MainActivity mainActivity;
+    public NetworkService networkService;
     public String address;
 
     @Override
@@ -41,13 +42,13 @@ public class GetAddressDialog extends DialogFragment {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainActivity.setAddress(addressText.getText().toString());
+                networkService.setNeoPlayerAddress(addressText.getText().toString());
             }
         });
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newAddress = mainActivity.findNeoPlayer();
+                String newAddress = networkService.findNeoPlayer();
                 if (newAddress != null)
                     addressText.setText(newAddress);
             }
