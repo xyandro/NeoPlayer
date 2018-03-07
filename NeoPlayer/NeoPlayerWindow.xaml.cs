@@ -101,6 +101,7 @@ namespace NeoPlayer
 				case "SetSlideDisplayTime": SlideDisplayTime = message.GetInt(); break;
 				case "CycleSlide": CycleSlide(message.GetBool() ? 1 : -1); break;
 				case "DownloadURL": DownloadURL(message.GetString()); break;
+				case "UpdateYouTubeDL": VideoFileDownloader.Update(); break;
 				case "EditTags": EditTags(message.GetEditTags()); break;
 				case "DeleteVideos": DeleteVideos(message.GetInts()); break;
 				default: throw new Exception("Invalid command");

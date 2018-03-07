@@ -352,6 +352,13 @@ public class MainActivity extends Activity {
                 }
             }
         });
+        binding.downloadSubmit.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                sendMessage(new Message().add("UpdateYouTubeDL").toArray());
+                return true;
+            }
+        });
 
         binding.navbarSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
