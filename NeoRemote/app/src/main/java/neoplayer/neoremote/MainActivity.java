@@ -203,22 +203,25 @@ public class MainActivity extends Activity {
         binding.videoEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!mainAdapter.getUseStarIDs()) {
+                    setUseStarIDs(true);
+                    return;
+                }
+
                 ArrayList<VideoFile> editTagFiles = new ArrayList<>();
                 for (int videoFileID : starIDs)
                     if (videoFiles.containsKey(videoFileID))
                         editTagFiles.add(videoFiles.get(videoFileID));
-                if (!editTagFiles.isEmpty()) {
+                if (editTagFiles.isEmpty())
+                    setUseStarIDs(false);
+                else
                     EditTagsDialog.createDialog(MainActivity.this, EditTags.create(editTagFiles)).show(getFragmentManager().beginTransaction(), EditTagsDialog.class.getName());
-                }
             }
         });
         binding.videoEdit.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (starIDs.isEmpty())
-                    mainAdapter.starShowIDs();
-                else
-                    mainAdapter.clearStarIDs();
+                setUseStarIDs(false);
                 return true;
             }
         });
@@ -320,6 +323,7 @@ public class MainActivity extends Activity {
                 viewType = ViewType.Videos;
                 setFindDataList(null);
                 setSortData(null);
+                setUseStarIDs(false);
                 return true;
             }
         });
@@ -427,6 +431,11 @@ public class MainActivity extends Activity {
                 sendMessage(new Message().add("MediaForward").toArray());
             }
         });
+    }
+
+    private void setUseStarIDs(boolean useStarIDs) {
+        mainAdapter.setUseStarIDs(useStarIDs);
+        binding.videoEdit.setImageResource(useStarIDs ? R.drawable.editing : R.drawable.edit);
     }
 
     private void setupNotification() {

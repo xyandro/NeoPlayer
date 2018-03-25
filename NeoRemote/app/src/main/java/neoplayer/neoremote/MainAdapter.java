@@ -15,6 +15,7 @@ import neoplayer.neoremote.databinding.MainAdapterItemBinding;
 public class MainAdapter extends BaseAdapter {
     private final MainActivity mainActivity;
     private final LinkedHashSet<Integer> starIDs;
+    private boolean useStarIDs;
     private HashMap<Integer, VideoFile> videoFiles = new HashMap<>();
     private HashSet<Integer> checkIDs = new HashSet<>();
     private ArrayList<Integer> showIDs = new ArrayList<>();
@@ -24,6 +25,17 @@ public class MainAdapter extends BaseAdapter {
         super();
         this.mainActivity = mainActivity;
         this.starIDs = starIDs;
+    }
+
+    public boolean getUseStarIDs() {
+        return useStarIDs;
+    }
+
+    public void setUseStarIDs(boolean useStarIDs) {
+        this.useStarIDs = useStarIDs;
+        if (!useStarIDs)
+            starIDs.clear();
+        notifyDataSetChanged();
     }
 
     public void setVideoFiles(HashMap<Integer, VideoFile> videoFiles) {
@@ -82,24 +94,23 @@ public class MainAdapter extends BaseAdapter {
         binding.name.setText(videoFile.getTitle());
         binding.star.setImageResource(starIDs.contains(videoFile.videoFileID) ? R.drawable.star : 0);
 
-        final View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (!starIDs.remove(videoFile.videoFileID))
-                    starIDs.add(videoFile.videoFileID);
-                notifyDataSetChanged();
-                return true;
-            }
-        };
-        binding.getRoot().setOnLongClickListener(onLongClickListener);
-
         binding.getRoot().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!starIDs.isEmpty())
-                    onLongClickListener.onLongClick(view);
-                else
+                if (useStarIDs) {
+                    if (!starIDs.remove(videoFile.videoFileID))
+                        starIDs.add(videoFile.videoFileID);
+                    notifyDataSetChanged();
+                } else
                     mainActivity.queueVideo(videoFile.videoFileID, false);
+            }
+        });
+
+        binding.getRoot().setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mainActivity.queueVideo(videoFile.videoFileID, true);
+                return true;
             }
         });
 
