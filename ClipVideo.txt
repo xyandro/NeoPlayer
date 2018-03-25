@@ -1,0 +1,1 @@
+C:\Documents\YouTubeDL\ffmpeg\bin\ffmpeg.exe -i "C:\Documents\NeoPlayer\Videos\DON'T WAIT - OFFICIAL MUSIC VIDEO _ Joey Graceffa-NEID-youtube-Kcwo_mhyqTw.mkv" -c copy -t 00:03:23 "C:\Documents\NeoPlayer\Videos\DON'T WAIT - OFFICIAL MUSIC VIDEO _ Joey Graceffa-NEID-youtube-Kcwo_mhyqTw-2.mkv"
