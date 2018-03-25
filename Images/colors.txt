@@ -6,3 +6,5 @@ Magenta ff51be
 Yellow  fffb42
 Green   9aff4f
 Blue    46a3ff
+Purple  b793af
+Teal    4eb09f

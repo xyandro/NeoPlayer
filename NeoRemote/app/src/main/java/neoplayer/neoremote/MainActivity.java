@@ -431,6 +431,13 @@ public class MainActivity extends Activity {
                 sendMessage(new Message().add("MediaForward").toArray());
             }
         });
+
+        binding.presentationMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendMessage(new Message().add("PresentationMode").toArray());
+            }
+        });
     }
 
     private void setUseStarIDs(boolean useStarIDs) {

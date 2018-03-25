@@ -104,6 +104,7 @@ namespace NeoPlayer
 				case "UpdateYouTubeDL": VideoFileDownloader.Update(); break;
 				case "EditTags": EditTags(message.GetEditTags()); break;
 				case "DeleteVideos": DeleteVideos(message.GetInts()); break;
+				case "PresentationMode": PresentationMode(); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
@@ -575,7 +576,13 @@ namespace NeoPlayer
 			}
 		}
 
-		void SetExternalDisplay() => Process.Start("DisplaySwitch", "/external");
+		void PresentationMode()
+		{
+			WindowState = WindowState.Minimized;
+			Show();
+			WindowState = WindowState.Maximized;
+			Process.Start("DisplaySwitch", "/external");
+		}
 
 		public void SetPosition(int position, bool relative)
 		{
@@ -595,7 +602,7 @@ namespace NeoPlayer
 					case Key.U: VideoFileDownloader.Update(); break;
 					case Key.Space: ToggleMediaPlaying(); break;
 					case Key.Right: MediaForward(); break;
-					case Key.Enter: SetExternalDisplay(); break;
+					case Key.Enter: PresentationMode(); break;
 					default: e.Handled = false; break;
 				}
 			}
