@@ -238,26 +238,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        binding.slidesClear.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle("Restart NeoPlayer?")
-                        .setMessage("Are you sure you want to restart NeoPlayer?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                networkService.sendRestart();
-                            }
-
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-                return true;
-            }
-        });
-
         binding.slidesSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -320,10 +300,7 @@ public class MainActivity extends Activity {
         binding.videoList.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                viewType = ViewType.Videos;
-                setFindDataList(null);
-                setSortData(null);
-                setUseStarIDs(false);
+                resetLayout();
                 return true;
             }
         });
@@ -354,13 +331,6 @@ public class MainActivity extends Activity {
                     binding.downloadUrl.clearFocus();
                     sendMessage(new Message().add("DownloadURL").add(url).toArray());
                 }
-            }
-        });
-        binding.downloadSubmit.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                sendMessage(new Message().add("UpdateYouTubeDL").toArray());
-                return true;
             }
         });
 
@@ -432,12 +402,52 @@ public class MainActivity extends Activity {
             }
         });
 
+        binding.resetLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                resetLayout();
+            }
+        });
+
         binding.presentationMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendMessage(new Message().add("PresentationMode").toArray());
             }
         });
+
+        binding.updateYoutubedl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendMessage(new Message().add("UpdateYouTubeDL").toArray());
+            }
+        });
+
+        binding.restartNeoPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Restart NeoPlayer?")
+                        .setMessage("Are you sure you want to restart NeoPlayer?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                networkService.sendRestart();
+                            }
+
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+        });
+    }
+
+    private void resetLayout() {
+        viewType = ViewType.Videos;
+        setFindDataList(null);
+        setSortData(null);
+        setUseStarIDs(false);
     }
 
     private void setUseStarIDs(boolean useStarIDs) {
