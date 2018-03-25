@@ -129,7 +129,12 @@ namespace NeoPlayer
 						downloads[id] = downloadData;
 					status.Downloads = downloads.Values.ToList();
 				});
-			}, UpdateVideoFiles);
+			}, async videoFile =>
+			{
+				await Database.SaveVideoFileAsync(videoFile);
+				UpdateVideoFiles();
+				queue.Add(videoFile);
+			});
 		}
 
 		async void EditTags(EditTags editTags)

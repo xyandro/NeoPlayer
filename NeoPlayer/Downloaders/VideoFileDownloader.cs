@@ -19,7 +19,7 @@ namespace NeoPlayer.Downloaders
 		static int ID = 0;
 		static int GetID() => ++ID;
 
-		async public static void DownloadAsync(string url, Action<int, DownloadData> updateDownload, Action done)
+		async public static void DownloadAsync(string url, Action<int, DownloadData> updateDownload, Action<VideoFile> done)
 		{
 			List<VideoFile> videoFiles;
 			var id = GetID();
@@ -123,7 +123,7 @@ namespace NeoPlayer.Downloaders
 			}
 		}
 
-		async static Task DownloadFilesAsync(List<VideoFile> videoFiles, Action<int, DownloadData> updateDownload, Action done)
+		async static Task DownloadFilesAsync(List<VideoFile> videoFiles, Action<int, DownloadData> updateDownload, Action<VideoFile> done)
 		{
 			var queue = new Queue<VideoFile>(videoFiles);
 			var running = new HashSet<Task>();
@@ -140,7 +140,7 @@ namespace NeoPlayer.Downloaders
 			}
 		}
 
-		async static Task DownloadFileAsync(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action done)
+		async static Task DownloadFileAsync(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action<VideoFile> done)
 		{
 			for (var pass = 0; pass < 2; ++pass)
 			{
@@ -148,8 +148,7 @@ namespace NeoPlayer.Downloaders
 				if (found != null)
 				{
 					videoFile.FileName = Path.GetFileName(found);
-					await Database.SaveVideoFileAsync(videoFile);
-					done();
+					done(videoFile);
 					return;
 				}
 
@@ -160,7 +159,7 @@ namespace NeoPlayer.Downloaders
 			}
 		}
 
-		async static Task RunYouTubeDL(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action done)
+		async static Task RunYouTubeDL(VideoFile videoFile, Action<int, DownloadData> updateDownload, Action<VideoFile> done)
 		{
 			var id = GetID();
 			try
