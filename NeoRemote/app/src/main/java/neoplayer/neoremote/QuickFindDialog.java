@@ -42,7 +42,7 @@ public class QuickFindDialog extends DialogFragment {
             public void onClick(View view) {
                 FindData findData = new FindData("Title");
                 findData.findType = FindData.Contains;
-                findData.value1 = findText.getText().toString();
+                findData.value1 = findText.getText().toString().toLowerCase();
                 ArrayList<FindData> findDataList = new ArrayList<>();
                 findDataList.add(findData);
                 mainActivity.setFindDataList(findDataList);
