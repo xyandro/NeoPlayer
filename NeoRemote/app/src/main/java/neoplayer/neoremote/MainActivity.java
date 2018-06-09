@@ -621,14 +621,14 @@ public class MainActivity extends Activity {
         getAddressDialog = null;
     }
 
-    public void queueVideo(int videoFileID, boolean top) {
+    public void queueVideo(int videoFileID, String op) {
         ArrayList videoFileIDs = new ArrayList();
         videoFileIDs.add(videoFileID);
-        queueVideos(videoFileIDs, top);
+        queueVideos(videoFileIDs, op);
     }
 
-    public void queueVideos(ArrayList<Integer> videoFileIDs, boolean top) {
-        sendMessage(new Message().add("QueueVideos").add(videoFileIDs).add(top).toArray());
+    public void queueVideos(ArrayList<Integer> videoFileIDs, String op) {
+        sendMessage(new Message().add("QueueVideos").add(videoFileIDs).add(op).toArray());
     }
 
     public void deleteVideos(ArrayList<Integer> videoFileIDs) {

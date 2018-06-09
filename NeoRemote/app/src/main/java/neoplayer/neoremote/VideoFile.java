@@ -14,4 +14,8 @@ public class VideoFile {
     public String getTitle() {
         return tags.get("Title");
     }
+
+    public Boolean audioOnly() {
+        return Boolean.parseBoolean(tags.get("AudioOnly"));
+    }
 }

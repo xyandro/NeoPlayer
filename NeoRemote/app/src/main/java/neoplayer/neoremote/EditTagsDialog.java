@@ -37,13 +37,13 @@ public class EditTagsDialog extends DialogFragment {
         binding.check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainActivity.queueVideos(editTags.videoFileIDs, false);
+                mainActivity.queueVideos(editTags.videoFileIDs, "Toggle");
             }
         });
         binding.check.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mainActivity.queueVideos(editTags.videoFileIDs, true);
+                mainActivity.queueVideos(editTags.videoFileIDs, "PlayNext");
                 return true;
             }
         });

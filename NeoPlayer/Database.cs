@@ -229,6 +229,7 @@ CREATE TABLE TagValue
 		async public static Task SaveVideoFileAsync(VideoFile videoFile)
 		{
 			await AddOrUpdateAsync(videoFile);
+			var tagValues = (await GetAsync<TagValue>($"{nameof(TagValue.VideoFileID)} = @VideoFileID", new Dictionary<string, object> { ["VideoFileID"] = videoFile.VideoFileID })).ToDictionary(tagValue => tagValue.TagID, tagValue => tagValue.TagValueID);
 			foreach (var pair in videoFile.Tags)
 			{
 				if (!TagIDs.ContainsKey(pair.Key))
@@ -241,7 +242,17 @@ CREATE TABLE TagValue
 					}
 					TagIDs[pair.Key] = tag.TagID;
 				}
-				try { await AddOrUpdateAsync(new TagValue { VideoFileID = videoFile.VideoFileID, TagID = TagIDs[pair.Key], Value = pair.Value }); } catch { }
+				try
+				{
+					await AddOrUpdateAsync(new TagValue
+					{
+						TagValueID = tagValues.ContainsKey(TagIDs[pair.Key]) ? tagValues[TagIDs[pair.Key]] : 0,
+						VideoFileID = videoFile.VideoFileID,
+						TagID = TagIDs[pair.Key],
+						Value = pair.Value
+					});
+				}
+				catch { }
 			}
 		}
 

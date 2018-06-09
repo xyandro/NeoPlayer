@@ -91,7 +91,7 @@ namespace NeoPlayer
 			var command = message.GetString();
 			switch (command)
 			{
-				case "QueueVideos": QueueVideos(message.GetInts(), message.GetBool()); break;
+				case "QueueVideos": QueueVideos(message.GetInts(), message.GetString()); break;
 				case "SetPosition": SetPosition(message.GetInt(), message.GetBool()); break;
 				case "ToggleMediaPlaying": ToggleMediaPlaying(message.GetBool()); break;
 				case "SetVolume": SetVolume(message.GetInt(), message.GetBool()); break;
@@ -186,29 +186,47 @@ namespace NeoPlayer
 
 		void SetVolume(int volume, bool relative) => Volume = (relative ? Volume : 0) + volume;
 
-		void QueueVideos(List<int> videoFileIDs, bool top)
+		void QueueVideos(List<int> videoFileIDs, string op)
 		{
 			var queueDict = queue.ToDictionary(videoFile => videoFile.VideoFileID);
 
-			if ((top) && (VideoState != null))
+			if ((op == "PlayNext") && (VideoState != null))
 				videoFileIDs.Remove(CurrentVideo.VideoFileID);
 
 			var positions = Enumerable.Range(0, videoFileIDs.Count).ToDictionary(index => videoFileIDs[index], index => index);
 			var videoFiles = Database.GetVideoFilesAsync(videoFileIDs).Result.OrderBy(videoFile => positions[videoFile.VideoFileID]).ToList();
 
-			if ((top) || (videoFiles.Any(videoFile => queueDict.ContainsKey(videoFile.VideoFileID))))
+			if ((op == "AudioOnly") || (op == "VideoAndAudio"))
+			{
+				for (var ctr = 0; ctr < videoFiles.Count;)
+				{
+					videoFiles[ctr].AudioOnly = op == "AudioOnly";
+					Database.SaveVideoFileAsync(videoFiles[ctr]).Wait();
+					if (queueDict.ContainsKey(videoFiles[ctr].VideoFileID))
+					{
+						var index = queue.IndexOf(queueDict[videoFiles[ctr].VideoFileID]);
+						queue[index] = videoFiles[ctr];
+						queueDict[videoFiles[ctr].VideoFileID] = videoFiles[ctr];
+						videoFiles.RemoveAt(ctr);
+					}
+					else
+						++ctr;
+				}
+
+				UpdateVideoFiles();
+			}
+
+			if ((op == "PlayNext") || ((op == "Toggle") && (videoFiles.Any(videoFile => queueDict.ContainsKey(videoFile.VideoFileID)))))
 			{
 				var oldFirst = queue.FirstOrDefault();
 				videoFiles.Where(videoFile => queueDict.ContainsKey(videoFile.VideoFileID)).ForEach(videoFile => queue.Remove(queueDict[videoFile.VideoFileID]));
 				if (oldFirst != queue.FirstOrDefault())
 					VideoState = null;
-				if (!top)
+				if (op == "Toggle")
 					return;
 			}
 
-			var addIndex = queue.Count;
-			if (top)
-				addIndex = VideoState == null ? 0 : 1;
+			var addIndex = op != "PlayNext" ? queue.Count : VideoState == null ? 0 : 1;
 
 			foreach (var videoFile in videoFiles)
 				queue.Insert(addIndex++, videoFile);
@@ -398,7 +416,7 @@ namespace NeoPlayer
 
 			ValidateState();
 
-			if ((previousSlide != null) && (VideoState != null))
+			if ((previousSlide != null) && (VideoState != null) && (!CurrentVideo.AudioOnly))
 			{
 				previousSlide = null;
 				slideTime = null;
@@ -419,11 +437,12 @@ namespace NeoPlayer
 				{
 					previousVideo = CurrentVideo;
 					status.MediaTitle = previousVideo.Title;
+					mediaPlayer.Visibility = previousVideo.AudioOnly ? Visibility.Hidden : Visibility.Visible;
 					mediaPlayer.Source = new Uri(Path.Combine(Settings.VideosPath, previousVideo.FileName));
 					mediaPlayer.Pause();
 				}
 
-				if (media.Opacity != 1)
+				if ((!previousVideo.AudioOnly) && (media.Opacity != 1))
 				{
 					if (fadeAnimation == null)
 					{
@@ -439,10 +458,9 @@ namespace NeoPlayer
 					case MediaState.Play: mediaPlayer.Play(); break;
 					case MediaState.AllPlay: mediaPlayer.Play(); break;
 				}
-				return;
 			}
 
-			if (CurrentSlide != previousSlide)
+			if (((VideoState == null) || (CurrentVideo.AudioOnly)) && (CurrentSlide != previousSlide))
 			{
 				SavePreviousImage();
 

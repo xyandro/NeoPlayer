@@ -15,6 +15,19 @@ namespace NeoPlayer.Models
 		[Ignore]
 		public string URL { get; set; }
 		[Ignore]
+		public bool AudioOnly
+		{
+			get
+			{
+				if ((!Tags.ContainsKey(nameof(AudioOnly))) || (string.IsNullOrEmpty(Tags[nameof(AudioOnly)])))
+					return false;
+				if (!bool.TryParse(Tags[nameof(AudioOnly)], out var result))
+					return false;
+				return result;
+			}
+			set => Tags[nameof(AudioOnly)] = value.ToString();
+		}
+		[Ignore]
 		public Dictionary<string, string> Tags { get; } = new Dictionary<string, string>();
 	}
 }

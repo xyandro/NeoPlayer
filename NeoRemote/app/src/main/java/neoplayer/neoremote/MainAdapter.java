@@ -1,9 +1,11 @@
 package neoplayer.neoremote;
 
 import android.databinding.DataBindingUtil;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.PopupMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +82,7 @@ public class MainAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, final ViewGroup parent) {
         final VideoFile videoFile = displayList.get(position);
 
         MainAdapterItemBinding binding;
@@ -90,7 +92,7 @@ public class MainAdapter extends BaseAdapter {
         } else
             binding = (MainAdapterItemBinding) convertView.getTag();
 
-        binding.check.setImageResource(checkIDs.contains(videoFile.videoFileID) ? R.drawable.check : R.drawable.uncheck);
+        binding.check.setImageResource(!checkIDs.contains(videoFile.videoFileID) ? R.drawable.uncheck : videoFile.audioOnly() ? R.drawable.note : R.drawable.check);
         binding.name.setText(videoFile.getTitle());
         binding.star.setImageResource(starIDs.contains(videoFile.videoFileID) ? R.drawable.star : 0);
 
@@ -102,14 +104,34 @@ public class MainAdapter extends BaseAdapter {
                         starIDs.add(videoFile.videoFileID);
                     notifyDataSetChanged();
                 } else
-                    mainActivity.queueVideo(videoFile.videoFileID, false);
+                    mainActivity.queueVideo(videoFile.videoFileID, "Toggle");
             }
         });
 
         binding.getRoot().setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mainActivity.queueVideo(videoFile.videoFileID, true);
+                PopupMenu popup = new PopupMenu(parent.getContext(), view);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.play_next:
+                                mainActivity.queueVideo(videoFile.videoFileID, "PlayNext");
+                                return true;
+                            case R.id.audio_only:
+                                mainActivity.queueVideo(videoFile.videoFileID, "AudioOnly");
+                                return true;
+                            case R.id.video_and_audio:
+                                mainActivity.queueVideo(videoFile.videoFileID, "VideoAndAudio");
+                                return true;
+                            default:
+                                return false;
+                        }
+                    }
+                });
+                popup.inflate(R.menu.main_adapter_menu);
+                popup.show();
                 return true;
             }
         });

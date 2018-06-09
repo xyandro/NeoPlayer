@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/play_next"
+        android:title="Play next" />
+    <item
+        android:id="@+id/audio_only"
+        android:title="Audio only" />
+    <item
+        android:id="@+id/video_and_audio"
+        android:title="Video and audio" />
+</menu>
