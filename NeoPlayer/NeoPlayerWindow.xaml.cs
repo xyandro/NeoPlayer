@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using AudioSwitcher.AudioApi.CoreAudio;
 using NeoPlayer.Downloaders;
 using NeoPlayer.Misc;
 using NeoPlayer.Models;
@@ -601,12 +602,17 @@ namespace NeoPlayer
 			}
 		}
 
-		void PresentationMode()
+		async void PresentationMode()
 		{
 			WindowState = WindowState.Minimized;
 			Show();
 			WindowState = WindowState.Maximized;
 			Process.Start("DisplaySwitch", "/external");
+
+			var sw = Stopwatch.StartNew();
+			var coreAudio = new CoreAudioController().DefaultPlaybackDevice;
+			var elapsed = sw.ElapsedMilliseconds;
+			await coreAudio.SetVolumeAsync(100);
 		}
 
 		void Sleep() => Win32.SetSuspendState(false, true, true);
