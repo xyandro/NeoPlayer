@@ -518,6 +518,28 @@
                                 android:layout_height="50dp"
                                 android:background="@drawable/button_bg"
                                 android:text="Restart NeoPlayer" />
+
+                            <Space
+                                android:layout_width="match_parent"
+                                android:layout_height="10dp" />
+
+                            <Button
+                                android:id="@+id/sleep"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:background="@drawable/button_bg"
+                                android:text="Sleep" />
+
+                            <Space
+                                android:layout_width="match_parent"
+                                android:layout_height="10dp" />
+
+                            <Button
+                                android:id="@+id/shutdown"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:background="@drawable/button_bg"
+                                android:text="Shutdown" />
                         </LinearLayout>
 
                         <Space

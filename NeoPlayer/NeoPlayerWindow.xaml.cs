@@ -105,6 +105,8 @@ namespace NeoPlayer
 				case "EditTags": EditTags(message.GetEditTags()); break;
 				case "DeleteVideos": DeleteVideos(message.GetInts()); break;
 				case "PresentationMode": PresentationMode(); break;
+				case "Sleep": Sleep(); break;
+				case "Shutdown": Shutdown(); break;
 				default: throw new Exception("Invalid command");
 			}
 		}
@@ -607,6 +609,10 @@ namespace NeoPlayer
 			Process.Start("DisplaySwitch", "/external");
 		}
 
+		void Sleep() => Win32.SetSuspendState(false, true, true);
+
+		void Shutdown() => Process.Start(new ProcessStartInfo("shutdown", "/s /t 0") { CreateNoWindow = true, UseShellExecute = false });
+
 		public void SetPosition(int position, bool relative)
 		{
 			mediaPlayer.Position = TimeSpan.FromSeconds((relative ? mediaPlayer.Position.TotalSeconds : 0) + position);
@@ -653,7 +659,8 @@ namespace NeoPlayer
 
 		static class Win32
 		{
-			// Import SetThreadExecutionState Win32 API and necessary flags
+			[DllImport("powrprof.dll")]
+			public static extern bool SetSuspendState(bool hiberate, bool forceCritical, bool disableWakeEvent);
 			[DllImport("kernel32.dll")]
 			public static extern uint SetThreadExecutionState(uint esFlags);
 
