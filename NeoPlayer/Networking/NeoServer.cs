@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using InTheHand.Net.Sockets;
 using NeoPlayer.Misc;
 
 namespace NeoPlayer.Networking
@@ -24,6 +25,7 @@ namespace NeoPlayer.Networking
 		{
 			RunUdpListener(port);
 			RunTcpListener(port);
+			RunBluetoothListener();
 		}
 
 		async void RunUdpListener(int port)
@@ -57,6 +59,28 @@ namespace NeoPlayer.Networking
 			while (true)
 			{
 				var neoSocket = new NeoSocket(await listener.AcceptTcpClientAsync());
+				var queue = new AsyncQueue<byte[]>();
+				Reader(neoSocket, queue);
+				Writer(neoSocket, queue);
+			}
+		}
+
+		async void RunBluetoothListener()
+		{
+			BluetoothListener listener;
+			try
+			{
+				listener = new BluetoothListener(new Guid("{05e9b9dd-1688-4785-bb1d-1c750034157b}"));
+				listener.Start();
+			}
+			catch
+			{
+				MessageBox.Show($"Unable to connect to bluetooth");
+				return;
+			}
+			while (true)
+			{
+				var neoSocket = new NeoSocket(await Task.Run(() => listener.AcceptBluetoothClient()));
 				var queue = new AsyncQueue<byte[]>();
 				Reader(neoSocket, queue);
 				Writer(neoSocket, queue);

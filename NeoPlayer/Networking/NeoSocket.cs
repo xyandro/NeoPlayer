@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using InTheHand.Net.Sockets;
 
 namespace NeoPlayer.Networking
 {
@@ -9,11 +10,18 @@ namespace NeoPlayer.Networking
 	{
 		private byte[] cache;
 
-		readonly TcpClient client;
+		readonly TcpClient tcpClient;
+		readonly BluetoothClient bluetoothClient;
 		readonly Stream stream;
 		public NeoSocket(TcpClient client)
 		{
-			this.client = client;
+			tcpClient = client;
+			stream = client.GetStream();
+		}
+
+		public NeoSocket(BluetoothClient client)
+		{
+			bluetoothClient = client;
 			stream = client.GetStream();
 		}
 
@@ -22,7 +30,7 @@ namespace NeoPlayer.Networking
 			this.stream = stream;
 		}
 
-		public bool Connected => client?.Connected ?? true;
+		public bool Connected => tcpClient?.Connected ?? bluetoothClient?.Connected ?? true;
 
 		public void PutBack(byte[] buffer, int offset = 0, int? size = null)
 		{
@@ -74,7 +82,8 @@ namespace NeoPlayer.Networking
 
 		public void Close()
 		{
-			client?.Close();
+			tcpClient?.Close();
+			bluetoothClient?.Close();
 			stream.Close();
 		}
 	}

@@ -18,7 +18,7 @@ public class GetAddressDialog extends DialogFragment {
         AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                 .setMessage("Find NeoPlayer")
                 .setPositiveButton("Ok", null)
-                .setNegativeButton("Detect", null)
+                .setNegativeButton("Cancel", null)
                 .setView(R.layout.get_address_dialog)
                 .create();
         return dialog;
@@ -39,6 +39,23 @@ public class GetAddressDialog extends DialogFragment {
         AlertDialog dialog = (AlertDialog) getDialog();
         final EditText addressText = dialog.findViewById(R.id.address);
         addressText.setText(address);
+
+        dialog.findViewById(R.id.detect_wifi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newAddress = networkService.findNeoPlayerNetwork();
+                if (newAddress != null)
+                    addressText.setText(newAddress);
+            }
+        });
+        dialog.findViewById(R.id.detect_bluetooth).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newAddress = networkService.findNeoPlayerBluetooth();
+                if (newAddress != null)
+                    addressText.setText(newAddress);
+            }
+        });
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -48,9 +65,8 @@ public class GetAddressDialog extends DialogFragment {
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newAddress = networkService.findNeoPlayer();
-                if (newAddress != null)
-                    addressText.setText(newAddress);
+                dismiss();
+                mainActivity.finish();
             }
         });
     }
