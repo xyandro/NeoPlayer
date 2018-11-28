@@ -3,9 +3,12 @@ package neoplayer.neoremote;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import java.util.ArrayList;
@@ -37,6 +40,16 @@ public class QuickFindDialog extends DialogFragment {
         AlertDialog dialog = (AlertDialog) getDialog();
         final EditText findText = dialog.findViewById(R.id.find_text);
         findText.setText(this.findText);
+        findText.selectAll();
+
+        findText.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                InputMethodManager keyboard = (InputMethodManager)mainActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                keyboard.showSoftInput(findText, 0);
+            }
+        },50);
+
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
