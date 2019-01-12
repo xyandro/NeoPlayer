@@ -114,8 +114,8 @@ namespace NeoPlayer
 
 		async Task<string> ResolveShortcut(string name)
 		{
-			var result = await Database.GetAsync<Shortcut>($"{nameof(Shortcut.Name)} = @Name", new Dictionary<string, object> { ["@Name"] = name });
-			name = result.Select(shortcut => shortcut.Value).FirstOrDefault() ?? name;
+			if (name.Length <= 50)
+				name = (await Database.GetAsync<Shortcut>($"{nameof(Shortcut.Name)} = @Name", new Dictionary<string, object> { ["@Name"] = name })).FirstOrDefault()?.Value ?? name;
 			return name;
 		}
 
@@ -625,6 +625,14 @@ namespace NeoPlayer
 			status.MediaPosition = (int)mediaPlayer.Position.TotalSeconds;
 		}
 
+		void RunDownloadURLDialog()
+		{
+			var url = DownloadURLDialog.Run();
+			if (url == null)
+				return;
+			DownloadURL(url);
+		}
+
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			e.Handled = true;
@@ -633,6 +641,7 @@ namespace NeoPlayer
 				switch (e.Key)
 				{
 					case Key.S: SettingsDialog.Run(this); break;
+					case Key.D: RunDownloadURLDialog(); break;
 					case Key.N: WLAN.Start("NeoPlayer", "NeoPlayer"); break;
 					case Key.U: VideoFileDownloader.Update(); break;
 					case Key.Space: ToggleMediaPlaying(); break;

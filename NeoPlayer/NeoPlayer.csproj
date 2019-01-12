@@ -108,6 +108,13 @@
     <Compile Include="Downloaders\TumblrSlideSource.cs" />
     <Compile Include="Downloaders\URLDownloader.cs" />
     <Compile Include="Downloaders\VideoFileDownloader.cs" />
+    <Page Include="DownloadURLDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Compile Include="DownloadURLDialog.xaml.cs">
+      <DependentUpon>DownloadURLDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Misc\AsyncHelper.cs" />
     <Compile Include="Misc\AsyncQueue.cs" />
     <Compile Include="Misc\Cryptor.cs" />
