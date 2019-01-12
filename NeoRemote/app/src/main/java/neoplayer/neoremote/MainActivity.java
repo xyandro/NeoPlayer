@@ -734,15 +734,13 @@ public class MainActivity extends Activity {
 
                         if (sortItem.direction == SortData.SortDirection.None)
                             continue;
-                        int compare = Helpers.stringCompare(videoFile1.tags.get(sortItem.tag), videoFile2.tags.get(sortItem.tag), false, true);
+                        int compare = Helpers.stringCompare(videoFile1.tags.get(sortItem.tag), videoFile2.tags.get(sortItem.tag), sortItem.direction == SortData.SortDirection.Ascending, false, true);
                         if (compare == 0)
                             continue;
-                        if (sortItem.direction == SortData.SortDirection.Descending)
-                            compare *= -1;
                         return compare;
                     }
                 }
-                return Helpers.stringCompare(videoFile1.getTitle(), videoFile2.getTitle(), false, true);
+                return Helpers.stringCompare(videoFile1.getTitle(), videoFile2.getTitle(), true, false, true);
             }
         });
     }

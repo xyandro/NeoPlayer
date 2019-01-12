@@ -18,14 +18,18 @@ public class Helpers {
     }
 
     public static int stringCompare(String str1, String str2) {
-        return stringCompare(str1, str2, true, false);
+        return stringCompare(str1, str2, true, true, false);
     }
 
-    public static int stringCompare(String str1, String str2, boolean caseSensitive) {
-        return stringCompare(str1, str2, caseSensitive, false);
+    public static int stringCompare(String str1, String str2, boolean ascending) {
+        return stringCompare(str1, str2, ascending, true, false);
     }
 
-    public static int stringCompare(String str1, String str2, boolean caseSensitive, boolean alphanumeric) {
+    public static int stringCompare(String str1, String str2, boolean ascending, boolean caseSensitive) {
+        return stringCompare(str1, str2, ascending, caseSensitive, false);
+    }
+
+    public static int stringCompare(String str1, String str2, boolean ascending, boolean caseSensitive, boolean alphanumeric) {
         if (str1 == null)
             if (str2 == null)
                 return 0;
@@ -46,14 +50,15 @@ public class Helpers {
 
         int index1 = 0;
         int index2 = 0;
+        int orderMultiplier = ascending ? 1 : -1;
         while (true) {
             if (index1 >= str1.length())
                 if (index2 >= str2.length())
                     return 0;
                 else
-                    return -1;
+                    return -orderMultiplier;
             if (index2 >= str2.length())
-                return 1;
+                return orderMultiplier;
 
             if ((Character.isDigit(str1.charAt(index1))) && (Character.isDigit(str2.charAt(index2)))) {
                 int int1 = 0;
@@ -64,12 +69,12 @@ public class Helpers {
                     int2 = int2 * 10 + str2.charAt(index2++) - '0';
                 if (int1 == int2)
                     continue;
-                return int1 - int2;
+                return (int1 - int2) * orderMultiplier;
             }
 
             int compare = str1.charAt(index1) - str2.charAt(index2);
             if (compare != 0)
-                return compare;
+                return compare * orderMultiplier;
 
             ++index1;
             ++index2;

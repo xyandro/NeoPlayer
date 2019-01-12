@@ -164,7 +164,7 @@ namespace NeoPlayer
 
 					if (!string.IsNullOrWhiteSpace(tag.Value))
 					{
-						tagValue.Value = string.IsNullOrWhiteSpace(tag.Value) ? null : tag.Value;
+						tagValue.Value = tag.Value;
 						await Database.AddOrUpdateAsync(tagValue);
 					}
 					else if (tagValue.TagValueID != 0)
@@ -443,6 +443,7 @@ namespace NeoPlayer
 					mediaPlayer.Visibility = previousVideo.AudioOnly ? Visibility.Hidden : Visibility.Visible;
 					mediaPlayer.Source = new Uri(Path.Combine(Settings.VideosPath, previousVideo.FileName));
 					mediaPlayer.Pause();
+					EditTags(new EditTags { VideoFileIDs = new List<int> { previousVideo.VideoFileID }, Tags = new Dictionary<string, string> { ["LastViewed"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") } });
 				}
 
 				if ((!previousVideo.AudioOnly) && (media.Opacity != 1))
