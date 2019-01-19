@@ -1,12 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
 using NeoPlayer.Downloaders;
 using NeoPlayer.Misc;
 using NeoPlayer.Models;
@@ -113,6 +119,52 @@ namespace NeoPlayer
 				Database.DeleteAsync(videoFile).Wait();
 
 			neoPlayerWindow.UpdateVideoFiles();
+		}
+
+		async void OnYouTubeSyncClick(object sender, RoutedEventArgs e)
+		{
+			var keep = new HashSet<string>((await Database.GetAsync<VideoFile>()).Where(x => x.Identifier.StartsWith("-NEID-youtube-")).Select(x => x.Identifier.Substring("-NEID-youtube-".Length)));
+
+			UserCredential credential;
+			using (var stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+			{
+				credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+					GoogleClientSecrets.Load(stream).Secrets,
+					new[] { YouTubeService.Scope.Youtube },
+					"user",
+					CancellationToken.None
+				);
+			}
+			var service = new YouTubeService(new BaseClientService.Initializer { HttpClientInitializer = credential, ApplicationName = "NeoPlayer" });
+
+			var playlists = await new PlaylistsResource.ListRequest(service, "snippet") { Mine = true }.ExecuteAsync();
+			var coolPlaylist = playlists.Items.Single(item => item.Snippet.Title.Equals("cool", StringComparison.OrdinalIgnoreCase));
+
+			var list = new List<PlaylistItem>();
+			var token = default(string);
+			while (true)
+			{
+				var listRequest = new PlaylistItemsResource.ListRequest(service, "snippet") { PlaylistId = coolPlaylist.Id, MaxResults = 50, PageToken = token };
+				var listResult = await listRequest.ExecuteAsync();
+				list.AddRange(listResult.Items);
+				token = listResult.NextPageToken;
+				if (listResult.Items.Count != 50)
+					break;
+			}
+
+			var delete = list.Where(item => !keep.Contains(item.Snippet.ResourceId.VideoId)).ToList();
+			if (!delete.Any())
+			{
+				MessageBox.Show("Nothing found to remove.");
+				return;
+			}
+
+			if (MessageBox.Show($"Are you sure you want to remove these {delete.Count} items from YouTube?\n\n{string.Join("\n", delete.Select(item => item.Snippet.Title).OrderBy(x => x))}", "Confirm", MessageBoxButton.YesNoCancel) != MessageBoxResult.Yes)
+				return;
+
+			foreach (var item in delete)
+				await new PlaylistItemsResource.DeleteRequest(service, item.Id).ExecuteAsync();
+			MessageBox.Show("Items removed.");
 		}
 
 		void OnYouTubeDLUpdateClick(object sender, RoutedEventArgs e) => VideoFileDownloader.Update();
