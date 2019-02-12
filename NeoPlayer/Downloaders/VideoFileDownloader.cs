@@ -101,7 +101,9 @@ namespace NeoPlayer.Downloaders
 							var child_id = (child["id"] as JValue)?.ToString();
 							if (child_id == null)
 								continue;
-							queue.Enqueue(Tuple.Create($"https://www.youtube.com/watch?v={child_id}", child));
+							var identifier = $"-NEID-youtube-{child_id}";
+							if (!(await Database.GetAsync<Deleted>($"Identifier = '{identifier}'")).Any())
+								queue.Enqueue(Tuple.Create($"https://www.youtube.com/watch?v={child_id}", child));
 						}
 						continue;
 					}

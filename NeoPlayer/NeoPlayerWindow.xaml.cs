@@ -182,6 +182,8 @@ namespace NeoPlayer
 			foreach (var videoFile in videoFiles)
 			{
 				await Database.DeleteAsync(videoFile);
+				if (!(await Database.GetAsync<Deleted>($"Identifier = '{videoFile.Identifier}'")).Any())
+					await Database.AddOrUpdateAsync(new Deleted { Identifier = videoFile.Identifier });
 				File.Delete(Path.Combine(Settings.VideosPath, videoFile.FileName));
 			}
 			UpdateVideoFiles();

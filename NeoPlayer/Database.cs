@@ -102,6 +102,16 @@ CREATE TABLE TagValue
 )");
 		}
 
+		async static Task UpdateTo2()
+		{
+			await ExecuteNonQueryAsync(@"
+CREATE TABLE Deleted
+(
+	DeletedID INT NOT NULL PRIMARY KEY IDENTITY(1, 1),
+	Identifier NVARCHAR(256) NOT NULL CONSTRAINT uk_Deleted_Identifier UNIQUE
+)");
+		}
+
 		static List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties().Where(prop => prop.GetCustomAttribute<IgnoreAttribute>() == null).ToList();
 
 		static PropertyInfo GetPrimaryKey(List<PropertyInfo> properties)
