@@ -125,6 +125,11 @@ public class MainAdapter extends BaseAdapter {
                             case R.id.video_and_audio:
                                 mainActivity.queueVideo(videoFile.videoFileID, "VideoAndAudio");
                                 return true;
+                            case R.id.delete:
+                                ArrayList<Integer> videoFileIDs = new ArrayList<Integer>();
+                                videoFileIDs.add(videoFile.videoFileID);
+                                mainActivity.deleteVideos(videoFileIDs);
+                                return true;
                             default:
                                 return false;
                         }

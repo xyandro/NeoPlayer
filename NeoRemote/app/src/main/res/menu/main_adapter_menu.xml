@@ -9,4 +9,7 @@
     <item
         android:id="@+id/video_and_audio"
         android:title="Video and audio" />
+    <item
+        android:id="@+id/delete"
+        android:title="Delete" />
 </menu>
