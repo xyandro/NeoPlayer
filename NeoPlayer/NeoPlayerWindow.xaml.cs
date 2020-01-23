@@ -492,7 +492,12 @@ namespace NeoPlayer
 				FadeInUIElement(slide);
 			}
 
-			status.MediaTitle = CurrentVideo?.Title ?? CurrentMusic?.Title ?? "";
+			var title = CurrentVideo?.Title;
+			if ((title == null) && (CurrentMusic?.Title != null))
+				title = $"♫ {CurrentMusic?.Title}";
+			title = title ?? "";
+			status.MediaTitle = title;
+
 			if (MusicState != null)
 			{
 				if (previousMusic != CurrentMusic)
