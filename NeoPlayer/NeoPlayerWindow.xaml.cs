@@ -649,6 +649,7 @@ namespace NeoPlayer
 				switch (e.Key)
 				{
 					case Key.S: SettingsDialog.Run(this); break;
+					case Key.I: ImportDialog.Run(this); break;
 					case Key.D: RunDownloadURLDialog(); break;
 					case Key.N: WLAN.Start("NeoPlayer", "NeoPlayer"); break;
 					case Key.U: VideoFileDownloader.Update(); break;

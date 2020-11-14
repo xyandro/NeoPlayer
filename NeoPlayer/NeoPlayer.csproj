@@ -131,6 +131,13 @@
     <Compile Include="DownloadURLDialog.xaml.cs">
       <DependentUpon>DownloadURLDialog.xaml</DependentUpon>
     </Compile>
+    <Page Include="ImportDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="ImportDialog.xaml.cs">
+      <DependentUpon>ImportDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Misc\AsyncHelper.cs" />
     <Compile Include="Misc\AsyncQueue.cs" />
     <Compile Include="Misc\Cryptor.cs" />

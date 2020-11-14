@@ -1,0 +1,33 @@
+﻿<Window Name="self" x:Class="NeoPlayer.ImportDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Import" SizeToContent="WidthAndHeight" FocusManager.FocusedElement="{Binding ElementName=fileName}">
+
+	<Grid Margin="10">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="Auto"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="10"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+
+		<Label Grid.Row="0" Grid.Column="0" Content="_File:" HorizontalAlignment="Right" Target="{Binding ElementName=fileName}"/>
+		<TextBox Grid.Row="0" Grid.Column="1" Name="fileName" Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" MinWidth="500"/>
+		<Button Grid.Row="0" Grid.Column="2" Content="_Browse" Width="50" DockPanel.Dock="Right" Click="OnBrowseClick"/>
+
+		<Label Grid.Row="1" Grid.Column="0" Content="_Title:" HorizontalAlignment="Right" Target="{Binding ElementName=fileTitle}"/>
+		<TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Name="fileTitle" Text="{Binding FileTitle, UpdateSourceTrigger=PropertyChanged}"/>
+
+		<UniformGrid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Rows="1" HorizontalAlignment="Right">
+			<Button IsDefault="True" Content="OK" Padding="10,0" Click="OnOKClick"/>
+			<Button IsCancel="True" Content="Cancel" Padding="10,0"/>
+		</UniformGrid>
+	</Grid>
+
+</Window>
