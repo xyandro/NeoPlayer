@@ -94,7 +94,7 @@ namespace NeoPlayer.Downloaders
 					var obj = queue.Dequeue();
 					var json = obj.Item2;
 					var extractor = ((json["extractor"] as JValue) ?? (json["ie_key"] as JValue))?.ToString().ToLower();
-					if (extractor == "youtube:playlist")
+					if ((extractor == "youtube:playlist") || (extractor == "youtube:tab"))
 					{
 						foreach (var child in json["entries"].Children())
 						{
